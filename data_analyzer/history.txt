@@ -1,0 +1,1000 @@
+ 1018  emacs combinedEX_DBCurr0v95.py
+ 1019  python3 combinedEX_DBCurr0v95.py 
+ 1020  emacs combinedEX_DBCurr0v95.py
+ 1021  python3 combinedEX_DBCurr0v95.py 
+ 1022  emacs combinedEX_DBCurr0v95.py
+ 1023  python3 combinedEX_DBCurr0v95.py 
+ 1024  emacs combinedEX_DBCurr0v95.py
+ 1025  python3 combinedEX_DBCurr0v95.py 
+ 1026  ls -l
+ 1027  emacs combinedEX_DBCurr0v95.py
+ 1028  python3 combinedEX_DBCurr0v95.py 
+ 1029  emacs combinedEX_DBCurr0v95.py
+ 1030  python3 combinedEX_DBCurr0v95.py 
+ 1031  emacs combinedEX_DBCurr0v95.py
+ 1032  python3 combinedEX_DBCurr0v95.py 
+ 1033  emacs combinedEX_DBCurr0v95.py
+ 1034  python3 combinedEX_DBCurr0v95.py 
+ 1035  emacs combinedEX_DBCurr0v95.py
+ 1036  python3 combinedEX_DBCurr0v95.py 
+ 1037  emacs combinedEX_DBCurr0v95.py
+ 1038  python3 combinedEX_DBCurr0v95.py 
+ 1039  emacs combinedEX_DBCurr0v95.py
+ 1040  python3 combinedEX_DBCurr0v95.py 
+ 1041  emacs combinedEX_DBCurr0v95.py
+ 1042  ls -lt
+ 1043  cp combinedEX_*.py db-qual/
+ 1044  cd db-qual/
+ 1045  ls -l
+ 1046  git status
+ 1047  git add combinedEX_*
+ 1048  git status
+ 1049  git commit -m "Adding the combined plotly script for gbtrx_rdy, crc, ber, Latency and the first current."
+ 1050  git push origin master
+ 1051  git status
+ 1052  exit
+ 1053  ls -l
+ 1054  cd atlas_lab_scripts/
+ 1055  ls -l
+ 1056  cd data_analyzer/
+ 1057  ls -l
+ 1058  ls
+ 1059  ls -l
+ 1060  rm *.py~
+ 1061  ls -l
+ 1062  ls
+ 1063  cd ..
+ 1064  cd data_analyzer/
+ 1065  ls -l
+ 1066  logout
+ 1067  ls -l
+ 1068  cd atlas_lab_scripts/data_analyzer/
+ 1069  ls -l
+ 1070  source myenv/bin/activate
+ 1071  ls -l
+ 1072  ls
+ 1073  python3 combinedEX_BER.py 
+ 1074  pwd
+ 1075  ls -tl
+ 1076  deactivate
+ 1077  logout
+ 1078  ls -lt
+ 1079  cd atlas_lab_scripts/
+ 1080  ls -l
+ 1081  cd data_analyzer/
+ 1082  ls -l
+ 1083  cd db-qual/ls -l
+ 1084  cd db-qual/
+ 1085  ls -l
+ 1086  cd ..
+ 1087  ls -l
+ 1088  rm combinedEX_*.py~
+ 1089  ls -l
+ 1090  emacs combinedEX_DBCurr0v95.py 
+ 1091  ls -lt
+ 1092  python3 combinedEX_DBCurr0v95.py 
+ 1093  source myenv/bin/activate
+ 1094  ls -l
+ 1095  python3 combinedEX_DBCurr0v95.py 
+ 1096  emacs combinedEX_DBCurr0v95.py 
+ 1097  python3 combinedEX_DBCurr0v95.py 
+ 1098  emacs combinedEX_DBCurr0v95.py
+ 1099  python3 combinedEX_DBCurr0v95.py 
+ 1100  emacs combinedEX_DBCurr0v95.py
+ 1101  python3 combinedEX_DBCurr0v95.py 
+ 1102  emacs combinedEX_DBCurr0v95.py
+ 1103  python3 combinedEX_DBCurr0v95.py 
+ 1104  emacs combinedEX_DBCurr0v95.py
+ 1105  python3 combinedEX_DBCurr0v95.py 
+ 1106  emacs combinedEX_DBCurr0v95.py
+ 1107  python3 combinedEX_DBCurr0v95.py 
+ 1108  emacs combinedEX_DBCurr0v95.py
+ 1109  python3 combinedEX_DBCurr0v95.py 
+ 1110  emacs combinedEX_DBCurr0v95.py
+ 1111  python3 combinedEX_DBCurr0v95.py 
+ 1112  emacs combinedEX_DBCurr0v95.py
+ 1113  python3 combinedEX_DBCurr0v95.py 
+ 1114  emacs combinedEX_DBCurr0v95.py
+ 1115  fg "%emacs"
+ 1116  python3 combinedEX_DBCurr0v95.py 
+ 1117  emacs combinedEX_DBCurr0v95.py
+ 1118  python3 combinedEX_DBCurr0v95.py 
+ 1119  emacs combinedEX_DBCurr0v95.py
+ 1120  python3 combinedEX_DBCurr0v95.py 
+ 1121  emacs combinedEX_DBCurr0v95.py
+ 1122  python3 combinedEX_DBCurr0v95.py 
+ 1123  emacs combinedEX_DBCurr0v95.py
+ 1124  python3 combinedEX_DBCurr0v95.py 
+ 1125  emacs combinedEX_DBCurr0v95.py
+ 1126  python3 combinedEX_DBCurr0v95.py 
+ 1127  emacs combinedEX_DBCurr0v95.py
+ 1128  python3 combinedEX_DBCurr0v95.py 
+ 1129  emacs combinedEX_DBCurr0v95.py
+ 1130  python3 combinedEX_DBCurr0v95.py 
+ 1131  emacs combinedEX_DBCurr0v95.py
+ 1132  python3 combinedEX_DBCurr0v95.py 
+ 1133  emacs combinedEX_DBCurr0v95.py
+ 1134  python3 combinedEX_DBCurr0v95.py 
+ 1135  emacs combinedEX_DBCurr0v95.py
+ 1136  python3 combinedEX_DBCurr0v95.py 
+ 1137  emacs combinedEX_DBCurr0v95.py
+ 1138  python3 combinedEX_DBCurr0v95.py 
+ 1139  emacs combinedEX_DBCurr0v95.py
+ 1140  python3 combinedEX_DBCurr0v95.py 
+ 1141  emacs combinedEX_
+ 1142  emacs combinedEX_DBCurr0v95.py
+ 1143  emacs combinedEX_
+ 1144  python3 combinedEX_DBCurr0v95.py 
+ 1145  emacs combinedEX_DBCurr0v95.py
+ 1146  python3 combinedEX_DBCurr0v95.py 
+ 1147  emacs combinedEX_DBCurr0v95.py
+ 1148  python3 combinedEX_DBCurr0v95.py 
+ 1149  emacs combinedEX_DBCurr0v95.py
+ 1150  python3 combinedEX_DBCurr0v95.py 
+ 1151  emacs combinedEX_DBCurr0v95.py
+ 1152  python3 combinedEX_DBCurr0v95.py 
+ 1153  emacs combinedEX_DBCurr0v95.py
+ 1154  python3 combinedEX_DBCurr0v95.py 
+ 1155  emacs combinedEX_DBCurr0v95.py
+ 1156  python3 combinedEX_DBCurr0v95.py 
+ 1157  emacs combinedEX_DBCurr0v95.py
+ 1158  python3 combinedEX_DBCurr0v95.py 
+ 1159  emacs combinedEX_DBCurr0v95.py
+ 1160  python3 combinedEX_DBCurr0v95.py 
+ 1161  ls -l
+ 1162  emacs combinedEX_DBCurr0v95.py
+ 1163  ls -l
+ 1164  mkdir Scripting_InfluxDB_1126_CombinedVars
+ 1165  ls -.l
+ 1166  ls -l
+ 1167  ls -lt
+ 1168  mv plotly_SummaryPrototype. Scripting_InfluxDB_1126_CombinedVars/
+ 1169  mv plotly_SummaryPrototype.html Scripting_InfluxDB_1126_CombinedVars/
+ 1170  mv summary_PrototypePlot.py Scripting_InfluxDB_1126_CombinedVars/
+ 1171  ls -lt
+ 1172  mv plotly_GBTRXRDY_PPrEmuMD1_MariaDB.html Scripting_InfluxDB_1126_CombinedVars/plotly_GBTRXRDY_combined.html
+ 1173  ls -l
+ 1174  ls -lt
+ 1175  rm plotly_SummaryPrototype.png 
+ 1176  rm plotly_GBTRXRDY_PPrEmuMD1_MariaDB.png 
+ 1177  ls -l
+ 1178  ls -lt
+ 1179  mv combinedEX_Latency.py Scripting_InfluxDB_1126_CombinedVars/
+ 1180  ls -lt
+ 1181  mv plotly_LATENCY_PPrEmuMD1_MariaDB.html Scripting_InfluxDB_1126_CombinedVars/plotly_LATENCY_combined.html
+ 1182  ls -l
+ 1183  ls -lt
+ 1184  rm plotly_LATENCY_PPrEmuMD1_MariaDB.png 
+ 1185  mv combinedEX_GBTRX.py Scripting_InfluxDB_1126_CombinedVars/
+ 1186  mv combinedEX_CRC.py Scripting_InfluxDB_1126_CombinedVars/
+ 1187  mv plotly_CRC_PPrEmuMD1_MariaDB.html Scripting_InfluxDB_1126_CombinedVars/plotly_CRC_combined.html
+ 1188  ls -lt
+ 1189  mv combinedEX_BER.py Scripting_InfluxDB_1126_CombinedVars/
+ 1190  mv plotly_BER_PPrEmuMD1_MariaDB.html Scripting_InfluxDB_1126_CombinedVars/plotly_BER_combined.html
+ 1191  rm plotly_CRC_PPrEmuMD1_MariaDB.png 
+ 1192  rm plotly_BER_PPrEmuMD1_MariaDB.png 
+ 1193  ls -l
+ 1194  ls -tl
+ 1195  rmn combinedEX_DBCurr0v95.py~
+ 1196  rm combinedEX_DBCurr0v95.py~
+ 1197  ls -lt
+ 1198  emacs combinedEX_DBCurr0v95.py 
+ 1199  ls -l Scripting_InfluxDB_1126_CombinedVars/
+ 1200  ls -ltr
+ 1201  emacs combinedEX_DBCurr0v95.p
+ 1202  emacs combinedEX_DBCurr0v95.py
+ 1203  cp combinedEX_DBCurr0v95.py combinedEX_DBCurr1v0.py
+ 1204  emacs combinedEX_DBCurr1v0.py 
+ 1205  python3 combinedEX_DBCurr1v0.py 
+ 1206  ls -lt
+ 1207  emacs combinedEX_DBCurr1v0.py
+ 1208  cp combinedEX_DBCurr1v0.py combinedEX_DBCurr1v2.py
+ 1209  emacs combinedEX_DBCurr1v2.py 
+ 1210  emacs combinedEX_DBCurr1v0.py
+ 1211  emacs combinedEX_DBCurr1v2.py
+ 1212  python3 combinedEX_DBCurr1v2.py 
+ 1213  ls -lt
+ 1214  emacs combinedEX_DBCurr1v2.py
+ 1215  ls -l
+ 1216  ls -lt
+ 1217  python3 combinedEX_DBCurr1v2.py 
+ 1218  ls -l
+ 1219  ls -lt
+ 1220  cp combinedEX_DBCurr1v2.py combinedEX_DBCurr1v5.py
+ 1221  emacs combinedEX_DBCurr1v5.py 
+ 1222  python3 combinedEX_DBCurr1v5.py 
+ 1223  emacs combinedEX_DBCurr1v5.py
+ 1224  python3 combinedEX_DBCurr1v5.py 
+ 1225  ls lt
+ 1226  ls -lt
+ 1227  cp combinedEX_DBCurr1v5.py combinedEX_DBCurr1v8.py
+ 1228  emacs combinedEX_DBCurr1v8.py 
+ 1229  python3 combinedEX_DBCurr1v8.py 
+ 1230  ls -lt
+ 1231  cp combinedEX_DBCurr1v8.py combinedEX_DBCurr2v5.py
+ 1232  emacs combinedEX_DBCurr2v5.py 
+ 1233  python3 combinedEX_DBCurr2v5.py 
+ 1234  cp combinedEX_DBCurr2v5.py combinedEX_DBCurr3v3.py
+ 1235  ls -lt
+ 1236  emacs combinedEX_DBCurr3v3.py 
+ 1237  python3 combinedEX_DBCurr3v3.py 
+ 1238  ls -lt
+ 1239  ls -lt Scripting_InfluxDB_1126_CombinedVars/
+ 1240  ls -l Scripting_InfluxDB_1126_CombinedVars/
+ 1241  cp combinedEX_DBCurr*.py Scripting_InfluxDB_1126_CombinedVars/
+ 1242  cp plotly_DBCurrent_*.html Scripting_InfluxDB_1126_CombinedVars/
+ 1243  ls -lt
+ 1244  ls -l
+ 1245  rm *.py~
+ 1246  ls -lt
+ 1247  ls -l
+ 1248  cp combinedEX_DBCurr0v95.py combinedEX_MBCurrPv5.py
+ 1249  mv combinedEX_MBCurrPv5.py combinedEX_MBCurrP5v.py
+ 1250  ls -l
+ 1251  emacs combinedEX_MBCurrP5v.py 
+ 1252  fg "%emacs" 
+ 1253  python3 combinedEX_MBCurrP5v.py 
+ 1254  ls -lty
+ 1255  ls -lt
+ 1256  emacs combinedEX_MBCurrP5v.py
+ 1257  python3 combinedEX_MBCurrP5v.py 
+ 1258  ls -lt
+ 1259  rm plotly_DBCurrent_P5v_combined.html 
+ 1260  ls -lt
+ 1261  emacs combinedEX_MBCurrP5v.py
+ 1262  ls -lt
+ 1263  cp combinedEX_MBCurrP5v.py combinedEX_MBCurrN5v.py
+ 1264  emacs combinedEX_MBCurrP5v.py
+ 1265  python3 combinedEX_MBCurrP5v.py 
+ 1266  emacs combinedEX_MBCurrP5v.py
+ 1267  python3 combinedEX_MBCurrP5v.py 
+ 1268  emacs combinedEX_MBCurrP5v.py
+ 1269  python3 combinedEX_MBCurrP5v.py 
+ 1270  ls -lt
+ 1271  emacs combinedEX_MBCurrN5v.py 
+ 1272  python3 combinedEX_MBCurrN5v.py 
+ 1273  ls -lt
+ 1274  cp combinedEX_MBCurrP5v.py combinedEX_MBCurr1v2.py
+ 1275  emacs combinedEX_MBCurr1v2.py 
+ 1276  python combinedEX_MBCurr1v2.py 
+ 1277  emacs combinedEX_MBCurr1v2.py
+ 1278  python combinedEX_MBCurr1v2.py 
+ 1279  cp combinedEX_MBCurr1v2.py combinedEX_MBCurr1v5
+ 1280  mv combinedEX_MBCurr1v5 combinedEX_MBCurr1v8.py
+ 1281  emacs combinedEX_MBCurr1v8.py 
+ 1282  python3 combinedEX_MBCurr1v8.py 
+ 1283  cp combinedEX_MBCurr1v8.py combinedEX_MBCurr2v5.py
+ 1284  emacs combinedEX_MBCurr2v5.py 
+ 1285  python3 combinedEX_MBCurr2v5.py 
+ 1286  ls -l
+ 1287  rm combinedEX_MBCurr*.py~
+ 1288  ls -l
+ 1289  ls -l Scripting_InfluxDB_0924_CRCBER/
+ 1290  ls -l
+ 1291  ls -l Scripting_InfluxDB_0917_Current/
+ 1292  ls -l
+ 1293  ls -l Scripting_InfluxDB_0908_TestCurrent/
+ 1294  ls -l
+ 1295  ls -l Scripting_InfluxDB_0903/
+ 1296  ls -l
+ 1297  ls -l db-qual/
+ 1298  cp db-qual/queryTemperatures_InfluxDB.py  .
+ 1299  emacs queryTemperatures_InfluxDB.py 
+ 1300  rm queryTemperatures_InfluxDB.py 
+ 1301  ls -l db-qual/
+ 1302  ls -l
+ 1303  cp combinedEX_DBCurr0v95.py combinedEX_DBMaxTemp.py
+ 1304  emacs combinedEX_DBMaxTemp.py 
+ 1305  ls  -l Scripting_InfluxDB_0917_Current/
+ 1306  ls -l db-qual/
+ 1307  ls -lt
+ 1308  emac combinedEX_DBMaxTemp.py
+ 1309  emacs combinedEX_DBMaxTemp.py
+ 1310  ls -lt
+ 1311  rm \#combinedEX_DBMaxTemp.py# 
+ 1312  emacs combinedEX_DBMaxTemp.py
+ 1313  python3 combinedEX_DBMaxTemp.py 
+ 1314  ls -lt
+ 1315  rm combinedEX_DBMaxTemp.py~
+ 1316  ls -l
+ 1317  cp combinedEX_DBCurr0v95.py combinedEX_DBMaxvccint.py
+ 1318  emacs combinedEX_DBMaxvccint.py 
+ 1319  emacs combinedEX_DBMaxTemp.py 
+ 1320  ls -l
+ 1321  mv plotly_DBMaxTemp_combined.html plotly_maxtemp_combined.html
+ 1322  emacs combinedEX_DBMaxTemp.py 
+ 1323  ls -l
+ 1324  emacs combinedEX_DBMaxvccint.py
+ 1325  mv combinedEX_DBMaxvccint.py combinedEX_maxvccint.py
+ 1326  python3 combinedEX_maxvccint.py 
+ 1327  ls -lt
+ 1328  ls- l
+ 1329  ls -lt
+ 1330  ls -l
+ 1331  cp combinedEX_maxvccint.py combinedEX_maxvccout.py
+ 1332  emacs combinedEX_maxvccout.py 
+ 1333  python3 combinedEX_maxvccout.py 
+ 1334  ls -lt
+ 1335  cp combinedEX_maxvccint.py combinedEX_minvccint.py
+ 1336  emacs combinedEX_minvccint.py 
+ 1337  python combinedEX_minvccint.py 
+ 1338  ls -tl
+ 1339  cp combinedEX_maxvccout.py combinedEX_minvccout.py
+ 1340  ls -l
+ 1341  ls -lt
+ 1342  emacs combinedEX_mincco
+ 1343  emacs combinedEX_minvccout.py 
+ 1344  python3 combinedEX_minvccout.py 
+ 1345  ls -l
+ 1346  cp combinedEX_minvccint.py combinedEX_minvram.py
+ 1347  emacs combinedEX_minvram.py 
+ 1348  python3 combinedEX_minvram.py 
+ 1349  ls -l
+ 1350  cp combinedEX_minvram.py combinedEX_maxvram.py
+ 1351  ls -l
+ 1352  emacs combinedEX_maxvram.py 
+ 1353  python combinedEX_maxvram.py 
+ 1354  ls -l
+ 1355  rm combinedEX_*.py~
+ 1356  ls -l
+ 1357  ls -l Scripting_InfluxDB_1126_CombinedVars/
+ 1358  emacs summ
+ 1359  cd Scripting_InfluxDB_1126_CombinedVars/
+ 1360  ls -l
+ 1361  emacs summary_PrototypePlot.py 
+ 1362  cd ..
+ 1363  ls -l
+ 1364  cp Scripting_InfluxDB_1126_CombinedVars/summary_PrototypePlot.py .
+ 1365  python3 summary_PrototypePlot.py 
+ 1366  ls -lt
+ 1367  ls -l Scripting_InfluxDB_1126_CombinedVars/
+ 1368  mv plotly_SummaryPrototype.* Scripting_InfluxDB_1126_CombinedVars/
+ 1369  ls -l
+ 1370  ls -lt
+ 1371  ls -l
+ 1372  ls -l Scripting_InfluxDB_1126_CombinedVars/
+ 1373  cp Scripting_InfluxDB_1126_CombinedVars/combinedEX_GBTRX.py .
+ 1374  emacs combinedEX_GBTRX.py 
+ 1375  python3 combinedEX_GBTRX.py 
+ 1376  ls -l
+ 1377  ls -lt
+ 1378  cp Scripting_InfluxDB_1126_CombinedVars/combinedEX_CRC.py 
+ 1379  cp Scripting_InfluxDB_1126_CombinedVars/combinedEX_CRC.py .
+ 1380  emacs combinedEX_CRC.py 
+ 1381  python3 combinedEX_CRC.py 
+ 1382  cp Scripting_InfluxDB_1126_CombinedVars/combinedEX_BER.py .
+ 1383  emacs combinedEX_BER.py 
+ 1384  python3 combinedEX_BER.py 
+ 1385  cp Scripting_InfluxDB_1126_CombinedVars/
+ 1386  cp Scripting_InfluxDB_1126_CombinedVars/combinedEX_Latency.py .
+ 1387  emacs combinedEX_Latency.py 
+ 1388  python3 combinedEX_Latency.py 
+ 1389  LS -LT
+ 1390  ls -lt
+ 1391  clear
+ 1392  emacs combinedEX_DBCurr0v95.py 
+ 1393  python3 combinedEX_DBCurr0v95.py 
+ 1394  emacs combinedEX_DBCurr0v95.py 
+ 1395  python3 combinedEX_DBCurr0v95.py 
+ 1396  emacs combinedEX_DBCurr1v0.py 
+ 1397  python combinedEX_DBCurr1v0.py 
+ 1398  python3 combinedEX_DBCurr1v0.py 
+ 1399  ls -lt
+ 1400  emacs combinedEX_DBCurr1v2.py 
+ 1401  python3 combinedEX_DBCurr1v2.py 
+ 1402  ls -lt
+ 1403  emacs combinedEX_DBCurr1v8.py 
+ 1404  python3 combinedEX_DBCurr1v8.py 
+ 1405  ls -lt
+ 1406  ls -l Scripting_InfluxDB_1126_CombinedVars/
+ 1407  emacs combinedEX_DBCurr1v5.py 
+ 1408  python3 combinedEX_1v5
+ 1409  python3 combinedEX_1v5.
+ 1410  python3 combinedEX_DBCurr1v5.py 
+ 1411  python3 combinedEX_DBCurr1v8.py 
+ 1412  ls -l
+ 1413  ls -lt
+ 1414  emacs combinedEX_DBCurr2v5.py 
+ 1415  python3 combinedEX_DBCurr2v5.py 
+ 1416  emacs combinedEX_DBCurr3v3.py 
+ 1417  python3 combinedEX_DBCurr3v3.py 
+ 1418  ls -lt
+ 1419  emacs combinedEX_MBCurrP5v.py 
+ 1420  python3 combinedEX_MBCurrP5v.py 
+ 1421  emacs combinedEX_MBCurrN5v.py 
+ 1422  python3 combinedEX_MBCurr
+ 1423  python3 combinedEX_MBCurrN5v.py 
+ 1424  emacs combinedEX_MBCurr1v2.py 
+ 1425  python3 combinedEX_MBCurr1v2.py 
+ 1426  emacs combinedEX_MBCurr1v8.py 
+ 1427  python3 combinedEX_MBCurr1v8.py 
+ 1428  emacs combinedEX_MBCurr2v5.py 
+ 1429  python3 combinedEX_MBCurr2v5.py 
+ 1430  ls -lt
+ 1431  ls -l
+ 1432  mv combinedEX_DBMaxTemp.py combinedEX_maxtemp.py
+ 1433  emacs combinedEX_maxtemp.py 
+ 1434  python3 combinedEX_maxtemp.py 
+ 1435  emacs combinedEX_maxvccint.py 
+ 1436  python3 combinedEX_maxvccint.py 
+ 1437  emacs combinedEX_minvccint.py 
+ 1438  python3 combinedEX_minvccint.py 
+ 1439  emacs combinedEX_maxvccout.py 
+ 1440  python3 combinedEX_maxvccout.py 
+ 1441  emacs combinedEX_minvccout.py 
+ 1442  python3 combinedEX_minvccout.py 
+ 1443  ls -lt
+ 1444  emacs combinedEX_minvram.py 
+ 1445  python3 combinedEX_minvram.py 
+ 1446  emacs combinedEX_maxvram.py 
+ 1447  python3 combinedEX_maxvram.py 
+ 1448  ls -lt
+ 1449  cp combinedEX_DBCurr0v95.py combinedEX_DBpgood0v95.py
+ 1450  emacs combinedEX_DBpgood0v95.py 
+ 1451  emacs combinedEX_maxvram.py
+ 1452  emacs combinedEX_maxtemp.py
+ 1453  emacs combinedEX_DBpgood0v95.py
+ 1454  python3 combinedEX_DBpgood0v95.py 
+ 1455  emacs combinedEX_DBpgood0v95.py
+ 1456  python3 combinedEX_DBpgood0v95.py 
+ 1457  ls -lt
+ 1458  cp combinedEX_DBpgood0v95.py combinedEX_DBpgood1v0.py
+ 1459  emacs combinedEX_DBpgood1v0.py 
+ 1460  python3 combinedEX_DBpgood1v0.py 
+ 1461  ls -lt
+ 1462  rm plotly_DBCurrent_0v95.htmlplotly_DBCurrent_0v95.png
+ 1463  rm plotly_DBCurrent_0v95.html plotly_DBCurrent_0v95.png
+ 1464  cp combinedEX_DBpgood1v0.py combinedEX_DBpgood1v2.py
+ 1465  emacs combinedEX_DBpgood1v2.py 
+ 1466  python3 combinedEX_DBpgood1v2.py 
+ 1467  cp combinedEX_DBpgood1v2.py combinedEX_DBpgood1v5.py
+ 1468  emacs combinedEX_DBpgood1v5.py 
+ 1469  python3 combinedEX_DBpgood1v5.py 
+ 1470  cp combinedEX_DBpgood1v5.py combinedEX_DBpgood1v8.py
+ 1471  emacs combinedEX_DBpgood1v8.py 
+ 1472  python3 combinedEX_DBpgood1v8.py 
+ 1473  cp combinedEX_DBpgood1v8.py combinedEX_DBpgood2v5.py
+ 1474  emacs combinedEX_DBpgood2v5.py 
+ 1475  python3 combinedEX_DBpgood2v5.py 
+ 1476  cp combinedEX_DBpgood2v5.py combinedEX_DBpgood3v3.py
+ 1477  emacs combinedEX_DBpgood3v3.py 
+ 1478  python3 combinedEX_DBpgood3v3.py 
+ 1479  cp combinedEX_DBpgood0v95.py combinedEX_MBpgoodP5v.py
+ 1480  emacs combinedEX_MBpgoodP5v.py 
+ 1481  python3 combinedEX_MBpgoodP5v.py 
+ 1482  cp combinedEX_MBpgoodP5v.py combinedEX_MBpgood5v.py
+ 1483  mv combinedEX_MBpgood5v.py combinedEX_MBpgoodN5v.py
+ 1484  emacs combinedEX_MBpgoodN5v.py 
+ 1485  python combinedEX_MBpgoodN5v.py 
+ 1486  cp combinedEX_MBpgoodP5v.py combinedEX_MBpgood1v2.py
+ 1487  emacs combinedEX_MBpgood1v2.py 
+ 1488  python3 combinedEX_MBpgood1v2.py 
+ 1489  cp combinedEX_MBpgood1v2.py combinedEX_MBpgood1v8.py
+ 1490  emacs combinedEX_MBpgood1v8.py 
+ 1491  python3 combinedEX_MBpgood1v8.py 
+ 1492  cp combinedEX_MBpgood1v8.py combinedEX_MBpgood2v5.py
+ 1493  emacs combinedEX_MBpgood2v5.py 
+ 1494  python3 combinedEX_MBpgood2v5.py 
+ 1495  ls -lt'
+ 1496  ls -lt
+ 1497  ls +l
+ 1498  l
+ 1499  ls -l
+ 1500  ls
+ 1501  cd db-qual/
+ 1502  ls -l
+ 1503  cp ../combinedEX_* .
+ 1504  ls -l
+ 1505  git status
+ 1506  git add combinedEX_*.py
+ 1507  git commit -m "Adding all of the plotting singular plotting scripts for all (but a few) variables."
+ 1508  git status
+ 1509  git push origin master '
+ 1510  git push origin master 
+ 1511  ls -l
+ 1512  git status
+ 1513  exit
+ 1514  ls -l
+ 1515  cd atlas_lab_scripts/data_analyzer/
+ 1516  ls -l
+ 1517  exit
+ 1518  ls -l
+ 1519  cd atlas_lab_scripts/
+ 1520  ls -l
+ 1521  cd data_analyzer/
+ 1522  ls -l
+ 1523  exit
+ 1524  ls -l
+ 1525  cd atlas_lab_scripts/data_analyzer/
+ 1526  ls -l
+ 1527  ls
+ 1528  ls -l
+ 1529  logout
+ 1530  ls
+ 1531  cd atlas_lab_scripts/data_analyzer/
+ 1532  ls -l
+ 1533  source myenv/bin/activate
+ 1534  ls 
+ 1535  cd mariadb/
+ 1536  ls -l
+ 1537  python3 print_table.py 
+ 1538  logout
+ 1539  ls -ol
+ 1540  cd atlas_lab_scripts/data_analyzer/
+ 1541  ls -l
+ 1542  ls
+ 1543  cd mariadb/
+ 1544  ls -l
+ 1545  cd ..
+ 1546  source myenv/bin/activate
+ 1547  cd mariadb/
+ 1548  python3 print_table.py 
+ 1549  logout
+ 1550  cd atlas_lab_scripts/data_analyzer/
+ 1551  ls -l
+ 1552  ls
+ 1553  emacs combinedEX_GBTRX.py 
+ 1554  ls -l
+ 1555  logout
+ 1556  cd atlas_lab_scripts/data_analyzer/
+ 1557  source myenv/bin/activate
+ 1558  cd mariadb/
+ 1559  python3 print_table.py 
+ 1560  deactivate
+ 1561  logout
+ 1562  ls -l
+ 1563  cd atlas_lab_scripts/data_analyzer/
+ 1564  ls -l
+ 1565  logout
+ 1566  cd atlas_lab_scripts/data_analyzer/
+ 1567  ls
+ 1568  emacs -nw combinedEX_BER.py 
+ 1569  cd db-qual/
+ 1570  ls -lls 
+ 1571  ls -l
+ 1572  pwd
+ 1573  cd ..
+ 1574  ls
+ 1575  diff combinedEX_BER.py db-qual/combinedEX_BER.py 
+ 1576  ls -l /var/www/
+ 1577  ls -l /var/www/html/
+ 1578  ls -l /var/www/html/damir/
+ 1579  cd /var/www/html/damir/
+ 1580  ls -l ~/atlas_lab_scripts/data_analyzer/
+ 1581  mkdir FirstCombinedScriptRes
+ 1582  cd FirstCombinedScriptRes/
+ 1583  ls -l
+ 1584  mv ~/atlas_lab_scripts/data_analyzer/plotly_DBCurrent_*.png .
+ 1585  ls -l
+ 1586  mv ~/atlas_lab_scripts/data_analyzer/plotly_DBCurrent_*.html .
+ 1587  ls -l
+ 1588  mv ~/atlas_lab_scripts/data_analyzer/plotly_DBpgood_* .
+ 1589  mv ~/atlas_lab_scripts/data_analyzer/plotly_MB* .
+ 1590  ls -l
+ 1591  mv plotly_MBCurrent_N5V_combined.png plotly_MBCurrent_N5v_combi
+ 1592  ls -l
+ 1593  ls -l ~/atlas_lab_scripts/data_analyzer/
+ 1594  mv ~/atlas_lab_scripts/data_analyzer/plotly_BER_combined.* .
+ 1595  mv ~/atlas_lab_scripts/data_analyzer/plotly_CRC_combined.* .
+ 1596  mv ~/atlas_lab_scripts/data_analyzer/plotly_GBTRXRDY_PPrEmuMD1.* .
+ 1597  ls -l
+ 1598  mv plotly_GBTRXRDY_PPrEmuMD1.* ~/atlas_lab_scripts/data_analyzer/
+ 1599  mv ~/atlas_lab_scripts/data_analyzer/plotly_GBTRXRDY_combined.* .
+ 1600  ls -l
+ 1601  ls -l ~/atlas_lab_scripts/data_analyzer/
+ 1602  mv ~/atlas_lab_scripts/data_analyzer/plotly_LATENCY_combined.* .
+ 1603  mv ~/atlas_lab_scripts/data_analyzer/plotly_max* .
+ 1604  mv ~/atlas_lab_scripts/data_analyzer/plotly_min* .
+ 1605  l -l
+ 1606  ls -l
+ 1607  ls -l ~/atlas_lab_scripts/data_analyzer/
+ 1608  cd ~/atlas_lab_scripts/data_analyzer/
+ 1609  ls -l
+ 1610  emacs logger.txt 
+ 1611  touch db-qual.py
+ 1612  emacs db-qual
+ 1613  emacs db-qual.py 
+ 1614  emacs combinedEX_BER
+ 1615  ls
+ 1616  ls -ltr
+ 1617  rm \#combinedEX_BER# 
+ 1618  emacs combinedEX_BER.py 
+ 1619  emacs db-qual.py
+ 1620  exit
+ 1621  cd atlas_lab_scripts/data_analyzer/
+ 1622  ls -l
+ 1623  emacs db-qual.py
+ 1624  emacs combinedEX_BER.py 
+ 1625  emacs db-qual.py
+ 1626  emacs combinedEX_BER.py 
+ 1627  emacs db-qual.py
+ 1628  emacs combinedEX_BER.py 
+ 1629  emacs db-qual.py
+ 1630  python3 db-qual
+ 1631  python3 db-qual.py 
+ 1632  ls -l
+ 1633  source myenv/bin/activate
+ 1634  python3 db-qual.py
+ 1635  emacs db-qual.py
+ 1636  emacs combinedEX_BER.py 
+ 1637  emacs db-qual.py
+ 1638  python db-qual.py 
+ 1639  emacs db-qual.py
+ 1640  python db-qual.py
+ 1641  emacs db-qual.py
+ 1642  python3 db-qual.py 
+ 1643  emacs combinedEX_
+ 1644  emacs combinedEX_BER.py 
+ 1645  emacs db-qual.py
+ 1646  python3 db-qual.py
+ 1647  emacs db-qual.py
+ 1648  python3 db-qual.py
+ 1649  emacs db-qual.py
+ 1650  python3 db-qual.py
+ 1651  emacs db-qual.py
+ 1652  python3 db-qual.py 
+ 1653  emacs db-qual.py
+ 1654  python3 db-qual.py 
+ 1655  emacs db-qual.py
+ 1656  python3 db-quial.py
+ 1657  python3 db-qual.py
+ 1658  emacs db-qual.py
+ 1659  deactivate
+ 1660  exit
+ 1661  ls -l
+ 1662  cd /var/www
+ 1663  ls -l
+ 1664  cd html/
+ 1665  ls -l
+ 1666  cd damir/
+ 1667  ls -l
+ 1668  cd ~/atlas_lab_scripts/data_analyzer/
+ 1669  emacs combinedEX_BER.py 
+ 1670  emacs mariadb/print_table.py
+ 1671  cd ..
+ 1672  source myenv/bin/activate
+ 1673  ls -l
+ 1674  cd data_analyzer/
+ 1675  ls -l
+ 1676  source myenv/bin/activate
+ 1677  python3 mariadb/print_table.py 
+ 1678  cd mariadb/
+ 1679  python3 print_table.py 
+ 1680  emacs print_table.py
+ 1681  deactivate
+ 1682  exit
+ 1683  cd atlas_lab_scripts/data_analyzer/
+ 1684  ls -l
+ 1685  source myenv/bin/activate
+ 1686  cd mariadb/
+ 1687  python3 print_table.py 
+ 1688  cd ,,
+ 1689  cd ..
+ 1690  ls -l
+ 1691  emacs db-qual.py
+ 1692  python3 db-qual.py
+ 1693  emacs db-qual.py
+ 1694  python3 db-qual.py
+ 1695  emacs db-qual.py
+ 1696  deactivate
+ 1697  exit
+ 1698  ls
+ 1699  exit
+ 1700  cd /var/www/html/
+ 1701  ls
+ 1702  cd damir/FirstCombinedScriptRes/
+ 1703  ls
+ 1704  cd ..
+ 1705  ls
+ 1706  cd ..
+ 1707  ls
+ 1708  cd atlas_lab_scripts/data_analyzer/
+ 1709  ls-l
+ 1710  ls -l
+ 1711  ls
+ 1712  source myenv/bin/activate
+ 1713  ls -l
+ 1714  ls
+ 1715  ls -l
+ 1716  cd atlas_lab_scripts/data_analyzer/
+ 1717  ls -l
+ 1718  emacs db-qual.py
+ 1719  source myenv/bin/activate
+ 1720  python3 db-qual.py 
+ 1721  emacs db-qual.py
+ 1722  deactivate
+ 1723  logout
+ 1724  cd atlas_lab_scripts/data_analyzer/
+ 1725  ls -l -l
+ 1726  ls -l
+ 1727  source myenv/bin/activate
+ 1728  ls -l
+ 1729  cd mariadb/
+ 1730  ls -l
+ 1731  python3 print_table.py 
+ 1732  cd ..
+ 1733  ls -l
+ 1734  emacs combinedEX_GBTRX.py 
+ 1735  cd mariadb/
+ 1736  python3 print_table.py 
+ 1737  cd ..
+ 1738  cd data_analyzer/
+ 1739  emacs combinedEX_GBTRX.py 
+ 1740  logout
+ 1741  ls -l
+ 1742  cd atlas_lab_scripts/data_analyzer/
+ 1743  ls -l
+ 1744  emacs db-qual.py
+ 1745  exi
+ 1746  exit
+ 1747  cd atlas_lab_scripts/data_analyzer/
+ 1748  ls -l
+ 1749  emacs combinedEX_GBTRX.py 
+ 1750  exit
+ 1751  cd atlas_lab_scripts/data_analyzer/
+ 1752  ls -l
+ 1753  emacs db-qual.py
+ 1754  python3 db-qual.py 
+ 1755  emacs db-qual.py
+ 1756  python3 db-qual.py 
+ 1757  emacs db-qual.py
+ 1758  python3 db-qual.py 
+ 1759  source myenv/bin/activate
+ 1760  python3 db-qual.py 
+ 1761  emacs db-qual.py
+ 1762  python3 db-qual.py
+ 1763  emacs db-qual.py
+ 1764  python3 db-qual.py 
+ 1765  emacs db-qual.py
+ 1766  python3 db-qual.py
+ 1767  emacs db-qual.py
+ 1768  python3 db-qual.py
+ 1769  emacs db-qual.py
+ 1770  exit
+ 1771  cd atlas_lab_scripts/data_analyzer/
+ 1772  emacs combinedEX_GBTRX.py 
+ 1773  exit
+ 1774  ls -l
+ 1775  cd atlas_lab_scripts/data_analyzer/
+ 1776  ls
+ 1777  emacs db-qual.py
+ 1778  logout
+ 1779  ls
+ 1780  cd atlas_lab_scripts/data_analyzer/
+ 1781  ls -l
+ 1782  cd db-qual/
+ 1783  ls -l
+ 1784  ls -la
+ 1785  cd ..
+ 1786  ls -l
+ 1787  cd data_analyzer/
+ 1788  ls -l
+ 1789  cd db-qual/
+ 1790  ls -l
+ 1791  diff combinedEX_GBTRX.py ../combinedEX_GBTRX.py 
+ 1792  cd ..
+ 1793  source myenv/bin/activate
+ 1794  ls -l
+ 1795  python3 db-qual.py
+ 1796  emacs db-qual.py
+ 1797  python3 combinedEX_GBTRX.py 
+ 1798  ls -lt
+ 1799  rm plotly_GBTRXRDY_combined.*
+ 1800  ls -lt
+ 1801  emacs db-qual.py
+ 1802  python3 db-qual.py
+ 1803  emacs db-qual.py
+ 1804  python3 db-qual.py
+ 1805  emacs db-qual.py
+ 1806  python3 db-qual.py
+ 1807  emacs db-qual.py
+ 1808  python3 db-qual.py
+ 1809  emacs db-qual.py
+ 1810  python3 db-qual.py
+ 1811  emacs db-qual.py
+ 1812  pwd
+ 1813  ls -l
+ 1814  deactivate
+ 1815  logout
+ 1816  ls -l
+ 1817  cd atlas_lab_scripts/data_analyzer/
+ 1818  ls -l
+ 1819  cd db-qiual
+ 1820  cd db-qual
+ 1821  ls -l
+ 1822  emacs combinedEX_GBTRX.py &
+ 1823  fg "%emacs" 
+ 1824  emacs combinedEX_crc
+ 1825  emacs combinedEX_CRC.py 
+ 1826  emacs combinedEX_DBCurr0v95.py 
+ 1827  ls -l
+ 1828  diff combinedEX_DBCurr0v95.py \#combinedEX_DBCurr0v95.py# 
+ 1829  rm \#combinedEX_DBCurr0v95.py# 
+ 1830  emacs combinedEX_GBTRX.py 
+ 1831  ls -l
+ 1832  emacs combinedEX_Latency.py 
+ 1833  cd ..
+ 1834  ls -l
+ 1835  emacs combinedEX_GBTRX.py 
+ 1836  exit
+ 1837  ls -l
+ 1838  cd atlas_lab_scripts/data_analyzer/
+ 1839  ls -l
+ 1840  source myenv/bin/activate
+ 1841  python3 db-qual.py
+ 1842  emacs db-qual.py
+ 1843  python3 db-qual.py
+ 1844  emacs db-qual.py
+ 1845  python3 db-qual.py
+ 1846  emacs db-qual.py
+ 1847  python3 db-qual.py
+ 1848  pwd
+ 1849  ls -lt
+ 1850  emacs db-qual.py
+ 1851  python3 db-qual.py
+ 1852  ls -lt
+ 1853  emacs db-qual.py
+ 1854  python3 db-qual.py
+ 1855  emacs db-qual.py
+ 1856  python3 db-qual.py
+ 1857  emacs db-qual.py
+ 1858  python3 db-qual.py
+ 1859  emacs db-qual.py
+ 1860  python3 db-qual.py
+ 1861  emacs db-qual.py
+ 1862  python3 db-qual.py
+ 1863  ls -lt
+ 1864  pwd
+ 1865  logout
+ 1866  ls -l
+ 1867  cd atlas_lab_scripts/data_analyzer/
+ 1868  ls -l
+ 1869  emacs db-qual.py
+ 1870  exit
+ 1871  ls -l
+ 1872  cd atlas_lab_scripts/data_analyzer/
+ 1873  ls -l
+ 1874  emacs db-qual.py
+ 1875  ls -l
+ 1876  ls -lt
+ 1877  source myenv/bin/activate
+ 1878  python3 db-qual.py
+ 1879  ls -ltls -lt
+ 1880  pwd
+ 1881  emacs db-qual.py
+ 1882  python3 db-qual.py
+ 1883  ls -lt
+ 1884  emacs db-qual.py
+ 1885  python3 db-qual.py
+ 1886  ls -lt
+ 1887  emacs db-qual.py
+ 1888  python3 db-qual.py 
+ 1889  ls -lt
+ 1890  emacs db-qual.py
+ 1891  python3 db-qual.py
+ 1892  ls -lt
+ 1893  emacs db-qual.py
+ 1894  deactivate
+ 1895  exit
+ 1896  ls -l
+ 1897  cd atlas_lab_scripts/data_analyzer/
+ 1898  ls -l
+ 1899  emacs db-qual.py
+ 1900  source myenv/bin/activate
+ 1901  python3 db-qual.py
+ 1902  ls -lt
+ 1903  pwd
+ 1904  emacs db-qual.py
+ 1905  python3 db-qual.py
+ 1906  emacs db-qual.py
+ 1907  python3 db-qual.py
+ 1908  emacs db-qual.py
+ 1909  python3 db-qual.py 
+ 1910  emacs db-qual.py
+ 1911  python3 db-qual.py 
+ 1912  ls -lt
+ 1913  emacs db-qual.py
+ 1914  python3 db-qual.py
+ 1915  emacs db-qual.py
+ 1916  python3 db-qual.py
+ 1917  emacs db-qual.py
+ 1918  python3 db-qual.py
+ 1919  ls -l
+ 1920  ls -lt
+ 1921  deactivate
+ 1922  logout
+ 1923  cd atlas_lab_scripts/data_analyzer/
+ 1924  ls -l
+ 1925  ls -lt
+ 1926  mkdir DBQSResults_FirstVersion
+ 1927  mv plotly_*_combined.html DBQSResults_FirstVersion/
+ 1928  ls -l DBQSResults_FirstVersion/
+ 1929  ls 
+ 1930  ls -lt
+ 1931  mkdir Scripting_InfluxDB_1126
+ 1932  ls -lyt
+ 1933  ls -lt
+ 1934  rmdir Scripting_InfluxDB_1126
+ 1935  cd Scripting_InfluxDB_1126_CombinedVars/
+ 1936  ls
+ 1937  cd ..
+ 1938  diff combinedEX_BER.py Scripting_InfluxDB_1126_CombinedVars/combinedEX_BER.py 
+ 1939  diff combinedEX_CRC.py Scripting_InfluxDB_1126_CombinedVars/combinedEX_CRC.py 
+ 1940  diff combinedEX_DBCurr0v95.py Scripting_InfluxDB_1126_CombinedVars/combinedEX_DBCurr0v95.py 
+ 1941  diff combinedEX_DBCurr1v0.py Scripting_InfluxDB_1126_CombinedVars/combinedEX_DBCurr1v0.py 
+ 1942  diff combinedEX_DBCurr1v2.py Scripting_InfluxDB_1126_CombinedVars/combinedEX_DBCurr1v2.py 
+ 1943  diff combinedEX_DBCurr1v5.py Scripting_InfluxDB_1126_CombinedVars/combinedEX_DBCurr1v5.py '
+ 1944  diff combinedEX_DBCurr1v5.py Scripting_InfluxDB_1126_CombinedVars/combinedEX_DBCurr1v5.py 
+ 1945  diff combinedEX_DBCurr1v8.py Scripting_InfluxDB_1126_CombinedVars/combinedEX_DBCurr1v8.py 
+ 1946  diff combinedEX_DBCurr2v5.py Scripting_InfluxDB_1126_CombinedVars/combinedEX_DBCurr2v5.py 
+ 1947  diff combinedEX_DBCurr3v3.py Scripting_InfluxDB_1126_CombinedVars/combinedEX_DBCurr3v3.py 
+ 1948  diff combinedEX_GBTRX.py Scripting_InfluxDB_1126_CombinedVars/combinedEX_GBTRX.py 
+ 1949  diff combinedEX_Latency.py Scripting_InfluxDB_1126_CombinedVars/combinedEX_Latency.py 
+ 1950  cp combinedEX_BER.py Scripting_InfluxDB_1126_CombinedVars/combinedEX_BER.py 
+ 1951  cp combinedEX_CRC.py Scripting_InfluxDB_1126_CombinedVars/combinedEX_CRC.py 
+ 1952  cp combinedEX_DBCurr0v95.py Scripting_InfluxDB_1126_CombinedVars/combinedEX_DBCurr0v95.py 
+ 1953  cp combinedEX_DBCurr1v0.py Scripting_InfluxDB_1126_CombinedVars/combinedEX_DBCurr1v0.py 
+ 1954  cp combinedEX_DBCurr1v2.py Scripting_InfluxDB_1126_CombinedVars/combinedEX_DBCurr1v2.py 
+ 1955  cp combinedEX_DBCurr1v5.py Scripting_InfluxDB_1126_CombinedVars/combinedEX_DBCurr1v5.py 
+ 1956  cp combinedEX_DBCurr1v8.py Scripting_InfluxDB_1126_CombinedVars/combinedEX_DBCurr1v8.py 
+ 1957  cp combinedEX_DBCurr2v5.py Scripting_InfluxDB_1126_CombinedVars/combinedEX_DBCurr2v5.py '
+ 1958  cp combinedEX_DBCurr2v5.py Scripting_InfluxDB_1126_CombinedVars/combinedEX_DBCurr2v5.py 
+ 1959  cp combinedEX_DBCurr3v3.py Scripting_InfluxDB_1126_CombinedVars/combinedEX_DBCurr3v3.py 
+ 1960  cp combinedEX_GBTRX.py Scripting_InfluxDB_1126_CombinedVars/combinedEX_GBTRX.py 
+ 1961  cp combinedEX_Latency.py Scripting_InfluxDB_1126_CombinedVars/combinedEX_Latency.py 
+ 1962  ls +l
+ 1963  ls -l
+ 1964  cp combinedEX_BER.py Scripting_InfluxDB_1126_CombinedVars/combinedEX_BER.py 
+ 1965  cp combinedEX_CRC.py Scripting_InfluxDB_1126_CombinedVars/combinedEX_CRC.py 
+ 1966  cp combinedEX_DBCurr0v95.py Scripting_InfluxDB_1126_CombinedVars/combinedEX_DBCurr0v95.py 
+ 1967  cp combinedEX_DBCurr1v0.py Scripting_InfluxDB_1126_CombinedVars/combinedEX_DBCurr1v0.py 
+ 1968  cp combinedEX_DBCurr1v2.py Scripting_InfluxDB_1126_CombinedVars/combinedEX_DBCurr1v2.py 
+ 1969  cp combinedEX_DBCurr1v5.py Scripting_InfluxDB_1126_CombinedVars/combinedEX_DBCurr1v5.py 
+ 1970  cp combinedEX_DBCurr1v8.py Scripting_InfluxDB_1126_CombinedVars/combinedEX_DBCurr1v8.py 
+ 1971  cp combinedEX_DBCurr2v5.py Scripting_InfluxDB_1126_CombinedVars/combinedEX_DBCurr2v5.py 
+ 1972  cp combinedEX_DBCurr3v3.py Scripting_InfluxDB_1126_CombinedVars/combinedEX_DBCurr3v3.py 
+ 1973  cp combinedEX_GBTRX.py Scripting_InfluxDB_1126_CombinedVars/combinedEX_GBTRX.py 
+ 1974  cp combinedEX_Latency.py Scripting_InfluxDB_1126_CombinedVars/combinedEX_Latency.py 
+ 1975  ls -l
+ 1976  mv combinedEX_*.py Scripting_InfluxDB_1126_CombinedVars/
+ 1977  ls -l
+ 1978  cd Scripting_InfluxDB_1126_CombinedVars/
+ 1979  ls -l
+ 1980  cd ..
+ 1981  ls -l
+ 1982  emacs db-qual.py
+ 1983  emacs Scripting_InfluxDB_1126_CombinedVars/combinedEX_MBCurrP5v.py 
+ 1984  emacs db-qual.py
+ 1985  source myenv/bin/activate
+ 1986  python3 db-qual.py
+ 1987  emacs db-qual.py
+ 1988  python3 db-qual.py
+ 1989  pwd
+ 1990  ls -l
+ 1991  ls -lt
+ 1992  deactivate
+ 1993  logout
+ 1994  cd atlas_lab_scripts/data_analyzer/
+ 1995  ls -l
+ 1996  ls
+ 1997  ls -l Scripting_InfluxDB_1126_CombinedVars/
+ 1998  ls
+ 1999  ls DBQSResults_FirstVersion/
+ 2000  ls -lt
+ 2001  ls -lt DBQSResults_FirstVersion/
+ 2002  ls -l
+ 2003  l
+ 2004  ls
+ 2005  ls -t
+ 2006  touch diffscript.sh
+ 2007  ls -lt
+ 2008  ls -l
+ 2009  ls -t
+ 2010  diff plotly_MD4PprMBCP5V_combined.html DBQSResults_FirstVersion/plotly_MD4PprMBCP5V_combined.html
+ 2011  ls -t DBQSResults_FirstVersion/
+ 2012  diff plotly_MD4PprDBC3.3V_combined.html DBQSResults_FirstVersion/plotly_MD4PprDBC3.3V_combined.html
+ 2013  ls -l
+ 2014  ls
+ 2015  ls -t
+ 2016  history
+ 2017  history > history.txt

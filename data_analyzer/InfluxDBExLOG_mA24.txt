@@ -1,0 +1,50 @@
+
+==================== InfluxDB Tree ====================
+🔗 Connecting to InfluxDB at piro-atlas-lab-vserver-01.fysik.su.se:8086...
+✅ Connected to InfluxDB!
+📂 InfluxDB Databases:
+[{'name': '_internal'}, {'name': 'tiledb'}]
+============================
+├── _internal
+============================
+['cq', 'database', 'httpd', 'queryExecutor', 'runtime', 'shard', 'subscriber', 'tsm1_cache', 'tsm1_engine', 'tsm1_filestore', 'tsm1_wal', 'write']
+============================
+    ├── cq
+    ├── database
+    ├── httpd
+    ├── queryExecutor
+    ├── runtime
+    ├── shard
+    ├── subscriber
+    ├── tsm1_cache
+    ├── tsm1_engine
+    ├── tsm1_filestore
+    ├── tsm1_wal
+    └── write
+└── tiledb
+============================
+['%', 'A', 'DB Status', 'Link Status', 'Signal %', 'V', 'dBm', 'hPa', 'lx', 'mA', 'ms', 'state', 'vivado_test', 'xADC', '°C', 'Ω']
+============================
+    ├── %
+    ├── A
+    ├── DB Status
+    ├── Link Status
+    ├── Signal %
+    ├── V
+    ├── dBm
+    ├── hPa
+    ├── lx
+    ├── mA
+    ├── ms
+    ├── state
+    ├── vivado_test
+    ├── xADC
+    ├── °C
+    └── Ω
+my_time_range = 
+WHERE time >= '2024-09-03T23:06:10Z' AND time <= '2024-09-03T23:08:00Z'
+----------------------------
+myquery = 
+SELECT * FROM "mA" WHERE time >= '2024-09-03T23:06:10Z' AND time <= '2024-09-03T23:08:00Z'
+----------------------------
+----------------------------

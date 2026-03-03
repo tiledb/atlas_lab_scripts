@@ -1,0 +1,8 @@
+Link Status:
+  gbtrx_rdy: [1]
+  crc: [0]
+  latency: [22,23]
+
+xADC:
+  db_mon_0.95v(vaux0): [480,590]
+  mb_mon_+5v(vaux10): [495,505]

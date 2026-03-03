@@ -1,0 +1,2122 @@
+
+==================== InfluxDB Tree ====================
+🔗 Connecting to InfluxDB at piro-atlas-lab-vserver-01.fysik.su.se:8086...
+✅ Connected to InfluxDB!
+📂 InfluxDB Databases:
+[{'name': '_internal'}, {'name': 'tiledb'}]
+============================
+├── _internal
+============================
+['cq', 'database', 'httpd', 'queryExecutor', 'runtime', 'shard', 'subscriber', 'tsm1_cache', 'tsm1_engine', 'tsm1_filestore', 'tsm1_wal', 'write']
+============================
+    ├── cq
+    ├── database
+    ├── httpd
+    ├── queryExecutor
+    ├── runtime
+    ├── shard
+    ├── subscriber
+    ├── tsm1_cache
+    ├── tsm1_engine
+    ├── tsm1_filestore
+    ├── tsm1_wal
+    └── write
+└── tiledb
+============================
+['%', 'A', 'DB Status', 'Link Status', 'Signal %', 'V', 'dBm', 'hPa', 'lx', 'mA', 'ms', 'state', 'vivado_test', 'xADC', '°C', 'Ω']
+============================
+    ├── %
+    ├── A
+    ├── DB Status
+    ├── Link Status
+    ├── Signal %
+    ├── V
+    ├── dBm
+    ├── hPa
+    ├── lx
+    ├── mA
+    ├── ms
+    ├── state
+    ├── vivado_test
+    ├── xADC
+    ├── °C
+    └── Ω
+my_time_range = 
+WHERE time >= '2024-09-03T23:06:10Z' AND time <= '2024-09-03T23:08:00Z'
+----------------------------
+myquery = 
+SELECT * FROM "xADC" WHERE time >= '2024-09-03T23:06:10Z' AND time <= '2024-09-03T23:08:00Z'
+----------------------------
+----------------------------
+Time: 2024-09-03T23:06:12.651854Z
+PprGTH MD1 : None
+PprGTH MD2 : KU FPGA B
+PprGTH MD3 : None
+PprGTH MD4 : None
+db_mon_0.95v(vaux0) : 0.0
+db_mon_1.0v(vaux5) : 0.0
+db_mon_1.2v(vaux9) : 0.0
+db_mon_1.5v(vaux3) : 0.0
+db_mon_1.8v(vaux8) : 0.0
+db_mon_2.5v(vaux1) : 0.0
+db_mon_3.3v(vaux11) : 0.0
+db_sense_1(vaux6) : 0.0
+db_sense_2(vaux04) : 0.0
+db_sense_3(vaux2) : 0.0
+db_temperature : -273.819
+db_vccaux(1.8v) : 0.0
+db_vccint(0.9v) : 0.0
+max_temp : -273.819
+max_vccint : 0.0
+max_vccout : 0.0
+max_vram : 0.0
+mb_mon_+5v(vaux10) : 0.0
+mb_mon_-5v(vaux7) : 0.0
+mb_mon_1.2v(vaux14) : 0.0
+mb_mon_1.8v(vaux12) : 0.0
+mb_mon_10v(vaux13) : 0.0
+mb_mon_2.5v(vaux15) : 0.0
+min_temp : -273.819
+min_vccint : 0.0
+min_vccout : 0.0
+min_vram : 0.0
+vn_ref : 0.0
+vp_ref : 0.0
+vp_vn : 0.0
+vram : 0.0
+-------
+Time: 2024-09-03T23:06:12.651854Z
+PprGTH MD1 : None
+PprGTH MD2 : KU FPGA A
+PprGTH MD3 : None
+PprGTH MD4 : None
+db_mon_0.95v(vaux0) : 0.0
+db_mon_1.0v(vaux5) : 0.0
+db_mon_1.2v(vaux9) : 0.0
+db_mon_1.5v(vaux3) : 0.0
+db_mon_1.8v(vaux8) : 0.0
+db_mon_2.5v(vaux1) : 0.0
+db_mon_3.3v(vaux11) : 0.0
+db_sense_1(vaux6) : 0.0
+db_sense_2(vaux04) : 0.0
+db_sense_3(vaux2) : 0.0
+db_temperature : -273.819
+db_vccaux(1.8v) : 0.0
+db_vccint(0.9v) : 0.0
+max_temp : -273.819
+max_vccint : 0.0
+max_vccout : 0.0
+max_vram : 0.0
+mb_mon_+5v(vaux10) : 0.0
+mb_mon_-5v(vaux7) : 0.0
+mb_mon_1.2v(vaux14) : 0.0
+mb_mon_1.8v(vaux12) : 0.0
+mb_mon_10v(vaux13) : 0.0
+mb_mon_2.5v(vaux15) : 0.0
+min_temp : -273.819
+min_vccint : 0.0
+min_vccout : 0.0
+min_vram : 0.0
+vn_ref : 0.0
+vp_ref : 0.0
+vp_vn : 0.0
+vram : 0.0
+-------
+Time: 2024-09-03T23:06:16.169066Z
+PprGTH MD1 : None
+PprGTH MD2 : None
+PprGTH MD3 : KU FPGA A
+PprGTH MD4 : None
+db_mon_0.95v(vaux0) : 0.0
+db_mon_1.0v(vaux5) : 0.0
+db_mon_1.2v(vaux9) : 0.0
+db_mon_1.5v(vaux3) : 0.0
+db_mon_1.8v(vaux8) : 0.0
+db_mon_2.5v(vaux1) : 0.0
+db_mon_3.3v(vaux11) : 0.0
+db_sense_1(vaux6) : 0.0
+db_sense_2(vaux04) : 0.0
+db_sense_3(vaux2) : 0.0
+db_temperature : -273.819
+db_vccaux(1.8v) : 0.0
+db_vccint(0.9v) : 0.0
+max_temp : -273.819
+max_vccint : 0.0
+max_vccout : 0.0
+max_vram : 0.0
+mb_mon_+5v(vaux10) : 0.0
+mb_mon_-5v(vaux7) : 0.0
+mb_mon_1.2v(vaux14) : 0.0
+mb_mon_1.8v(vaux12) : 0.0
+mb_mon_10v(vaux13) : 0.0
+mb_mon_2.5v(vaux15) : 0.0
+min_temp : -273.819
+min_vccint : 0.0
+min_vccout : 0.0
+min_vram : 0.0
+vn_ref : 0.0
+vp_ref : 0.0
+vp_vn : 0.0
+vram : 0.0
+-------
+Time: 2024-09-03T23:06:16.169066Z
+PprGTH MD1 : None
+PprGTH MD2 : None
+PprGTH MD3 : KU FPGA B
+PprGTH MD4 : None
+db_mon_0.95v(vaux0) : 0.0
+db_mon_1.0v(vaux5) : 0.0
+db_mon_1.2v(vaux9) : 0.0
+db_mon_1.5v(vaux3) : 0.0
+db_mon_1.8v(vaux8) : 0.0
+db_mon_2.5v(vaux1) : 0.0
+db_mon_3.3v(vaux11) : 0.0
+db_sense_1(vaux6) : 0.0
+db_sense_2(vaux04) : 0.0
+db_sense_3(vaux2) : 0.0
+db_temperature : -273.819
+db_vccaux(1.8v) : 0.0
+db_vccint(0.9v) : 0.0
+max_temp : -273.819
+max_vccint : 0.0
+max_vccout : 0.0
+max_vram : 0.0
+mb_mon_+5v(vaux10) : 0.0
+mb_mon_-5v(vaux7) : 0.0
+mb_mon_1.2v(vaux14) : 0.0
+mb_mon_1.8v(vaux12) : 0.0
+mb_mon_10v(vaux13) : 0.0
+mb_mon_2.5v(vaux15) : 0.0
+min_temp : -273.819
+min_vccint : 0.0
+min_vccout : 0.0
+min_vram : 0.0
+vn_ref : 0.0
+vp_ref : 0.0
+vp_vn : 0.0
+vram : 0.0
+-------
+Time: 2024-09-03T23:06:19.908806Z
+PprGTH MD1 : None
+PprGTH MD2 : None
+PprGTH MD3 : None
+PprGTH MD4 : KU FPGA B
+db_mon_0.95v(vaux0) : 0.0
+db_mon_1.0v(vaux5) : 0.0
+db_mon_1.2v(vaux9) : 0.0
+db_mon_1.5v(vaux3) : 0.0
+db_mon_1.8v(vaux8) : 0.0
+db_mon_2.5v(vaux1) : 0.0
+db_mon_3.3v(vaux11) : 0.0
+db_sense_1(vaux6) : 0.0
+db_sense_2(vaux04) : 0.0
+db_sense_3(vaux2) : 0.0
+db_temperature : -273.819
+db_vccaux(1.8v) : 0.0
+db_vccint(0.9v) : 0.0
+max_temp : -273.819
+max_vccint : 0.0
+max_vccout : 0.0
+max_vram : 0.0
+mb_mon_+5v(vaux10) : 0.0
+mb_mon_-5v(vaux7) : 0.0
+mb_mon_1.2v(vaux14) : 0.0
+mb_mon_1.8v(vaux12) : 0.0
+mb_mon_10v(vaux13) : 0.0
+mb_mon_2.5v(vaux15) : 0.0
+min_temp : -273.819
+min_vccint : 0.0
+min_vccout : 0.0
+min_vram : 0.0
+vn_ref : 0.0
+vp_ref : 0.0
+vp_vn : 0.0
+vram : 0.0
+-------
+Time: 2024-09-03T23:06:19.908806Z
+PprGTH MD1 : None
+PprGTH MD2 : None
+PprGTH MD3 : None
+PprGTH MD4 : KU FPGA A
+db_mon_0.95v(vaux0) : 0.0
+db_mon_1.0v(vaux5) : 0.0
+db_mon_1.2v(vaux9) : 0.0
+db_mon_1.5v(vaux3) : 0.0
+db_mon_1.8v(vaux8) : 0.0
+db_mon_2.5v(vaux1) : 0.0
+db_mon_3.3v(vaux11) : 0.0
+db_sense_1(vaux6) : 0.0
+db_sense_2(vaux04) : 0.0
+db_sense_3(vaux2) : 0.0
+db_temperature : -273.819
+db_vccaux(1.8v) : 0.0
+db_vccint(0.9v) : 0.0
+max_temp : -273.819
+max_vccint : 0.0
+max_vccout : 0.0
+max_vram : 0.0
+mb_mon_+5v(vaux10) : 0.0
+mb_mon_-5v(vaux7) : 0.0
+mb_mon_1.2v(vaux14) : 0.0
+mb_mon_1.8v(vaux12) : 0.0
+mb_mon_10v(vaux13) : 0.0
+mb_mon_2.5v(vaux15) : 0.0
+min_temp : -273.819
+min_vccint : 0.0
+min_vccout : 0.0
+min_vram : 0.0
+vn_ref : 0.0
+vp_ref : 0.0
+vp_vn : 0.0
+vram : 0.0
+-------
+Time: 2024-09-03T23:06:24.459016Z
+PprGTH MD1 : KU FPGA A
+PprGTH MD2 : None
+PprGTH MD3 : None
+PprGTH MD4 : None
+db_mon_0.95v(vaux0) : 557.6447105788423
+db_mon_1.0v(vaux5) : 349.011214953271
+db_mon_1.2v(vaux9) : 136.62289719626168
+db_mon_1.5v(vaux3) : 766.4621495327103
+db_mon_1.8v(vaux8) : 567.7932156133829
+db_mon_2.5v(vaux1) : 12.557156133828997
+db_mon_3.3v(vaux11) : 380.9098513011152
+db_sense_1(vaux6) : 999.18
+db_sense_2(vaux04) : 999.18
+db_sense_3(vaux2) : 999.18
+db_temperature : 45.6410673522949
+db_vccaux(1.8v) : 1773.453
+db_vccint(0.9v) : 938.241
+max_temp : 46.06312605285643
+max_vccint : 1775.283
+max_vccout : 939.93375
+max_vram : 940.1625
+mb_mon_+5v(vaux10) : 595.89375
+mb_mon_-5v(vaux7) : 501.458125
+mb_mon_1.2v(vaux14) : 31.7238125
+mb_mon_1.8v(vaux12) : 631.5025
+mb_mon_10v(vaux13) : 40.69005
+mb_mon_2.5v(vaux15) : 1450.275
+min_temp : 42.70967783203122
+min_vccint : 1771.7145
+min_vccout : 937.55475
+min_vram : 937.82925
+vn_ref : 2996.9452499999998
+vp_ref : 1247.92275
+vp_vn : 1641.6015
+vram : 938.74425
+-------
+Time: 2024-09-03T23:06:24.459016Z
+PprGTH MD1 : KU FPGA B
+PprGTH MD2 : None
+PprGTH MD3 : None
+PprGTH MD4 : None
+db_mon_0.95v(vaux0) : 518.0129740518962
+db_mon_1.0v(vaux5) : 341.2864485981308
+db_mon_1.2v(vaux9) : 137.25
+db_mon_1.5v(vaux3) : 730.2042056074766
+db_mon_1.8v(vaux8) : 562.6909851301116
+db_mon_2.5v(vaux1) : 16.865706319702603
+db_mon_3.3v(vaux11) : 368.52276951672866
+db_sense_1(vaux6) : 857.7819999999999
+db_sense_2(vaux04) : 999.1495
+db_sense_3(vaux2) : 740.2044999999999
+db_temperature : 44.10630844116213
+db_vccaux(1.8v) : 1776.88425
+db_vccint(0.9v) : 931.60725
+max_temp : 44.38256504516602
+max_vccint : 1778.8515
+max_vccout : 933.16275
+max_vram : 933.3915
+mb_mon_+5v(vaux10) : 507.32937499999997
+mb_mon_-5v(vaux7) : 450.980625
+mb_mon_1.2v(vaux14) : 30.5648125
+mb_mon_1.8v(vaux12) : 615.0325
+mb_mon_10v(vaux13) : 40.758675000000004
+mb_mon_2.5v(vaux15) : 1357.63125
+min_temp : 40.71449124755861
+min_vccint : 1774.59675
+min_vccout : 930.23475
+min_vram : 930.41775
+vn_ref : 2997.906
+vp_ref : 1247.37375
+vp_vn : 1640.5035
+vram : 931.47
+-------
+Time: 2024-09-03T23:06:28.073066Z
+PprGTH MD1 : None
+PprGTH MD2 : KU FPGA B
+PprGTH MD3 : None
+PprGTH MD4 : None
+db_mon_0.95v(vaux0) : 0.0
+db_mon_1.0v(vaux5) : 0.0
+db_mon_1.2v(vaux9) : 0.0
+db_mon_1.5v(vaux3) : 0.0
+db_mon_1.8v(vaux8) : 0.0
+db_mon_2.5v(vaux1) : 0.0
+db_mon_3.3v(vaux11) : 0.0
+db_sense_1(vaux6) : 0.0
+db_sense_2(vaux04) : 0.0
+db_sense_3(vaux2) : 0.0
+db_temperature : -273.819
+db_vccaux(1.8v) : 0.0
+db_vccint(0.9v) : 0.0
+max_temp : -273.819
+max_vccint : 0.0
+max_vccout : 0.0
+max_vram : 0.0
+mb_mon_+5v(vaux10) : 0.0
+mb_mon_-5v(vaux7) : 0.0
+mb_mon_1.2v(vaux14) : 0.0
+mb_mon_1.8v(vaux12) : 0.0
+mb_mon_10v(vaux13) : 0.0
+mb_mon_2.5v(vaux15) : 0.0
+min_temp : -273.819
+min_vccint : 0.0
+min_vccout : 0.0
+min_vram : 0.0
+vn_ref : 0.0
+vp_ref : 0.0
+vp_vn : 0.0
+vram : 0.0
+-------
+Time: 2024-09-03T23:06:28.073066Z
+PprGTH MD1 : None
+PprGTH MD2 : KU FPGA A
+PprGTH MD3 : None
+PprGTH MD4 : None
+db_mon_0.95v(vaux0) : 0.0
+db_mon_1.0v(vaux5) : 0.0
+db_mon_1.2v(vaux9) : 0.0
+db_mon_1.5v(vaux3) : 0.0
+db_mon_1.8v(vaux8) : 0.0
+db_mon_2.5v(vaux1) : 0.0
+db_mon_3.3v(vaux11) : 0.0
+db_sense_1(vaux6) : 0.0
+db_sense_2(vaux04) : 0.0
+db_sense_3(vaux2) : 0.0
+db_temperature : -273.819
+db_vccaux(1.8v) : 0.0
+db_vccint(0.9v) : 0.0
+max_temp : -273.819
+max_vccint : 0.0
+max_vccout : 0.0
+max_vram : 0.0
+mb_mon_+5v(vaux10) : 0.0
+mb_mon_-5v(vaux7) : 0.0
+mb_mon_1.2v(vaux14) : 0.0
+mb_mon_1.8v(vaux12) : 0.0
+mb_mon_10v(vaux13) : 0.0
+mb_mon_2.5v(vaux15) : 0.0
+min_temp : -273.819
+min_vccint : 0.0
+min_vccout : 0.0
+min_vram : 0.0
+vn_ref : 0.0
+vp_ref : 0.0
+vp_vn : 0.0
+vram : 0.0
+-------
+Time: 2024-09-03T23:06:31.562801Z
+PprGTH MD1 : None
+PprGTH MD2 : None
+PprGTH MD3 : KU FPGA A
+PprGTH MD4 : None
+db_mon_0.95v(vaux0) : 0.0
+db_mon_1.0v(vaux5) : 0.0
+db_mon_1.2v(vaux9) : 0.0
+db_mon_1.5v(vaux3) : 0.0
+db_mon_1.8v(vaux8) : 0.0
+db_mon_2.5v(vaux1) : 0.0
+db_mon_3.3v(vaux11) : 0.0
+db_sense_1(vaux6) : 0.0
+db_sense_2(vaux04) : 0.0
+db_sense_3(vaux2) : 0.0
+db_temperature : -273.819
+db_vccaux(1.8v) : 0.0
+db_vccint(0.9v) : 0.0
+max_temp : -273.819
+max_vccint : 0.0
+max_vccout : 0.0
+max_vram : 0.0
+mb_mon_+5v(vaux10) : 0.0
+mb_mon_-5v(vaux7) : 0.0
+mb_mon_1.2v(vaux14) : 0.0
+mb_mon_1.8v(vaux12) : 0.0
+mb_mon_10v(vaux13) : 0.0
+mb_mon_2.5v(vaux15) : 0.0
+min_temp : -273.819
+min_vccint : 0.0
+min_vccout : 0.0
+min_vram : 0.0
+vn_ref : 0.0
+vp_ref : 0.0
+vp_vn : 0.0
+vram : 0.0
+-------
+Time: 2024-09-03T23:06:31.562801Z
+PprGTH MD1 : None
+PprGTH MD2 : None
+PprGTH MD3 : KU FPGA B
+PprGTH MD4 : None
+db_mon_0.95v(vaux0) : 0.0
+db_mon_1.0v(vaux5) : 0.0
+db_mon_1.2v(vaux9) : 0.0
+db_mon_1.5v(vaux3) : 0.0
+db_mon_1.8v(vaux8) : 0.0
+db_mon_2.5v(vaux1) : 0.0
+db_mon_3.3v(vaux11) : 0.0
+db_sense_1(vaux6) : 0.0
+db_sense_2(vaux04) : 0.0
+db_sense_3(vaux2) : 0.0
+db_temperature : -273.819
+db_vccaux(1.8v) : 0.0
+db_vccint(0.9v) : 0.0
+max_temp : -273.819
+max_vccint : 0.0
+max_vccout : 0.0
+max_vram : 0.0
+mb_mon_+5v(vaux10) : 0.0
+mb_mon_-5v(vaux7) : 0.0
+mb_mon_1.2v(vaux14) : 0.0
+mb_mon_1.8v(vaux12) : 0.0
+mb_mon_10v(vaux13) : 0.0
+mb_mon_2.5v(vaux15) : 0.0
+min_temp : -273.819
+min_vccint : 0.0
+min_vccout : 0.0
+min_vram : 0.0
+vn_ref : 0.0
+vp_ref : 0.0
+vp_vn : 0.0
+vram : 0.0
+-------
+Time: 2024-09-03T23:06:35.077647Z
+PprGTH MD1 : None
+PprGTH MD2 : None
+PprGTH MD3 : None
+PprGTH MD4 : KU FPGA B
+db_mon_0.95v(vaux0) : 0.0
+db_mon_1.0v(vaux5) : 0.0
+db_mon_1.2v(vaux9) : 0.0
+db_mon_1.5v(vaux3) : 0.0
+db_mon_1.8v(vaux8) : 0.0
+db_mon_2.5v(vaux1) : 0.0
+db_mon_3.3v(vaux11) : 0.0
+db_sense_1(vaux6) : 0.0
+db_sense_2(vaux04) : 0.0
+db_sense_3(vaux2) : 0.0
+db_temperature : -273.819
+db_vccaux(1.8v) : 0.0
+db_vccint(0.9v) : 0.0
+max_temp : -273.819
+max_vccint : 0.0
+max_vccout : 0.0
+max_vram : 0.0
+mb_mon_+5v(vaux10) : 0.0
+mb_mon_-5v(vaux7) : 0.0
+mb_mon_1.2v(vaux14) : 0.0
+mb_mon_1.8v(vaux12) : 0.0
+mb_mon_10v(vaux13) : 0.0
+mb_mon_2.5v(vaux15) : 0.0
+min_temp : -273.819
+min_vccint : 0.0
+min_vccout : 0.0
+min_vram : 0.0
+vn_ref : 0.0
+vp_ref : 0.0
+vp_vn : 0.0
+vram : 0.0
+-------
+Time: 2024-09-03T23:06:35.077647Z
+PprGTH MD1 : None
+PprGTH MD2 : None
+PprGTH MD3 : None
+PprGTH MD4 : KU FPGA A
+db_mon_0.95v(vaux0) : 0.0
+db_mon_1.0v(vaux5) : 0.0
+db_mon_1.2v(vaux9) : 0.0
+db_mon_1.5v(vaux3) : 0.0
+db_mon_1.8v(vaux8) : 0.0
+db_mon_2.5v(vaux1) : 0.0
+db_mon_3.3v(vaux11) : 0.0
+db_sense_1(vaux6) : 0.0
+db_sense_2(vaux04) : 0.0
+db_sense_3(vaux2) : 0.0
+db_temperature : -273.819
+db_vccaux(1.8v) : 0.0
+db_vccint(0.9v) : 0.0
+max_temp : -273.819
+max_vccint : 0.0
+max_vccout : 0.0
+max_vram : 0.0
+mb_mon_+5v(vaux10) : 0.0
+mb_mon_-5v(vaux7) : 0.0
+mb_mon_1.2v(vaux14) : 0.0
+mb_mon_1.8v(vaux12) : 0.0
+mb_mon_10v(vaux13) : 0.0
+mb_mon_2.5v(vaux15) : 0.0
+min_temp : -273.819
+min_vccint : 0.0
+min_vccout : 0.0
+min_vram : 0.0
+vn_ref : 0.0
+vp_ref : 0.0
+vp_vn : 0.0
+vram : 0.0
+-------
+Time: 2024-09-03T23:06:39.802014Z
+PprGTH MD1 : KU FPGA A
+PprGTH MD2 : None
+PprGTH MD3 : None
+PprGTH MD4 : None
+db_mon_0.95v(vaux0) : 557.6142714570858
+db_mon_1.0v(vaux5) : 349.03971962616816
+db_mon_1.2v(vaux9) : 136.76542056074766
+db_mon_1.5v(vaux3) : 766.6331775700935
+db_mon_1.8v(vaux8) : 568.0483271375465
+db_mon_2.5v(vaux1) : 12.41542750929368
+db_mon_3.3v(vaux11) : 381.1366171003718
+db_sense_1(vaux6) : 999.18
+db_sense_2(vaux04) : 999.18
+db_sense_3(vaux2) : 999.18
+db_temperature : 45.78686944885254
+db_vccaux(1.8v) : 1773.819
+db_vccint(0.9v) : 938.65275
+max_temp : 46.06312605285643
+max_vccint : 1775.283
+max_vccout : 939.93375
+max_vram : 940.1625
+mb_mon_+5v(vaux10) : 596.694375
+mb_mon_-5v(vaux7) : 501.839375
+mb_mon_1.2v(vaux14) : 31.7466875
+mb_mon_1.8v(vaux12) : 631.388125
+mb_mon_10v(vaux13) : 40.67785000000001
+mb_mon_2.5v(vaux15) : 1450.6562499999998
+min_temp : 42.70967783203122
+min_vccint : 1771.7145
+min_vccout : 937.55475
+min_vram : 937.82925
+vn_ref : 2997.4942499999997
+vp_ref : 1244.2627499999999
+vp_vn : 1641.55575
+vram : 938.79
+-------
+Time: 2024-09-03T23:06:39.802014Z
+PprGTH MD1 : KU FPGA B
+PprGTH MD2 : None
+PprGTH MD3 : None
+PprGTH MD4 : None
+db_mon_0.95v(vaux0) : 518.1347305389221
+db_mon_1.0v(vaux5) : 341.0869158878504
+db_mon_1.2v(vaux9) : 137.3070093457944
+db_mon_1.5v(vaux3) : 730.0331775700935
+db_mon_1.8v(vaux8) : 562.5776022304832
+db_mon_2.5v(vaux1) : 17.007434944237918
+db_mon_3.3v(vaux11) : 368.72118959107803
+db_sense_1(vaux6) : 857.538
+db_sense_2(vaux04) : 999.13425
+db_sense_3(vaux2) : 741.01275
+db_temperature : 44.090960852050785
+db_vccaux(1.8v) : 1776.8385
+db_vccint(0.9v) : 931.33275
+max_temp : 44.38256504516602
+max_vccint : 1778.8515
+max_vccout : 933.16275
+max_vram : 933.3915
+mb_mon_+5v(vaux10) : 507.74875000000003
+mb_mon_-5v(vaux7) : 451.056875
+mb_mon_1.2v(vaux14) : 30.583875
+mb_mon_1.8v(vaux12) : 615.0325
+mb_mon_10v(vaux13) : 40.740375
+mb_mon_2.5v(vaux15) : 1358.39375
+min_temp : 40.71449124755861
+min_vccint : 1774.59675
+min_vccout : 930.23475
+min_vram : 930.41775
+vn_ref : 1.3267499999999999
+vp_ref : 1247.92275
+vp_vn : 1640.27475
+vram : 931.653
+-------
+Time: 2024-09-03T23:06:43.390812Z
+PprGTH MD1 : None
+PprGTH MD2 : KU FPGA B
+PprGTH MD3 : None
+PprGTH MD4 : None
+db_mon_0.95v(vaux0) : 0.0
+db_mon_1.0v(vaux5) : 0.0
+db_mon_1.2v(vaux9) : 0.0
+db_mon_1.5v(vaux3) : 0.0
+db_mon_1.8v(vaux8) : 0.0
+db_mon_2.5v(vaux1) : 0.0
+db_mon_3.3v(vaux11) : 0.0
+db_sense_1(vaux6) : 0.0
+db_sense_2(vaux04) : 0.0
+db_sense_3(vaux2) : 0.0
+db_temperature : -273.819
+db_vccaux(1.8v) : 0.0
+db_vccint(0.9v) : 0.0
+max_temp : -273.819
+max_vccint : 0.0
+max_vccout : 0.0
+max_vram : 0.0
+mb_mon_+5v(vaux10) : 0.0
+mb_mon_-5v(vaux7) : 0.0
+mb_mon_1.2v(vaux14) : 0.0
+mb_mon_1.8v(vaux12) : 0.0
+mb_mon_10v(vaux13) : 0.0
+mb_mon_2.5v(vaux15) : 0.0
+min_temp : -273.819
+min_vccint : 0.0
+min_vccout : 0.0
+min_vram : 0.0
+vn_ref : 0.0
+vp_ref : 0.0
+vp_vn : 0.0
+vram : 0.0
+-------
+Time: 2024-09-03T23:06:43.390812Z
+PprGTH MD1 : None
+PprGTH MD2 : KU FPGA A
+PprGTH MD3 : None
+PprGTH MD4 : None
+db_mon_0.95v(vaux0) : 0.0
+db_mon_1.0v(vaux5) : 0.0
+db_mon_1.2v(vaux9) : 0.0
+db_mon_1.5v(vaux3) : 0.0
+db_mon_1.8v(vaux8) : 0.0
+db_mon_2.5v(vaux1) : 0.0
+db_mon_3.3v(vaux11) : 0.0
+db_sense_1(vaux6) : 0.0
+db_sense_2(vaux04) : 0.0
+db_sense_3(vaux2) : 0.0
+db_temperature : -273.819
+db_vccaux(1.8v) : 0.0
+db_vccint(0.9v) : 0.0
+max_temp : -273.819
+max_vccint : 0.0
+max_vccout : 0.0
+max_vram : 0.0
+mb_mon_+5v(vaux10) : 0.0
+mb_mon_-5v(vaux7) : 0.0
+mb_mon_1.2v(vaux14) : 0.0
+mb_mon_1.8v(vaux12) : 0.0
+mb_mon_10v(vaux13) : 0.0
+mb_mon_2.5v(vaux15) : 0.0
+min_temp : -273.819
+min_vccint : 0.0
+min_vccout : 0.0
+min_vram : 0.0
+vn_ref : 0.0
+vp_ref : 0.0
+vp_vn : 0.0
+vram : 0.0
+-------
+Time: 2024-09-03T23:06:46.913089Z
+PprGTH MD1 : None
+PprGTH MD2 : None
+PprGTH MD3 : KU FPGA A
+PprGTH MD4 : None
+db_mon_0.95v(vaux0) : 0.0
+db_mon_1.0v(vaux5) : 0.0
+db_mon_1.2v(vaux9) : 0.0
+db_mon_1.5v(vaux3) : 0.0
+db_mon_1.8v(vaux8) : 0.0
+db_mon_2.5v(vaux1) : 0.0
+db_mon_3.3v(vaux11) : 0.0
+db_sense_1(vaux6) : 0.0
+db_sense_2(vaux04) : 0.0
+db_sense_3(vaux2) : 0.0
+db_temperature : -273.819
+db_vccaux(1.8v) : 0.0
+db_vccint(0.9v) : 0.0
+max_temp : -273.819
+max_vccint : 0.0
+max_vccout : 0.0
+max_vram : 0.0
+mb_mon_+5v(vaux10) : 0.0
+mb_mon_-5v(vaux7) : 0.0
+mb_mon_1.2v(vaux14) : 0.0
+mb_mon_1.8v(vaux12) : 0.0
+mb_mon_10v(vaux13) : 0.0
+mb_mon_2.5v(vaux15) : 0.0
+min_temp : -273.819
+min_vccint : 0.0
+min_vccout : 0.0
+min_vram : 0.0
+vn_ref : 0.0
+vp_ref : 0.0
+vp_vn : 0.0
+vram : 0.0
+-------
+Time: 2024-09-03T23:06:46.913089Z
+PprGTH MD1 : None
+PprGTH MD2 : None
+PprGTH MD3 : KU FPGA B
+PprGTH MD4 : None
+db_mon_0.95v(vaux0) : 0.0
+db_mon_1.0v(vaux5) : 0.0
+db_mon_1.2v(vaux9) : 0.0
+db_mon_1.5v(vaux3) : 0.0
+db_mon_1.8v(vaux8) : 0.0
+db_mon_2.5v(vaux1) : 0.0
+db_mon_3.3v(vaux11) : 0.0
+db_sense_1(vaux6) : 0.0
+db_sense_2(vaux04) : 0.0
+db_sense_3(vaux2) : 0.0
+db_temperature : -273.819
+db_vccaux(1.8v) : 0.0
+db_vccint(0.9v) : 0.0
+max_temp : -273.819
+max_vccint : 0.0
+max_vccout : 0.0
+max_vram : 0.0
+mb_mon_+5v(vaux10) : 0.0
+mb_mon_-5v(vaux7) : 0.0
+mb_mon_1.2v(vaux14) : 0.0
+mb_mon_1.8v(vaux12) : 0.0
+mb_mon_10v(vaux13) : 0.0
+mb_mon_2.5v(vaux15) : 0.0
+min_temp : -273.819
+min_vccint : 0.0
+min_vccout : 0.0
+min_vram : 0.0
+vn_ref : 0.0
+vp_ref : 0.0
+vp_vn : 0.0
+vram : 0.0
+-------
+Time: 2024-09-03T23:06:50.538317Z
+PprGTH MD1 : None
+PprGTH MD2 : None
+PprGTH MD3 : None
+PprGTH MD4 : KU FPGA B
+db_mon_0.95v(vaux0) : 0.0
+db_mon_1.0v(vaux5) : 0.0
+db_mon_1.2v(vaux9) : 0.0
+db_mon_1.5v(vaux3) : 0.0
+db_mon_1.8v(vaux8) : 0.0
+db_mon_2.5v(vaux1) : 0.0
+db_mon_3.3v(vaux11) : 0.0
+db_sense_1(vaux6) : 0.0
+db_sense_2(vaux04) : 0.0
+db_sense_3(vaux2) : 0.0
+db_temperature : -273.819
+db_vccaux(1.8v) : 0.0
+db_vccint(0.9v) : 0.0
+max_temp : -273.819
+max_vccint : 0.0
+max_vccout : 0.0
+max_vram : 0.0
+mb_mon_+5v(vaux10) : 0.0
+mb_mon_-5v(vaux7) : 0.0
+mb_mon_1.2v(vaux14) : 0.0
+mb_mon_1.8v(vaux12) : 0.0
+mb_mon_10v(vaux13) : 0.0
+mb_mon_2.5v(vaux15) : 0.0
+min_temp : -273.819
+min_vccint : 0.0
+min_vccout : 0.0
+min_vram : 0.0
+vn_ref : 0.0
+vp_ref : 0.0
+vp_vn : 0.0
+vram : 0.0
+-------
+Time: 2024-09-03T23:06:50.538317Z
+PprGTH MD1 : None
+PprGTH MD2 : None
+PprGTH MD3 : None
+PprGTH MD4 : KU FPGA A
+db_mon_0.95v(vaux0) : 0.0
+db_mon_1.0v(vaux5) : 0.0
+db_mon_1.2v(vaux9) : 0.0
+db_mon_1.5v(vaux3) : 0.0
+db_mon_1.8v(vaux8) : 0.0
+db_mon_2.5v(vaux1) : 0.0
+db_mon_3.3v(vaux11) : 0.0
+db_sense_1(vaux6) : 0.0
+db_sense_2(vaux04) : 0.0
+db_sense_3(vaux2) : 0.0
+db_temperature : -273.819
+db_vccaux(1.8v) : 0.0
+db_vccint(0.9v) : 0.0
+max_temp : -273.819
+max_vccint : 0.0
+max_vccout : 0.0
+max_vram : 0.0
+mb_mon_+5v(vaux10) : 0.0
+mb_mon_-5v(vaux7) : 0.0
+mb_mon_1.2v(vaux14) : 0.0
+mb_mon_1.8v(vaux12) : 0.0
+mb_mon_10v(vaux13) : 0.0
+mb_mon_2.5v(vaux15) : 0.0
+min_temp : -273.819
+min_vccint : 0.0
+min_vccout : 0.0
+min_vram : 0.0
+vn_ref : 0.0
+vp_ref : 0.0
+vp_vn : 0.0
+vram : 0.0
+-------
+Time: 2024-09-03T23:06:55.085565Z
+PprGTH MD1 : KU FPGA A
+PprGTH MD2 : None
+PprGTH MD3 : None
+PprGTH MD4 : None
+db_mon_0.95v(vaux0) : 557.6142714570858
+db_mon_1.0v(vaux5) : 349.1252336448598
+db_mon_1.2v(vaux9) : 136.76542056074766
+db_mon_1.5v(vaux3) : 766.6901869158878
+db_mon_1.8v(vaux8) : 567.9065985130111
+db_mon_2.5v(vaux1) : 12.528810408921933
+db_mon_3.3v(vaux11) : 381.0799256505576
+db_sense_1(vaux6) : 999.18
+db_sense_2(vaux04) : 999.18
+db_sense_3(vaux2) : 999.18
+db_temperature : 45.679436325073254
+db_vccaux(1.8v) : 1773.087
+db_vccint(0.9v) : 938.424
+max_temp : 46.06312605285643
+max_vccint : 1775.283
+max_vccout : 939.93375
+max_vram : 940.1625
+mb_mon_+5v(vaux10) : 595.245625
+mb_mon_-5v(vaux7) : 502.1825
+mb_mon_1.2v(vaux14) : 31.7390625
+mb_mon_1.8v(vaux12) : 631.6168749999999
+mb_mon_10v(vaux13) : 40.670225
+mb_mon_2.5v(vaux15) : 1449.43625
+min_temp : 42.70967783203122
+min_vccint : 1771.7145
+min_vccout : 937.55475
+min_vram : 937.82925
+vn_ref : 2997.9517499999997
+vp_ref : 1248.8835
+vp_vn : 1640.91525
+vram : 938.65275
+-------
+Time: 2024-09-03T23:06:55.085565Z
+PprGTH MD1 : KU FPGA B
+PprGTH MD2 : None
+PprGTH MD3 : None
+PprGTH MD4 : None
+db_mon_0.95v(vaux0) : 517.6477045908183
+db_mon_1.0v(vaux5) : 341.4289719626168
+db_mon_1.2v(vaux9) : 137.4210280373832
+db_mon_1.5v(vaux3) : 729.7766355140187
+db_mon_1.8v(vaux8) : 562.5776022304832
+db_mon_2.5v(vaux1) : 16.894052044609666
+db_mon_3.3v(vaux11) : 368.692843866171
+db_sense_1(vaux6) : 857.4465
+db_sense_2(vaux04) : 999.1495
+db_sense_3(vaux2) : 739.991
+db_temperature : 44.0602656738281
+db_vccaux(1.8v) : 1776.70125
+db_vccint(0.9v) : 931.42425
+max_temp : 44.38256504516602
+max_vccint : 1778.8515
+max_vccout : 933.16275
+max_vram : 933.3915
+mb_mon_+5v(vaux10) : 506.795625
+mb_mon_-5v(vaux7) : 451.32374999999996
+mb_mon_1.2v(vaux14) : 30.5800625
+mb_mon_1.8v(vaux12) : 615.10875
+mb_mon_10v(vaux13) : 40.735800000000005
+mb_mon_2.5v(vaux15) : 1357.47875
+min_temp : 40.71449124755861
+min_vccint : 1774.59675
+min_vccout : 930.23475
+min_vram : 930.41775
+vn_ref : 0.59475
+vp_ref : 1247.28225
+vp_vn : 1640.229
+vram : 931.24125
+-------
+Time: 2024-09-03T23:06:58.825953Z
+PprGTH MD1 : None
+PprGTH MD2 : KU FPGA B
+PprGTH MD3 : None
+PprGTH MD4 : None
+db_mon_0.95v(vaux0) : 0.0
+db_mon_1.0v(vaux5) : 0.0
+db_mon_1.2v(vaux9) : 0.0
+db_mon_1.5v(vaux3) : 0.0
+db_mon_1.8v(vaux8) : 0.0
+db_mon_2.5v(vaux1) : 0.0
+db_mon_3.3v(vaux11) : 0.0
+db_sense_1(vaux6) : 0.0
+db_sense_2(vaux04) : 0.0
+db_sense_3(vaux2) : 0.0
+db_temperature : -273.819
+db_vccaux(1.8v) : 0.0
+db_vccint(0.9v) : 0.0
+max_temp : -273.819
+max_vccint : 0.0
+max_vccout : 0.0
+max_vram : 0.0
+mb_mon_+5v(vaux10) : 0.0
+mb_mon_-5v(vaux7) : 0.0
+mb_mon_1.2v(vaux14) : 0.0
+mb_mon_1.8v(vaux12) : 0.0
+mb_mon_10v(vaux13) : 0.0
+mb_mon_2.5v(vaux15) : 0.0
+min_temp : -273.819
+min_vccint : 0.0
+min_vccout : 0.0
+min_vram : 0.0
+vn_ref : 0.0
+vp_ref : 0.0
+vp_vn : 0.0
+vram : 0.0
+-------
+Time: 2024-09-03T23:06:58.825953Z
+PprGTH MD1 : None
+PprGTH MD2 : KU FPGA A
+PprGTH MD3 : None
+PprGTH MD4 : None
+db_mon_0.95v(vaux0) : 0.0
+db_mon_1.0v(vaux5) : 0.0
+db_mon_1.2v(vaux9) : 0.0
+db_mon_1.5v(vaux3) : 0.0
+db_mon_1.8v(vaux8) : 0.0
+db_mon_2.5v(vaux1) : 0.0
+db_mon_3.3v(vaux11) : 0.0
+db_sense_1(vaux6) : 0.0
+db_sense_2(vaux04) : 0.0
+db_sense_3(vaux2) : 0.0
+db_temperature : -273.819
+db_vccaux(1.8v) : 0.0
+db_vccint(0.9v) : 0.0
+max_temp : -273.819
+max_vccint : 0.0
+max_vccout : 0.0
+max_vram : 0.0
+mb_mon_+5v(vaux10) : 0.0
+mb_mon_-5v(vaux7) : 0.0
+mb_mon_1.2v(vaux14) : 0.0
+mb_mon_1.8v(vaux12) : 0.0
+mb_mon_10v(vaux13) : 0.0
+mb_mon_2.5v(vaux15) : 0.0
+min_temp : -273.819
+min_vccint : 0.0
+min_vccout : 0.0
+min_vram : 0.0
+vn_ref : 0.0
+vp_ref : 0.0
+vp_vn : 0.0
+vram : 0.0
+-------
+Time: 2024-09-03T23:07:02.436474Z
+PprGTH MD1 : None
+PprGTH MD2 : None
+PprGTH MD3 : KU FPGA A
+PprGTH MD4 : None
+db_mon_0.95v(vaux0) : 0.0
+db_mon_1.0v(vaux5) : 0.0
+db_mon_1.2v(vaux9) : 0.0
+db_mon_1.5v(vaux3) : 0.0
+db_mon_1.8v(vaux8) : 0.0
+db_mon_2.5v(vaux1) : 0.0
+db_mon_3.3v(vaux11) : 0.0
+db_sense_1(vaux6) : 0.0
+db_sense_2(vaux04) : 0.0
+db_sense_3(vaux2) : 0.0
+db_temperature : -273.819
+db_vccaux(1.8v) : 0.0
+db_vccint(0.9v) : 0.0
+max_temp : -273.819
+max_vccint : 0.0
+max_vccout : 0.0
+max_vram : 0.0
+mb_mon_+5v(vaux10) : 0.0
+mb_mon_-5v(vaux7) : 0.0
+mb_mon_1.2v(vaux14) : 0.0
+mb_mon_1.8v(vaux12) : 0.0
+mb_mon_10v(vaux13) : 0.0
+mb_mon_2.5v(vaux15) : 0.0
+min_temp : -273.819
+min_vccint : 0.0
+min_vccout : 0.0
+min_vram : 0.0
+vn_ref : 0.0
+vp_ref : 0.0
+vp_vn : 0.0
+vram : 0.0
+-------
+Time: 2024-09-03T23:07:02.436474Z
+PprGTH MD1 : None
+PprGTH MD2 : None
+PprGTH MD3 : KU FPGA B
+PprGTH MD4 : None
+db_mon_0.95v(vaux0) : 0.0
+db_mon_1.0v(vaux5) : 0.0
+db_mon_1.2v(vaux9) : 0.0
+db_mon_1.5v(vaux3) : 0.0
+db_mon_1.8v(vaux8) : 0.0
+db_mon_2.5v(vaux1) : 0.0
+db_mon_3.3v(vaux11) : 0.0
+db_sense_1(vaux6) : 0.0
+db_sense_2(vaux04) : 0.0
+db_sense_3(vaux2) : 0.0
+db_temperature : -273.819
+db_vccaux(1.8v) : 0.0
+db_vccint(0.9v) : 0.0
+max_temp : -273.819
+max_vccint : 0.0
+max_vccout : 0.0
+max_vram : 0.0
+mb_mon_+5v(vaux10) : 0.0
+mb_mon_-5v(vaux7) : 0.0
+mb_mon_1.2v(vaux14) : 0.0
+mb_mon_1.8v(vaux12) : 0.0
+mb_mon_10v(vaux13) : 0.0
+mb_mon_2.5v(vaux15) : 0.0
+min_temp : -273.819
+min_vccint : 0.0
+min_vccout : 0.0
+min_vram : 0.0
+vn_ref : 0.0
+vp_ref : 0.0
+vp_vn : 0.0
+vram : 0.0
+-------
+Time: 2024-09-03T23:07:06.067074Z
+PprGTH MD1 : None
+PprGTH MD2 : None
+PprGTH MD3 : None
+PprGTH MD4 : KU FPGA B
+db_mon_0.95v(vaux0) : 0.0
+db_mon_1.0v(vaux5) : 0.0
+db_mon_1.2v(vaux9) : 0.0
+db_mon_1.5v(vaux3) : 0.0
+db_mon_1.8v(vaux8) : 0.0
+db_mon_2.5v(vaux1) : 0.0
+db_mon_3.3v(vaux11) : 0.0
+db_sense_1(vaux6) : 0.0
+db_sense_2(vaux04) : 0.0
+db_sense_3(vaux2) : 0.0
+db_temperature : -273.819
+db_vccaux(1.8v) : 0.0
+db_vccint(0.9v) : 0.0
+max_temp : -273.819
+max_vccint : 0.0
+max_vccout : 0.0
+max_vram : 0.0
+mb_mon_+5v(vaux10) : 0.0
+mb_mon_-5v(vaux7) : 0.0
+mb_mon_1.2v(vaux14) : 0.0
+mb_mon_1.8v(vaux12) : 0.0
+mb_mon_10v(vaux13) : 0.0
+mb_mon_2.5v(vaux15) : 0.0
+min_temp : -273.819
+min_vccint : 0.0
+min_vccout : 0.0
+min_vram : 0.0
+vn_ref : 0.0
+vp_ref : 0.0
+vp_vn : 0.0
+vram : 0.0
+-------
+Time: 2024-09-03T23:07:06.067074Z
+PprGTH MD1 : None
+PprGTH MD2 : None
+PprGTH MD3 : None
+PprGTH MD4 : KU FPGA A
+db_mon_0.95v(vaux0) : 0.0
+db_mon_1.0v(vaux5) : 0.0
+db_mon_1.2v(vaux9) : 0.0
+db_mon_1.5v(vaux3) : 0.0
+db_mon_1.8v(vaux8) : 0.0
+db_mon_2.5v(vaux1) : 0.0
+db_mon_3.3v(vaux11) : 0.0
+db_sense_1(vaux6) : 0.0
+db_sense_2(vaux04) : 0.0
+db_sense_3(vaux2) : 0.0
+db_temperature : -273.819
+db_vccaux(1.8v) : 0.0
+db_vccint(0.9v) : 0.0
+max_temp : -273.819
+max_vccint : 0.0
+max_vccout : 0.0
+max_vram : 0.0
+mb_mon_+5v(vaux10) : 0.0
+mb_mon_-5v(vaux7) : 0.0
+mb_mon_1.2v(vaux14) : 0.0
+mb_mon_1.8v(vaux12) : 0.0
+mb_mon_10v(vaux13) : 0.0
+mb_mon_2.5v(vaux15) : 0.0
+min_temp : -273.819
+min_vccint : 0.0
+min_vccout : 0.0
+min_vram : 0.0
+vn_ref : 0.0
+vp_ref : 0.0
+vp_vn : 0.0
+vram : 0.0
+-------
+Time: 2024-09-03T23:07:10.865794Z
+PprGTH MD1 : KU FPGA A
+PprGTH MD2 : None
+PprGTH MD3 : None
+PprGTH MD4 : None
+db_mon_0.95v(vaux0) : 558.0099800399202
+db_mon_1.0v(vaux5) : 349.0682242990654
+db_mon_1.2v(vaux9) : 136.79392523364484
+db_mon_1.5v(vaux3) : 766.7186915887851
+db_mon_1.8v(vaux8) : 567.9916356877324
+db_mon_2.5v(vaux1) : 12.528810408921933
+db_mon_3.3v(vaux11) : 379.80436802973975
+db_sense_1(vaux6) : 999.18
+db_sense_2(vaux04) : 999.18
+db_sense_3(vaux2) : 999.18
+db_temperature : 45.69478391418454
+db_vccaux(1.8v) : 1773.22425
+db_vccint(0.9v) : 938.56125
+max_temp : 46.06312605285643
+max_vccint : 1775.283
+max_vccout : 939.93375
+max_vram : 940.1625
+mb_mon_+5v(vaux10) : 595.74125
+mb_mon_-5v(vaux7) : 502.10625
+mb_mon_1.2v(vaux14) : 31.7543125
+mb_mon_1.8v(vaux12) : 631.42625
+mb_mon_10v(vaux13) : 40.67785000000001
+mb_mon_2.5v(vaux15) : 1449.665
+min_temp : 42.70967783203122
+min_vccint : 1771.7145
+min_vccout : 937.55475
+min_vram : 937.82925
+vn_ref : 2998.2262499999997
+vp_ref : 1247.46525
+vp_vn : 1640.91525
+vram : 938.79
+-------
+Time: 2024-09-03T23:07:10.865794Z
+PprGTH MD1 : KU FPGA B
+PprGTH MD2 : None
+PprGTH MD3 : None
+PprGTH MD4 : None
+db_mon_0.95v(vaux0) : 517.4955089820359
+db_mon_1.0v(vaux5) : 339.86121495327103
+db_mon_1.2v(vaux9) : 137.44953271028038
+db_mon_1.5v(vaux3) : 729.976168224299
+db_mon_1.8v(vaux8) : 562.5492565055762
+db_mon_2.5v(vaux1) : 16.809014869888475
+db_mon_3.3v(vaux11) : 370.3085501858736
+db_sense_1(vaux6) : 857.7819999999999
+db_sense_2(vaux04) : 999.16475
+db_sense_3(vaux2) : 740.8755
+db_temperature : 44.006549111938455
+db_vccaux(1.8v) : 1776.4267499999999
+db_vccint(0.9v) : 931.1497499999999
+max_temp : 44.38256504516602
+max_vccint : 1778.8515
+max_vccout : 933.16275
+max_vram : 933.3915
+mb_mon_+5v(vaux10) : 508.5875
+mb_mon_-5v(vaux7) : 451.01875
+mb_mon_1.2v(vaux14) : 30.5495625
+mb_mon_1.8v(vaux12) : 614.765625
+mb_mon_10v(vaux13) : 40.740375
+mb_mon_2.5v(vaux15) : 1357.02125
+min_temp : 40.71449124755861
+min_vccint : 1774.59675
+min_vccout : 930.23475
+min_vram : 930.41775
+vn_ref : 2997.8145
+vp_ref : 1248.92925
+vp_vn : 1640.1375
+vram : 931.42425
+-------
+Time: 2024-09-03T23:07:14.513491Z
+PprGTH MD1 : None
+PprGTH MD2 : KU FPGA B
+PprGTH MD3 : None
+PprGTH MD4 : None
+db_mon_0.95v(vaux0) : 0.0
+db_mon_1.0v(vaux5) : 0.0
+db_mon_1.2v(vaux9) : 0.0
+db_mon_1.5v(vaux3) : 0.0
+db_mon_1.8v(vaux8) : 0.0
+db_mon_2.5v(vaux1) : 0.0
+db_mon_3.3v(vaux11) : 0.0
+db_sense_1(vaux6) : 0.0
+db_sense_2(vaux04) : 0.0
+db_sense_3(vaux2) : 0.0
+db_temperature : -273.819
+db_vccaux(1.8v) : 0.0
+db_vccint(0.9v) : 0.0
+max_temp : -273.819
+max_vccint : 0.0
+max_vccout : 0.0
+max_vram : 0.0
+mb_mon_+5v(vaux10) : 0.0
+mb_mon_-5v(vaux7) : 0.0
+mb_mon_1.2v(vaux14) : 0.0
+mb_mon_1.8v(vaux12) : 0.0
+mb_mon_10v(vaux13) : 0.0
+mb_mon_2.5v(vaux15) : 0.0
+min_temp : -273.819
+min_vccint : 0.0
+min_vccout : 0.0
+min_vram : 0.0
+vn_ref : 0.0
+vp_ref : 0.0
+vp_vn : 0.0
+vram : 0.0
+-------
+Time: 2024-09-03T23:07:14.513491Z
+PprGTH MD1 : None
+PprGTH MD2 : KU FPGA A
+PprGTH MD3 : None
+PprGTH MD4 : None
+db_mon_0.95v(vaux0) : 0.0
+db_mon_1.0v(vaux5) : 0.0
+db_mon_1.2v(vaux9) : 0.0
+db_mon_1.5v(vaux3) : 0.0
+db_mon_1.8v(vaux8) : 0.0
+db_mon_2.5v(vaux1) : 0.0
+db_mon_3.3v(vaux11) : 0.0
+db_sense_1(vaux6) : 0.0
+db_sense_2(vaux04) : 0.0
+db_sense_3(vaux2) : 0.0
+db_temperature : -273.819
+db_vccaux(1.8v) : 0.0
+db_vccint(0.9v) : 0.0
+max_temp : -273.819
+max_vccint : 0.0
+max_vccout : 0.0
+max_vram : 0.0
+mb_mon_+5v(vaux10) : 0.0
+mb_mon_-5v(vaux7) : 0.0
+mb_mon_1.2v(vaux14) : 0.0
+mb_mon_1.8v(vaux12) : 0.0
+mb_mon_10v(vaux13) : 0.0
+mb_mon_2.5v(vaux15) : 0.0
+min_temp : -273.819
+min_vccint : 0.0
+min_vccout : 0.0
+min_vram : 0.0
+vn_ref : 0.0
+vp_ref : 0.0
+vp_vn : 0.0
+vram : 0.0
+-------
+Time: 2024-09-03T23:07:18.011190Z
+PprGTH MD1 : None
+PprGTH MD2 : None
+PprGTH MD3 : KU FPGA A
+PprGTH MD4 : None
+db_mon_0.95v(vaux0) : 0.0
+db_mon_1.0v(vaux5) : 0.0
+db_mon_1.2v(vaux9) : 0.0
+db_mon_1.5v(vaux3) : 0.0
+db_mon_1.8v(vaux8) : 0.0
+db_mon_2.5v(vaux1) : 0.0
+db_mon_3.3v(vaux11) : 0.0
+db_sense_1(vaux6) : 0.0
+db_sense_2(vaux04) : 0.0
+db_sense_3(vaux2) : 0.0
+db_temperature : -273.819
+db_vccaux(1.8v) : 0.0
+db_vccint(0.9v) : 0.0
+max_temp : -273.819
+max_vccint : 0.0
+max_vccout : 0.0
+max_vram : 0.0
+mb_mon_+5v(vaux10) : 0.0
+mb_mon_-5v(vaux7) : 0.0
+mb_mon_1.2v(vaux14) : 0.0
+mb_mon_1.8v(vaux12) : 0.0
+mb_mon_10v(vaux13) : 0.0
+mb_mon_2.5v(vaux15) : 0.0
+min_temp : -273.819
+min_vccint : 0.0
+min_vccout : 0.0
+min_vram : 0.0
+vn_ref : 0.0
+vp_ref : 0.0
+vp_vn : 0.0
+vram : 0.0
+-------
+Time: 2024-09-03T23:07:18.011190Z
+PprGTH MD1 : None
+PprGTH MD2 : None
+PprGTH MD3 : KU FPGA B
+PprGTH MD4 : None
+db_mon_0.95v(vaux0) : 0.0
+db_mon_1.0v(vaux5) : 0.0
+db_mon_1.2v(vaux9) : 0.0
+db_mon_1.5v(vaux3) : 0.0
+db_mon_1.8v(vaux8) : 0.0
+db_mon_2.5v(vaux1) : 0.0
+db_mon_3.3v(vaux11) : 0.0
+db_sense_1(vaux6) : 0.0
+db_sense_2(vaux04) : 0.0
+db_sense_3(vaux2) : 0.0
+db_temperature : -273.819
+db_vccaux(1.8v) : 0.0
+db_vccint(0.9v) : 0.0
+max_temp : -273.819
+max_vccint : 0.0
+max_vccout : 0.0
+max_vram : 0.0
+mb_mon_+5v(vaux10) : 0.0
+mb_mon_-5v(vaux7) : 0.0
+mb_mon_1.2v(vaux14) : 0.0
+mb_mon_1.8v(vaux12) : 0.0
+mb_mon_10v(vaux13) : 0.0
+mb_mon_2.5v(vaux15) : 0.0
+min_temp : -273.819
+min_vccint : 0.0
+min_vccout : 0.0
+min_vram : 0.0
+vn_ref : 0.0
+vp_ref : 0.0
+vp_vn : 0.0
+vram : 0.0
+-------
+Time: 2024-09-03T23:07:21.539411Z
+PprGTH MD1 : None
+PprGTH MD2 : None
+PprGTH MD3 : None
+PprGTH MD4 : KU FPGA B
+db_mon_0.95v(vaux0) : 0.0
+db_mon_1.0v(vaux5) : 0.0
+db_mon_1.2v(vaux9) : 0.0
+db_mon_1.5v(vaux3) : 0.0
+db_mon_1.8v(vaux8) : 0.0
+db_mon_2.5v(vaux1) : 0.0
+db_mon_3.3v(vaux11) : 0.0
+db_sense_1(vaux6) : 0.0
+db_sense_2(vaux04) : 0.0
+db_sense_3(vaux2) : 0.0
+db_temperature : -273.819
+db_vccaux(1.8v) : 0.0
+db_vccint(0.9v) : 0.0
+max_temp : -273.819
+max_vccint : 0.0
+max_vccout : 0.0
+max_vram : 0.0
+mb_mon_+5v(vaux10) : 0.0
+mb_mon_-5v(vaux7) : 0.0
+mb_mon_1.2v(vaux14) : 0.0
+mb_mon_1.8v(vaux12) : 0.0
+mb_mon_10v(vaux13) : 0.0
+mb_mon_2.5v(vaux15) : 0.0
+min_temp : -273.819
+min_vccint : 0.0
+min_vccout : 0.0
+min_vram : 0.0
+vn_ref : 0.0
+vp_ref : 0.0
+vp_vn : 0.0
+vram : 0.0
+-------
+Time: 2024-09-03T23:07:21.539411Z
+PprGTH MD1 : None
+PprGTH MD2 : None
+PprGTH MD3 : None
+PprGTH MD4 : KU FPGA A
+db_mon_0.95v(vaux0) : 0.0
+db_mon_1.0v(vaux5) : 0.0
+db_mon_1.2v(vaux9) : 0.0
+db_mon_1.5v(vaux3) : 0.0
+db_mon_1.8v(vaux8) : 0.0
+db_mon_2.5v(vaux1) : 0.0
+db_mon_3.3v(vaux11) : 0.0
+db_sense_1(vaux6) : 0.0
+db_sense_2(vaux04) : 0.0
+db_sense_3(vaux2) : 0.0
+db_temperature : -273.819
+db_vccaux(1.8v) : 0.0
+db_vccint(0.9v) : 0.0
+max_temp : -273.819
+max_vccint : 0.0
+max_vccout : 0.0
+max_vram : 0.0
+mb_mon_+5v(vaux10) : 0.0
+mb_mon_-5v(vaux7) : 0.0
+mb_mon_1.2v(vaux14) : 0.0
+mb_mon_1.8v(vaux12) : 0.0
+mb_mon_10v(vaux13) : 0.0
+mb_mon_2.5v(vaux15) : 0.0
+min_temp : -273.819
+min_vccint : 0.0
+min_vccout : 0.0
+min_vram : 0.0
+vn_ref : 0.0
+vp_ref : 0.0
+vp_vn : 0.0
+vram : 0.0
+-------
+Time: 2024-09-03T23:07:26.127565Z
+PprGTH MD1 : KU FPGA A
+PprGTH MD2 : None
+PprGTH MD3 : None
+PprGTH MD4 : None
+db_mon_0.95v(vaux0) : 557.9491017964071
+db_mon_1.0v(vaux5) : 349.2392523364486
+db_mon_1.2v(vaux9) : 136.73691588785047
+db_mon_1.5v(vaux3) : 766.9752336448598
+db_mon_1.8v(vaux8) : 568.0766728624535
+db_mon_2.5v(vaux1) : 12.67053903345725
+db_mon_3.3v(vaux11) : 379.4075278810409
+db_sense_1(vaux6) : 999.18
+db_sense_2(vaux04) : 999.18
+db_sense_3(vaux2) : 999.18
+db_temperature : 45.717805297851555
+db_vccaux(1.8v) : 1773.453
+db_vccint(0.9v) : 938.37825
+max_temp : 46.06312605285643
+max_vccint : 1775.283
+max_vccout : 939.93375
+max_vram : 940.1625
+mb_mon_+5v(vaux10) : 596.65625
+mb_mon_-5v(vaux7) : 501.763125
+mb_mon_1.2v(vaux14) : 31.7390625
+mb_mon_1.8v(vaux12) : 631.73125
+mb_mon_10v(vaux13) : 40.68395
+mb_mon_2.5v(vaux15) : 1450.1987499999998
+min_temp : 42.70967783203122
+min_vccint : 1771.7145
+min_vccout : 937.55475
+min_vram : 937.82925
+vn_ref : 0.4575
+vp_ref : 1249.524
+vp_vn : 1641.4185
+vram : 938.607
+-------
+Time: 2024-09-03T23:07:26.127565Z
+PprGTH MD1 : KU FPGA B
+PprGTH MD2 : None
+PprGTH MD3 : None
+PprGTH MD4 : None
+db_mon_0.95v(vaux0) : 518.3478043912176
+db_mon_1.0v(vaux5) : 339.4051401869159
+db_mon_1.2v(vaux9) : 137.53504672897196
+db_mon_1.5v(vaux3) : 730.118691588785
+db_mon_1.8v(vaux8) : 562.492565055762
+db_mon_2.5v(vaux1) : 16.809014869888475
+db_mon_3.3v(vaux11) : 370.3652416356877
+db_sense_1(vaux6) : 857.721
+db_sense_2(vaux04) : 999.16475
+db_sense_3(vaux2) : 741.19575
+db_temperature : 44.10630844116213
+db_vccaux(1.8v) : 1776.97575
+db_vccint(0.9v) : 931.47
+max_temp : 44.38256504516602
+max_vccint : 1778.8515
+max_vccout : 933.16275
+max_vram : 933.3915
+mb_mon_+5v(vaux10) : 505.651875
+mb_mon_-5v(vaux7) : 451.01875
+mb_mon_1.2v(vaux14) : 30.5915
+mb_mon_1.8v(vaux12) : 615.2993749999999
+mb_mon_10v(vaux13) : 40.740375
+mb_mon_2.5v(vaux15) : 1357.0974999999999
+min_temp : 40.71449124755861
+min_vccint : 1774.59675
+min_vccout : 930.23475
+min_vram : 930.41775
+vn_ref : 2997.723
+vp_ref : 1247.37375
+vp_vn : 1640.27475
+vram : 931.836
+-------
+Time: 2024-09-03T23:07:29.632673Z
+PprGTH MD1 : None
+PprGTH MD2 : KU FPGA B
+PprGTH MD3 : None
+PprGTH MD4 : None
+db_mon_0.95v(vaux0) : 0.0
+db_mon_1.0v(vaux5) : 0.0
+db_mon_1.2v(vaux9) : 0.0
+db_mon_1.5v(vaux3) : 0.0
+db_mon_1.8v(vaux8) : 0.0
+db_mon_2.5v(vaux1) : 0.0
+db_mon_3.3v(vaux11) : 0.0
+db_sense_1(vaux6) : 0.0
+db_sense_2(vaux04) : 0.0
+db_sense_3(vaux2) : 0.0
+db_temperature : -273.819
+db_vccaux(1.8v) : 0.0
+db_vccint(0.9v) : 0.0
+max_temp : -273.819
+max_vccint : 0.0
+max_vccout : 0.0
+max_vram : 0.0
+mb_mon_+5v(vaux10) : 0.0
+mb_mon_-5v(vaux7) : 0.0
+mb_mon_1.2v(vaux14) : 0.0
+mb_mon_1.8v(vaux12) : 0.0
+mb_mon_10v(vaux13) : 0.0
+mb_mon_2.5v(vaux15) : 0.0
+min_temp : -273.819
+min_vccint : 0.0
+min_vccout : 0.0
+min_vram : 0.0
+vn_ref : 0.0
+vp_ref : 0.0
+vp_vn : 0.0
+vram : 0.0
+-------
+Time: 2024-09-03T23:07:29.632673Z
+PprGTH MD1 : None
+PprGTH MD2 : KU FPGA A
+PprGTH MD3 : None
+PprGTH MD4 : None
+db_mon_0.95v(vaux0) : 0.0
+db_mon_1.0v(vaux5) : 0.0
+db_mon_1.2v(vaux9) : 0.0
+db_mon_1.5v(vaux3) : 0.0
+db_mon_1.8v(vaux8) : 0.0
+db_mon_2.5v(vaux1) : 0.0
+db_mon_3.3v(vaux11) : 0.0
+db_sense_1(vaux6) : 0.0
+db_sense_2(vaux04) : 0.0
+db_sense_3(vaux2) : 0.0
+db_temperature : -273.819
+db_vccaux(1.8v) : 0.0
+db_vccint(0.9v) : 0.0
+max_temp : -273.819
+max_vccint : 0.0
+max_vccout : 0.0
+max_vram : 0.0
+mb_mon_+5v(vaux10) : 0.0
+mb_mon_-5v(vaux7) : 0.0
+mb_mon_1.2v(vaux14) : 0.0
+mb_mon_1.8v(vaux12) : 0.0
+mb_mon_10v(vaux13) : 0.0
+mb_mon_2.5v(vaux15) : 0.0
+min_temp : -273.819
+min_vccint : 0.0
+min_vccout : 0.0
+min_vram : 0.0
+vn_ref : 0.0
+vp_ref : 0.0
+vp_vn : 0.0
+vram : 0.0
+-------
+Time: 2024-09-03T23:07:33.153627Z
+PprGTH MD1 : None
+PprGTH MD2 : None
+PprGTH MD3 : KU FPGA A
+PprGTH MD4 : None
+db_mon_0.95v(vaux0) : 0.0
+db_mon_1.0v(vaux5) : 0.0
+db_mon_1.2v(vaux9) : 0.0
+db_mon_1.5v(vaux3) : 0.0
+db_mon_1.8v(vaux8) : 0.0
+db_mon_2.5v(vaux1) : 0.0
+db_mon_3.3v(vaux11) : 0.0
+db_sense_1(vaux6) : 0.0
+db_sense_2(vaux04) : 0.0
+db_sense_3(vaux2) : 0.0
+db_temperature : -273.819
+db_vccaux(1.8v) : 0.0
+db_vccint(0.9v) : 0.0
+max_temp : -273.819
+max_vccint : 0.0
+max_vccout : 0.0
+max_vram : 0.0
+mb_mon_+5v(vaux10) : 0.0
+mb_mon_-5v(vaux7) : 0.0
+mb_mon_1.2v(vaux14) : 0.0
+mb_mon_1.8v(vaux12) : 0.0
+mb_mon_10v(vaux13) : 0.0
+mb_mon_2.5v(vaux15) : 0.0
+min_temp : -273.819
+min_vccint : 0.0
+min_vccout : 0.0
+min_vram : 0.0
+vn_ref : 0.0
+vp_ref : 0.0
+vp_vn : 0.0
+vram : 0.0
+-------
+Time: 2024-09-03T23:07:33.153627Z
+PprGTH MD1 : None
+PprGTH MD2 : None
+PprGTH MD3 : KU FPGA B
+PprGTH MD4 : None
+db_mon_0.95v(vaux0) : 0.0
+db_mon_1.0v(vaux5) : 0.0
+db_mon_1.2v(vaux9) : 0.0
+db_mon_1.5v(vaux3) : 0.0
+db_mon_1.8v(vaux8) : 0.0
+db_mon_2.5v(vaux1) : 0.0
+db_mon_3.3v(vaux11) : 0.0
+db_sense_1(vaux6) : 0.0
+db_sense_2(vaux04) : 0.0
+db_sense_3(vaux2) : 0.0
+db_temperature : -273.819
+db_vccaux(1.8v) : 0.0
+db_vccint(0.9v) : 0.0
+max_temp : -273.819
+max_vccint : 0.0
+max_vccout : 0.0
+max_vram : 0.0
+mb_mon_+5v(vaux10) : 0.0
+mb_mon_-5v(vaux7) : 0.0
+mb_mon_1.2v(vaux14) : 0.0
+mb_mon_1.8v(vaux12) : 0.0
+mb_mon_10v(vaux13) : 0.0
+mb_mon_2.5v(vaux15) : 0.0
+min_temp : -273.819
+min_vccint : 0.0
+min_vccout : 0.0
+min_vram : 0.0
+vn_ref : 0.0
+vp_ref : 0.0
+vp_vn : 0.0
+vram : 0.0
+-------
+Time: 2024-09-03T23:07:36.693568Z
+PprGTH MD1 : None
+PprGTH MD2 : None
+PprGTH MD3 : None
+PprGTH MD4 : KU FPGA B
+db_mon_0.95v(vaux0) : 0.0
+db_mon_1.0v(vaux5) : 0.0
+db_mon_1.2v(vaux9) : 0.0
+db_mon_1.5v(vaux3) : 0.0
+db_mon_1.8v(vaux8) : 0.0
+db_mon_2.5v(vaux1) : 0.0
+db_mon_3.3v(vaux11) : 0.0
+db_sense_1(vaux6) : 0.0
+db_sense_2(vaux04) : 0.0
+db_sense_3(vaux2) : 0.0
+db_temperature : -273.819
+db_vccaux(1.8v) : 0.0
+db_vccint(0.9v) : 0.0
+max_temp : -273.819
+max_vccint : 0.0
+max_vccout : 0.0
+max_vram : 0.0
+mb_mon_+5v(vaux10) : 0.0
+mb_mon_-5v(vaux7) : 0.0
+mb_mon_1.2v(vaux14) : 0.0
+mb_mon_1.8v(vaux12) : 0.0
+mb_mon_10v(vaux13) : 0.0
+mb_mon_2.5v(vaux15) : 0.0
+min_temp : -273.819
+min_vccint : 0.0
+min_vccout : 0.0
+min_vram : 0.0
+vn_ref : 0.0
+vp_ref : 0.0
+vp_vn : 0.0
+vram : 0.0
+-------
+Time: 2024-09-03T23:07:36.693568Z
+PprGTH MD1 : None
+PprGTH MD2 : None
+PprGTH MD3 : None
+PprGTH MD4 : KU FPGA A
+db_mon_0.95v(vaux0) : 0.0
+db_mon_1.0v(vaux5) : 0.0
+db_mon_1.2v(vaux9) : 0.0
+db_mon_1.5v(vaux3) : 0.0
+db_mon_1.8v(vaux8) : 0.0
+db_mon_2.5v(vaux1) : 0.0
+db_mon_3.3v(vaux11) : 0.0
+db_sense_1(vaux6) : 0.0
+db_sense_2(vaux04) : 0.0
+db_sense_3(vaux2) : 0.0
+db_temperature : -273.819
+db_vccaux(1.8v) : 0.0
+db_vccint(0.9v) : 0.0
+max_temp : -273.819
+max_vccint : 0.0
+max_vccout : 0.0
+max_vram : 0.0
+mb_mon_+5v(vaux10) : 0.0
+mb_mon_-5v(vaux7) : 0.0
+mb_mon_1.2v(vaux14) : 0.0
+mb_mon_1.8v(vaux12) : 0.0
+mb_mon_10v(vaux13) : 0.0
+mb_mon_2.5v(vaux15) : 0.0
+min_temp : -273.819
+min_vccint : 0.0
+min_vccout : 0.0
+min_vram : 0.0
+vn_ref : 0.0
+vp_ref : 0.0
+vp_vn : 0.0
+vram : 0.0
+-------
+Time: 2024-09-03T23:07:41.248514Z
+PprGTH MD1 : KU FPGA A
+PprGTH MD2 : None
+PprGTH MD3 : None
+PprGTH MD4 : None
+db_mon_0.95v(vaux0) : 557.9186626746507
+db_mon_1.0v(vaux5) : 349.3532710280374
+db_mon_1.2v(vaux9) : 136.79392523364484
+db_mon_1.5v(vaux3) : 766.6901869158878
+db_mon_1.8v(vaux8) : 568.3884758364312
+db_mon_2.5v(vaux1) : 12.613847583643123
+db_mon_3.3v(vaux11) : 379.5492565055762
+db_sense_1(vaux6) : 999.18
+db_sense_2(vaux04) : 999.18
+db_sense_3(vaux2) : 999.18
+db_temperature : 45.74082668151857
+db_vccaux(1.8v) : 1773.95625
+db_vccint(0.9v) : 938.5155
+max_temp : 46.06312605285643
+max_vccint : 1775.283
+max_vccout : 939.93375
+max_vram : 940.1625
+mb_mon_+5v(vaux10) : 595.779375
+mb_mon_-5v(vaux7) : 502.335
+mb_mon_1.2v(vaux14) : 31.70475
+mb_mon_1.8v(vaux12) : 631.6168749999999
+mb_mon_10v(vaux13) : 40.697675000000004
+mb_mon_2.5v(vaux15) : 1449.8175
+min_temp : 42.70967783203122
+min_vccint : 1771.7145
+min_vccout : 937.55475
+min_vram : 937.82925
+vn_ref : 0.0915
+vp_ref : 1248.92925
+vp_vn : 1641.51
+vram : 938.92725
+-------
+Time: 2024-09-03T23:07:41.248514Z
+PprGTH MD1 : KU FPGA B
+PprGTH MD2 : None
+PprGTH MD3 : None
+PprGTH MD4 : None
+db_mon_0.95v(vaux0) : 517.9216566866266
+db_mon_1.0v(vaux5) : 340.3457943925234
+db_mon_1.2v(vaux9) : 137.50654205607478
+db_mon_1.5v(vaux3) : 729.9191588785047
+db_mon_1.8v(vaux8) : 562.7476765799256
+db_mon_2.5v(vaux1) : 16.83736059479554
+db_mon_3.3v(vaux11) : 370.3652416356877
+db_sense_1(vaux6) : 857.965
+db_sense_2(vaux04) : 999.16475
+db_sense_3(vaux2) : 741.01275
+db_temperature : 44.006549111938455
+db_vccaux(1.8v) : 1776.747
+db_vccint(0.9v) : 931.51575
+max_temp : 44.38256504516602
+max_vccint : 1778.8515
+max_vccout : 933.16275
+max_vram : 933.3915
+mb_mon_+5v(vaux10) : 506.871875
+mb_mon_-5v(vaux7) : 450.82812499999994
+mb_mon_1.2v(vaux14) : 30.622
+mb_mon_1.8v(vaux12) : 615.6425
+mb_mon_10v(vaux13) : 40.76325
+mb_mon_2.5v(vaux15) : 1357.25
+min_temp : 40.71449124755861
+min_vccint : 1774.59675
+min_vccout : 930.23475
+min_vram : 930.41775
+vn_ref : 2997.906
+vp_ref : 1247.145
+vp_vn : 1640.595
+vram : 931.653
+-------
+Time: 2024-09-03T23:07:44.870247Z
+PprGTH MD1 : None
+PprGTH MD2 : KU FPGA B
+PprGTH MD3 : None
+PprGTH MD4 : None
+db_mon_0.95v(vaux0) : 0.0
+db_mon_1.0v(vaux5) : 0.0
+db_mon_1.2v(vaux9) : 0.0
+db_mon_1.5v(vaux3) : 0.0
+db_mon_1.8v(vaux8) : 0.0
+db_mon_2.5v(vaux1) : 0.0
+db_mon_3.3v(vaux11) : 0.0
+db_sense_1(vaux6) : 0.0
+db_sense_2(vaux04) : 0.0
+db_sense_3(vaux2) : 0.0
+db_temperature : -273.819
+db_vccaux(1.8v) : 0.0
+db_vccint(0.9v) : 0.0
+max_temp : -273.819
+max_vccint : 0.0
+max_vccout : 0.0
+max_vram : 0.0
+mb_mon_+5v(vaux10) : 0.0
+mb_mon_-5v(vaux7) : 0.0
+mb_mon_1.2v(vaux14) : 0.0
+mb_mon_1.8v(vaux12) : 0.0
+mb_mon_10v(vaux13) : 0.0
+mb_mon_2.5v(vaux15) : 0.0
+min_temp : -273.819
+min_vccint : 0.0
+min_vccout : 0.0
+min_vram : 0.0
+vn_ref : 0.0
+vp_ref : 0.0
+vp_vn : 0.0
+vram : 0.0
+-------
+Time: 2024-09-03T23:07:44.870247Z
+PprGTH MD1 : None
+PprGTH MD2 : KU FPGA A
+PprGTH MD3 : None
+PprGTH MD4 : None
+db_mon_0.95v(vaux0) : 0.0
+db_mon_1.0v(vaux5) : 0.0
+db_mon_1.2v(vaux9) : 0.0
+db_mon_1.5v(vaux3) : 0.0
+db_mon_1.8v(vaux8) : 0.0
+db_mon_2.5v(vaux1) : 0.0
+db_mon_3.3v(vaux11) : 0.0
+db_sense_1(vaux6) : 0.0
+db_sense_2(vaux04) : 0.0
+db_sense_3(vaux2) : 0.0
+db_temperature : -273.819
+db_vccaux(1.8v) : 0.0
+db_vccint(0.9v) : 0.0
+max_temp : -273.819
+max_vccint : 0.0
+max_vccout : 0.0
+max_vram : 0.0
+mb_mon_+5v(vaux10) : 0.0
+mb_mon_-5v(vaux7) : 0.0
+mb_mon_1.2v(vaux14) : 0.0
+mb_mon_1.8v(vaux12) : 0.0
+mb_mon_10v(vaux13) : 0.0
+mb_mon_2.5v(vaux15) : 0.0
+min_temp : -273.819
+min_vccint : 0.0
+min_vccout : 0.0
+min_vram : 0.0
+vn_ref : 0.0
+vp_ref : 0.0
+vp_vn : 0.0
+vram : 0.0
+-------
+Time: 2024-09-03T23:07:48.396877Z
+PprGTH MD1 : None
+PprGTH MD2 : None
+PprGTH MD3 : KU FPGA A
+PprGTH MD4 : None
+db_mon_0.95v(vaux0) : 0.0
+db_mon_1.0v(vaux5) : 0.0
+db_mon_1.2v(vaux9) : 0.0
+db_mon_1.5v(vaux3) : 0.0
+db_mon_1.8v(vaux8) : 0.0
+db_mon_2.5v(vaux1) : 0.0
+db_mon_3.3v(vaux11) : 0.0
+db_sense_1(vaux6) : 0.0
+db_sense_2(vaux04) : 0.0
+db_sense_3(vaux2) : 0.0
+db_temperature : -273.819
+db_vccaux(1.8v) : 0.0
+db_vccint(0.9v) : 0.0
+max_temp : -273.819
+max_vccint : 0.0
+max_vccout : 0.0
+max_vram : 0.0
+mb_mon_+5v(vaux10) : 0.0
+mb_mon_-5v(vaux7) : 0.0
+mb_mon_1.2v(vaux14) : 0.0
+mb_mon_1.8v(vaux12) : 0.0
+mb_mon_10v(vaux13) : 0.0
+mb_mon_2.5v(vaux15) : 0.0
+min_temp : -273.819
+min_vccint : 0.0
+min_vccout : 0.0
+min_vram : 0.0
+vn_ref : 0.0
+vp_ref : 0.0
+vp_vn : 0.0
+vram : 0.0
+-------
+Time: 2024-09-03T23:07:48.396877Z
+PprGTH MD1 : None
+PprGTH MD2 : None
+PprGTH MD3 : KU FPGA B
+PprGTH MD4 : None
+db_mon_0.95v(vaux0) : 0.0
+db_mon_1.0v(vaux5) : 0.0
+db_mon_1.2v(vaux9) : 0.0
+db_mon_1.5v(vaux3) : 0.0
+db_mon_1.8v(vaux8) : 0.0
+db_mon_2.5v(vaux1) : 0.0
+db_mon_3.3v(vaux11) : 0.0
+db_sense_1(vaux6) : 0.0
+db_sense_2(vaux04) : 0.0
+db_sense_3(vaux2) : 0.0
+db_temperature : -273.819
+db_vccaux(1.8v) : 0.0
+db_vccint(0.9v) : 0.0
+max_temp : -273.819
+max_vccint : 0.0
+max_vccout : 0.0
+max_vram : 0.0
+mb_mon_+5v(vaux10) : 0.0
+mb_mon_-5v(vaux7) : 0.0
+mb_mon_1.2v(vaux14) : 0.0
+mb_mon_1.8v(vaux12) : 0.0
+mb_mon_10v(vaux13) : 0.0
+mb_mon_2.5v(vaux15) : 0.0
+min_temp : -273.819
+min_vccint : 0.0
+min_vccout : 0.0
+min_vram : 0.0
+vn_ref : 0.0
+vp_ref : 0.0
+vp_vn : 0.0
+vram : 0.0
+-------
+Time: 2024-09-03T23:07:52.041737Z
+PprGTH MD1 : None
+PprGTH MD2 : None
+PprGTH MD3 : None
+PprGTH MD4 : KU FPGA A
+db_mon_0.95v(vaux0) : 0.0
+db_mon_1.0v(vaux5) : 0.0
+db_mon_1.2v(vaux9) : 0.0
+db_mon_1.5v(vaux3) : 0.0
+db_mon_1.8v(vaux8) : 0.0
+db_mon_2.5v(vaux1) : 0.0
+db_mon_3.3v(vaux11) : 0.0
+db_sense_1(vaux6) : 0.0
+db_sense_2(vaux04) : 0.0
+db_sense_3(vaux2) : 0.0
+db_temperature : -273.819
+db_vccaux(1.8v) : 0.0
+db_vccint(0.9v) : 0.0
+max_temp : -273.819
+max_vccint : 0.0
+max_vccout : 0.0
+max_vram : 0.0
+mb_mon_+5v(vaux10) : 0.0
+mb_mon_-5v(vaux7) : 0.0
+mb_mon_1.2v(vaux14) : 0.0
+mb_mon_1.8v(vaux12) : 0.0
+mb_mon_10v(vaux13) : 0.0
+mb_mon_2.5v(vaux15) : 0.0
+min_temp : -273.819
+min_vccint : 0.0
+min_vccout : 0.0
+min_vram : 0.0
+vn_ref : 0.0
+vp_ref : 0.0
+vp_vn : 0.0
+vram : 0.0
+-------
+Time: 2024-09-03T23:07:52.041737Z
+PprGTH MD1 : None
+PprGTH MD2 : None
+PprGTH MD3 : None
+PprGTH MD4 : KU FPGA B
+db_mon_0.95v(vaux0) : 0.0
+db_mon_1.0v(vaux5) : 0.0
+db_mon_1.2v(vaux9) : 0.0
+db_mon_1.5v(vaux3) : 0.0
+db_mon_1.8v(vaux8) : 0.0
+db_mon_2.5v(vaux1) : 0.0
+db_mon_3.3v(vaux11) : 0.0
+db_sense_1(vaux6) : 0.0
+db_sense_2(vaux04) : 0.0
+db_sense_3(vaux2) : 0.0
+db_temperature : -273.819
+db_vccaux(1.8v) : 0.0
+db_vccint(0.9v) : 0.0
+max_temp : -273.819
+max_vccint : 0.0
+max_vccout : 0.0
+max_vram : 0.0
+mb_mon_+5v(vaux10) : 0.0
+mb_mon_-5v(vaux7) : 0.0
+mb_mon_1.2v(vaux14) : 0.0
+mb_mon_1.8v(vaux12) : 0.0
+mb_mon_10v(vaux13) : 0.0
+mb_mon_2.5v(vaux15) : 0.0
+min_temp : -273.819
+min_vccint : 0.0
+min_vccout : 0.0
+min_vram : 0.0
+vn_ref : 0.0
+vp_ref : 0.0
+vp_vn : 0.0
+vram : 0.0
+-------
+Time: 2024-09-03T23:07:56.658059Z
+PprGTH MD1 : KU FPGA A
+PprGTH MD2 : None
+PprGTH MD3 : None
+PprGTH MD4 : None
+db_mon_0.95v(vaux0) : 557.9186626746507
+db_mon_1.0v(vaux5) : 349.03971962616816
+db_mon_1.2v(vaux9) : 136.56588785046728
+db_mon_1.5v(vaux3) : 766.5191588785046
+db_mon_1.8v(vaux8) : 567.9632899628253
+db_mon_2.5v(vaux1) : 12.443773234200743
+db_mon_3.3v(vaux11) : 379.4075278810409
+db_sense_1(vaux6) : 999.18
+db_sense_2(vaux04) : 999.18
+db_sense_3(vaux2) : 999.18
+db_temperature : 45.69478391418454
+db_vccaux(1.8v) : 1773.31575
+db_vccint(0.9v) : 938.56125
+max_temp : 46.06312605285643
+max_vccint : 1775.283
+max_vccout : 939.93375
+max_vram : 940.1625
+mb_mon_+5v(vaux10) : 594.254375
+mb_mon_-5v(vaux7) : 501.686875
+mb_mon_1.2v(vaux14) : 31.7390625
+mb_mon_1.8v(vaux12) : 631.388125
+mb_mon_10v(vaux13) : 40.685475
+mb_mon_2.5v(vaux15) : 1450.275
+min_temp : 42.70967783203122
+min_vccint : 1771.7145
+min_vccout : 937.55475
+min_vram : 937.82925
+vn_ref : 2997.357
+vp_ref : 1249.0665
+vp_vn : 1641.327
+vram : 938.8815
+-------
+Time: 2024-09-03T23:07:56.658059Z
+PprGTH MD1 : KU FPGA B
+PprGTH MD2 : None
+PprGTH MD3 : None
+PprGTH MD4 : None
+db_mon_0.95v(vaux0) : 517.8303393213572
+db_mon_1.0v(vaux5) : 340.4883177570093
+db_mon_1.2v(vaux9) : 137.22149532710282
+db_mon_1.5v(vaux3) : 730.3752336448598
+db_mon_1.8v(vaux8) : 562.6342936802973
+db_mon_2.5v(vaux1) : 16.809014869888475
+db_mon_3.3v(vaux11) : 370.2235130111524
+db_sense_1(vaux6) : 857.5685
+db_sense_2(vaux04) : 999.13425
+db_sense_3(vaux2) : 740.86025
+db_temperature : 43.99887531738278
+db_vccaux(1.8v) : 1776.747
+db_vccint(0.9v) : 931.287
+max_temp : 44.38256504516602
+max_vccint : 1778.8515
+max_vccout : 933.16275
+max_vram : 933.3915
+mb_mon_+5v(vaux10) : 506.948125
+mb_mon_-5v(vaux7) : 451.133125
+mb_mon_1.2v(vaux14) : 30.6029375
+mb_mon_1.8v(vaux12) : 615.604375
+mb_mon_10v(vaux13) : 40.75257500000001
+mb_mon_2.5v(vaux15) : 1358.08875
+min_temp : 40.71449124755861
+min_vccint : 1774.59675
+min_vccout : 930.23475
+min_vram : 930.41775
+vn_ref : 2997.723
+vp_ref : 1247.46525
+vp_vn : 1640.778
+vram : 931.79025
+-------

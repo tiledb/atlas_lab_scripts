@@ -1,0 +1,23 @@
+# Ignore Python virtual environment
+*.pyenv
+*myenv
+*.pyc
+__pycache__/
+tcl/*
+tmp/*
+vivado_logs/*
+# Ignore logs
+*.log
+
+# Ignore system files
+.DS_Store
+
+data_analyzer/*.PNG
+data_analyzer/*.jpg
+data_analyzer/*.jpeg
+data_analyzer/*.gif
+data_analyzer/*.bmp
+data_analyzer/*.svg
+data_analyzer/*.png
+data_analyzer/*.html
+data_analyzer/Scripting*

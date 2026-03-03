@@ -1,0 +1,96 @@
+import yaml
+import mysql.connector
+from mysql.connector import Error
+
+# Load secrets from secrets.yaml
+def load_secrets(filepath="../../secrets/secrets.yaml"):
+    with open(filepath, "r") as file:
+        return yaml.safe_load(file)
+
+secrets = load_secrets()
+
+# Function to print tree structure
+def print_tree(level, name, is_last):
+    prefix = "└── " if is_last else "├── "
+    print(" " * (level * 4) + prefix + name)
+
+# Function to list MariaDB databases and tables
+def list_mariadb_tree():
+    try:
+        print("\n==================== MariaDB Tree ====================")
+        print(f"🔗 Connecting to MariaDB at {secrets['tiledb-mariadb']['host']}...")
+        connection = mysql.connector.connect(
+            host=secrets["tiledb-mariadb"]["host"],
+            user=secrets["tiledb-mariadb"]["user"],
+            password=secrets["tiledb-mariadb"]["password"]
+        )
+
+        if connection.is_connected():
+            print("✅ Connected to MariaDB!")
+            cursor = connection.cursor()
+
+            # List all databases
+            cursor.execute("SHOW DATABASES;")
+            databases = [db[0] for db in cursor.fetchall()]
+
+            if not databases:
+                print("⚠️ No databases found in MariaDB.")
+                return
+
+            print("📂 MariaDB Databases:")
+            for i, db in enumerate(databases):
+                print_tree(0, db, i == len(databases) - 1)
+
+            # Ask user to select a valid database
+            while True:
+                db_choice = input("\n📌 Enter the MariaDB database name: ").strip()
+                if db_choice in databases:
+                    cursor.execute(f"USE {db_choice}")
+                    break
+                else:
+                    print("❌ Database not found. Please enter a valid database.")
+
+            # List all tables in the selected database
+            cursor.execute("SHOW TABLES;")
+            tables = [tbl[0] for tbl in cursor.fetchall()]
+
+            if not tables:
+                print("⚠️ No tables found in the selected database.")
+                return
+
+            print(f"\n📊 Tables in '{db_choice}':")
+            for i, table in enumerate(tables):
+                print_tree(1, table, i == len(tables) - 1)
+
+            # Ask user to select a valid table
+            while True:
+                table_choice = input("\n📌 Enter the table to view data: ").strip()
+                if table_choice in tables:
+                    break
+                else:
+                    print("❌ Table not found. Please enter a valid table.")
+
+            # Query and display data from the selected table
+            cursor.execute(f"SELECT * FROM {table_choice}")
+            rows = cursor.fetchall()
+            columns = [desc[0] for desc in cursor.description]
+
+            if rows:
+                print(f"\n📊 Data from MariaDB ({table_choice}):")
+                print(" | ".join(columns))
+                #for row in rows:
+                    #print(" | ".join(map(str, row)))
+            else:
+                print("⚠️ No data found in the selected table.")
+
+    except Error as e:
+        print(f"❌ MariaDB Connection Failed: {e}")
+
+    finally:
+        if 'connection' in locals() and connection.is_connected():
+            cursor.close()
+            connection.close()
+            print("🔌 MariaDB Connection Closed")
+
+# Run MariaDB Tree Listing
+list_mariadb_tree()

@@ -1,0 +1,5202 @@
+
+==================== InfluxDB Tree ====================
+🔗 Connecting to InfluxDB at piro-atlas-lab-vserver-01.fysik.su.se:8086...
+✅ Connected to InfluxDB!
+📂 InfluxDB Databases:
+[{'name': '_internal'}, {'name': 'tiledb'}]
+============================
+├── _internal
+============================
+['cq', 'database', 'httpd', 'queryExecutor', 'runtime', 'shard', 'subscriber', 'tsm1_cache', 'tsm1_engine', 'tsm1_filestore', 'tsm1_wal', 'write']
+============================
+    ├── cq
+    ├── database
+    ├── httpd
+    ├── queryExecutor
+    ├── runtime
+    ├── shard
+    ├── subscriber
+    ├── tsm1_cache
+    ├── tsm1_engine
+    ├── tsm1_filestore
+    ├── tsm1_wal
+    └── write
+└── tiledb
+============================
+['%', 'A', 'DB Status', 'Link Status', 'Signal %', 'V', 'dBm', 'hPa', 'lx', 'mA', 'ms', 'state', 'vivado_test', 'xADC', '°C', 'Ω']
+============================
+    ├── %
+    ├── A
+    ├── DB Status
+    ├── Link Status
+    ├── Signal %
+    ├── V
+    ├── dBm
+    ├── hPa
+    ├── lx
+    ├── mA
+    ├── ms
+    ├── state
+    ├── vivado_test
+    ├── xADC
+    ├── °C
+    └── Ω
+my_time_range = 
+WHERE time >= '2024-09-03T23:06:10Z' AND time <= '2024-09-03T23:08:00Z'
+----------------------------
+myquery = 
+SELECT * FROM "Link Status" WHERE time >= '2024-09-03T23:06:10Z' AND time <= '2024-09-03T23:08:00Z'
+----------------------------
+----------------------------
+Time: 2024-09-03T23:06:12.712995Z
+PPrEmu MD1 : None
+PPrEmu MD2 : None
+PPrEmu MD3 : None
+PPrEmu MD4 : None
+PprGTH MD1 : None
+PprGTH MD2 : None
+PprGTH MD3 : uplink A0
+PprGTH MD4 : None
+ber : 2.329740063186947e-05
+bitslip : 3
+crc : 4294967295
+data_error : 0
+downlink_status : False
+frames : 1536282724865
+gbtrx_rdy : 0
+gbttx_rdy_lost : 0
+latency : 0
+mgt_rdy : 0
+rx_frameclk : 1
+rx_wordclk : 0
+tx_pll : 0
+-------
+Time: 2024-09-03T23:06:12.753227Z
+PPrEmu MD1 : None
+PPrEmu MD2 : None
+PPrEmu MD3 : None
+PPrEmu MD4 : None
+PprGTH MD1 : None
+PprGTH MD2 : None
+PprGTH MD3 : uplink A1
+PprGTH MD4 : None
+ber : 2.329740063186947e-05
+bitslip : 10
+crc : 4294967295
+data_error : 0
+downlink_status : False
+frames : 1536282724865
+gbtrx_rdy : 0
+gbttx_rdy_lost : 0
+latency : 0
+mgt_rdy : 0
+rx_frameclk : 1
+rx_wordclk : 0
+tx_pll : 0
+-------
+Time: 2024-09-03T23:06:12.789385Z
+PPrEmu MD1 : None
+PPrEmu MD2 : None
+PPrEmu MD3 : None
+PPrEmu MD4 : None
+PprGTH MD1 : None
+PprGTH MD2 : None
+PprGTH MD3 : uplink B0
+PprGTH MD4 : None
+ber : 2.329740063186947e-05
+bitslip : 2
+crc : 4294967295
+data_error : 0
+downlink_status : False
+frames : 1536282724865
+gbtrx_rdy : 0
+gbttx_rdy_lost : 0
+latency : 0
+mgt_rdy : 0
+rx_frameclk : 1
+rx_wordclk : 0
+tx_pll : 0
+-------
+Time: 2024-09-03T23:06:12.825368Z
+PPrEmu MD1 : None
+PPrEmu MD2 : None
+PPrEmu MD3 : None
+PPrEmu MD4 : None
+PprGTH MD1 : None
+PprGTH MD2 : None
+PprGTH MD3 : uplink B1
+PprGTH MD4 : None
+ber : 2.329740063186947e-05
+bitslip : 6
+crc : 4294967295
+data_error : 0
+downlink_status : False
+frames : 1536282724865
+gbtrx_rdy : 0
+gbttx_rdy_lost : 0
+latency : 0
+mgt_rdy : 0
+rx_frameclk : 1
+rx_wordclk : 0
+tx_pll : 0
+-------
+Time: 2024-09-03T23:06:12.861523Z
+PPrEmu MD1 : None
+PPrEmu MD2 : None
+PPrEmu MD3 : uplink A0
+PPrEmu MD4 : None
+PprGTH MD1 : None
+PprGTH MD2 : None
+PprGTH MD3 : None
+PprGTH MD4 : None
+ber : 2.329740063186947e-05
+bitslip : 3
+crc : 4294967295
+data_error : 0
+downlink_status : False
+frames : 1536282724865
+gbtrx_rdy : 0
+gbttx_rdy_lost : 0
+latency : 0
+mgt_rdy : 0
+rx_frameclk : 1
+rx_wordclk : 0
+tx_pll : 0
+-------
+Time: 2024-09-03T23:06:12.913416Z
+PPrEmu MD1 : None
+PPrEmu MD2 : None
+PPrEmu MD3 : uplink A1
+PPrEmu MD4 : None
+PprGTH MD1 : None
+PprGTH MD2 : None
+PprGTH MD3 : None
+PprGTH MD4 : None
+ber : 2.329740063186947e-05
+bitslip : 10
+crc : 4294967295
+data_error : 0
+downlink_status : False
+frames : 1536282724865
+gbtrx_rdy : 0
+gbttx_rdy_lost : 0
+latency : 0
+mgt_rdy : 0
+rx_frameclk : 1
+rx_wordclk : 0
+tx_pll : 0
+-------
+Time: 2024-09-03T23:06:12.947457Z
+PPrEmu MD1 : None
+PPrEmu MD2 : None
+PPrEmu MD3 : uplink B0
+PPrEmu MD4 : None
+PprGTH MD1 : None
+PprGTH MD2 : None
+PprGTH MD3 : None
+PprGTH MD4 : None
+ber : 2.329740063186947e-05
+bitslip : 2
+crc : 4294967295
+data_error : 0
+downlink_status : False
+frames : 1536282724865
+gbtrx_rdy : 0
+gbttx_rdy_lost : 0
+latency : 0
+mgt_rdy : 0
+rx_frameclk : 1
+rx_wordclk : 0
+tx_pll : 0
+-------
+Time: 2024-09-03T23:06:12.981543Z
+PPrEmu MD1 : None
+PPrEmu MD2 : None
+PPrEmu MD3 : uplink B1
+PPrEmu MD4 : None
+PprGTH MD1 : None
+PprGTH MD2 : None
+PprGTH MD3 : None
+PprGTH MD4 : None
+ber : 2.329740063186947e-05
+bitslip : 6
+crc : 4294967295
+data_error : 0
+downlink_status : False
+frames : 1536282724865
+gbtrx_rdy : 0
+gbttx_rdy_lost : 0
+latency : 0
+mgt_rdy : 0
+rx_frameclk : 1
+rx_wordclk : 0
+tx_pll : 0
+-------
+Time: 2024-09-03T23:06:16.228468Z
+PPrEmu MD1 : None
+PPrEmu MD2 : None
+PPrEmu MD3 : None
+PPrEmu MD4 : None
+PprGTH MD1 : None
+PprGTH MD2 : None
+PprGTH MD3 : None
+PprGTH MD4 : uplink A0
+ber : 2.3293127838749273e-05
+bitslip : 15
+crc : 4294967295
+data_error : 0
+downlink_status : False
+frames : 1536564534088
+gbtrx_rdy : 0
+gbttx_rdy_lost : 0
+latency : 0
+mgt_rdy : 0
+rx_frameclk : 1
+rx_wordclk : 0
+tx_pll : 0
+-------
+Time: 2024-09-03T23:06:16.387225Z
+PPrEmu MD1 : None
+PPrEmu MD2 : None
+PPrEmu MD3 : None
+PPrEmu MD4 : None
+PprGTH MD1 : None
+PprGTH MD2 : None
+PprGTH MD3 : None
+PprGTH MD4 : uplink A1
+ber : 2.3293127838749273e-05
+bitslip : 15
+crc : 4294967295
+data_error : 0
+downlink_status : False
+frames : 1536564534088
+gbtrx_rdy : 0
+gbttx_rdy_lost : 0
+latency : 0
+mgt_rdy : 0
+rx_frameclk : 1
+rx_wordclk : 0
+tx_pll : 0
+-------
+Time: 2024-09-03T23:06:16.423960Z
+PPrEmu MD1 : None
+PPrEmu MD2 : None
+PPrEmu MD3 : None
+PPrEmu MD4 : None
+PprGTH MD1 : None
+PprGTH MD2 : None
+PprGTH MD3 : None
+PprGTH MD4 : uplink B0
+ber : 2.3293127838749273e-05
+bitslip : 13
+crc : 4294967295
+data_error : 0
+downlink_status : False
+frames : 1536564534088
+gbtrx_rdy : 0
+gbttx_rdy_lost : 0
+latency : 0
+mgt_rdy : 0
+rx_frameclk : 1
+rx_wordclk : 0
+tx_pll : 0
+-------
+Time: 2024-09-03T23:06:16.458633Z
+PPrEmu MD1 : None
+PPrEmu MD2 : None
+PPrEmu MD3 : None
+PPrEmu MD4 : None
+PprGTH MD1 : None
+PprGTH MD2 : None
+PprGTH MD3 : None
+PprGTH MD4 : uplink B1
+ber : 2.3293127838749273e-05
+bitslip : 17
+crc : 4294967295
+data_error : 0
+downlink_status : False
+frames : 1536564534088
+gbtrx_rdy : 0
+gbttx_rdy_lost : 0
+latency : 0
+mgt_rdy : 0
+rx_frameclk : 1
+rx_wordclk : 0
+tx_pll : 0
+-------
+Time: 2024-09-03T23:06:16.616032Z
+PPrEmu MD1 : None
+PPrEmu MD2 : None
+PPrEmu MD3 : None
+PPrEmu MD4 : uplink A0
+PprGTH MD1 : None
+PprGTH MD2 : None
+PprGTH MD3 : None
+PprGTH MD4 : None
+ber : 2.3293127838749273e-05
+bitslip : 15
+crc : 4294967295
+data_error : 0
+downlink_status : False
+frames : 1536564534088
+gbtrx_rdy : 0
+gbttx_rdy_lost : 0
+latency : 0
+mgt_rdy : 0
+rx_frameclk : 1
+rx_wordclk : 0
+tx_pll : 0
+-------
+Time: 2024-09-03T23:06:16.650441Z
+PPrEmu MD1 : None
+PPrEmu MD2 : None
+PPrEmu MD3 : None
+PPrEmu MD4 : uplink A1
+PprGTH MD1 : None
+PprGTH MD2 : None
+PprGTH MD3 : None
+PprGTH MD4 : None
+ber : 2.3293127838749273e-05
+bitslip : 15
+crc : 4294967295
+data_error : 0
+downlink_status : False
+frames : 1536564534088
+gbtrx_rdy : 0
+gbttx_rdy_lost : 0
+latency : 0
+mgt_rdy : 0
+rx_frameclk : 1
+rx_wordclk : 0
+tx_pll : 0
+-------
+Time: 2024-09-03T23:06:16.684828Z
+PPrEmu MD1 : None
+PPrEmu MD2 : None
+PPrEmu MD3 : None
+PPrEmu MD4 : uplink B0
+PprGTH MD1 : None
+PprGTH MD2 : None
+PprGTH MD3 : None
+PprGTH MD4 : None
+ber : 2.3293127838749273e-05
+bitslip : 13
+crc : 4294967295
+data_error : 0
+downlink_status : False
+frames : 1536564534088
+gbtrx_rdy : 0
+gbttx_rdy_lost : 0
+latency : 0
+mgt_rdy : 0
+rx_frameclk : 1
+rx_wordclk : 0
+tx_pll : 0
+-------
+Time: 2024-09-03T23:06:16.719323Z
+PPrEmu MD1 : None
+PPrEmu MD2 : None
+PPrEmu MD3 : None
+PPrEmu MD4 : uplink B1
+PprGTH MD1 : None
+PprGTH MD2 : None
+PprGTH MD3 : None
+PprGTH MD4 : None
+ber : 2.3293127838749273e-05
+bitslip : 17
+crc : 4294967295
+data_error : 0
+downlink_status : False
+frames : 1536564534088
+gbtrx_rdy : 0
+gbttx_rdy_lost : 0
+latency : 0
+mgt_rdy : 0
+rx_frameclk : 1
+rx_wordclk : 0
+tx_pll : 0
+-------
+Time: 2024-09-03T23:06:20.969930Z
+PPrEmu MD1 : None
+PPrEmu MD2 : None
+PPrEmu MD3 : None
+PPrEmu MD4 : None
+PprGTH MD1 : uplink A0
+PprGTH MD2 : None
+PprGTH MD3 : None
+PprGTH MD4 : None
+ber : 0.0
+bitslip : 0
+crc : 0
+data_error : 0
+downlink_status : False
+frames : 1536944567904
+gbtrx_rdy : 1
+gbttx_rdy_lost : 0
+latency : 23
+mgt_rdy : 1
+rx_frameclk : 1
+rx_wordclk : 1
+tx_pll : 0
+-------
+Time: 2024-09-03T23:06:21.056198Z
+PPrEmu MD1 : None
+PPrEmu MD2 : None
+PPrEmu MD3 : None
+PPrEmu MD4 : None
+PprGTH MD1 : uplink A1
+PprGTH MD2 : None
+PprGTH MD3 : None
+PprGTH MD4 : None
+ber : 2.3287368245043686e-05
+bitslip : 37
+crc : 4294967295
+data_error : 0
+downlink_status : False
+frames : 1536944567904
+gbtrx_rdy : 0
+gbttx_rdy_lost : 0
+latency : 23
+mgt_rdy : 0
+rx_frameclk : 1
+rx_wordclk : 0
+tx_pll : 0
+-------
+Time: 2024-09-03T23:06:21.092136Z
+PPrEmu MD1 : None
+PPrEmu MD2 : None
+PPrEmu MD3 : None
+PPrEmu MD4 : None
+PprGTH MD1 : uplink B0
+PprGTH MD2 : None
+PprGTH MD3 : None
+PprGTH MD4 : None
+ber : 0.0
+bitslip : 5
+crc : 0
+data_error : 0
+downlink_status : False
+frames : 1536944567904
+gbtrx_rdy : 0
+gbttx_rdy_lost : 0
+latency : 23
+mgt_rdy : 0
+rx_frameclk : 1
+rx_wordclk : 0
+tx_pll : 0
+-------
+Time: 2024-09-03T23:06:21.132761Z
+PPrEmu MD1 : None
+PPrEmu MD2 : None
+PPrEmu MD3 : None
+PPrEmu MD4 : None
+PprGTH MD1 : uplink B1
+PprGTH MD2 : None
+PprGTH MD3 : None
+PprGTH MD4 : None
+ber : 0.0
+bitslip : 0
+crc : 0
+data_error : 0
+downlink_status : False
+frames : 1536944567904
+gbtrx_rdy : 1
+gbttx_rdy_lost : 0
+latency : 23
+mgt_rdy : 1
+rx_frameclk : 1
+rx_wordclk : 1
+tx_pll : 0
+-------
+Time: 2024-09-03T23:06:21.169515Z
+PPrEmu MD1 : uplink A0
+PPrEmu MD2 : None
+PPrEmu MD3 : None
+PPrEmu MD4 : None
+PprGTH MD1 : None
+PprGTH MD2 : None
+PprGTH MD3 : None
+PprGTH MD4 : None
+ber : 0.0
+bitslip : 0
+crc : 0
+data_error : 0
+downlink_status : False
+frames : 1536944567904
+gbtrx_rdy : 1
+gbttx_rdy_lost : 0
+latency : 23
+mgt_rdy : 1
+rx_frameclk : 1
+rx_wordclk : 1
+tx_pll : 0
+-------
+Time: 2024-09-03T23:06:21.204262Z
+PPrEmu MD1 : uplink A1
+PPrEmu MD2 : None
+PPrEmu MD3 : None
+PPrEmu MD4 : None
+PprGTH MD1 : None
+PprGTH MD2 : None
+PprGTH MD3 : None
+PprGTH MD4 : None
+ber : 2.3287368245043686e-05
+bitslip : 37
+crc : 4294967295
+data_error : 0
+downlink_status : False
+frames : 1536944567904
+gbtrx_rdy : 0
+gbttx_rdy_lost : 0
+latency : 23
+mgt_rdy : 0
+rx_frameclk : 1
+rx_wordclk : 0
+tx_pll : 0
+-------
+Time: 2024-09-03T23:06:21.238393Z
+PPrEmu MD1 : uplink B0
+PPrEmu MD2 : None
+PPrEmu MD3 : None
+PPrEmu MD4 : None
+PprGTH MD1 : None
+PprGTH MD2 : None
+PprGTH MD3 : None
+PprGTH MD4 : None
+ber : 0.0
+bitslip : 5
+crc : 0
+data_error : 0
+downlink_status : False
+frames : 1536944567904
+gbtrx_rdy : 0
+gbttx_rdy_lost : 0
+latency : 23
+mgt_rdy : 0
+rx_frameclk : 1
+rx_wordclk : 0
+tx_pll : 0
+-------
+Time: 2024-09-03T23:06:21.272056Z
+PPrEmu MD1 : uplink B1
+PPrEmu MD2 : None
+PPrEmu MD3 : None
+PPrEmu MD4 : None
+PprGTH MD1 : None
+PprGTH MD2 : None
+PprGTH MD3 : None
+PprGTH MD4 : None
+ber : 0.0
+bitslip : 0
+crc : 0
+data_error : 0
+downlink_status : False
+frames : 1536944567904
+gbtrx_rdy : 1
+gbttx_rdy_lost : 0
+latency : 23
+mgt_rdy : 1
+rx_frameclk : 1
+rx_wordclk : 1
+tx_pll : 0
+-------
+Time: 2024-09-03T23:06:24.513839Z
+PPrEmu MD1 : None
+PPrEmu MD2 : None
+PPrEmu MD3 : None
+PPrEmu MD4 : None
+PprGTH MD1 : None
+PprGTH MD2 : uplink A0
+PprGTH MD3 : None
+PprGTH MD4 : None
+ber : 2.3283064478259182e-05
+bitslip : 21
+crc : 4294967295
+data_error : 0
+downlink_status : False
+frames : 1537228664999
+gbtrx_rdy : 0
+gbttx_rdy_lost : 0
+latency : 0
+mgt_rdy : 0
+rx_frameclk : 1
+rx_wordclk : 0
+tx_pll : 0
+-------
+Time: 2024-09-03T23:06:24.553450Z
+PPrEmu MD1 : None
+PPrEmu MD2 : None
+PPrEmu MD3 : None
+PPrEmu MD4 : None
+PprGTH MD1 : None
+PprGTH MD2 : uplink A1
+PprGTH MD3 : None
+PprGTH MD4 : None
+ber : 2.3283064478259182e-05
+bitslip : 16
+crc : 4294967295
+data_error : 0
+downlink_status : False
+frames : 1537228664999
+gbtrx_rdy : 0
+gbttx_rdy_lost : 0
+latency : 0
+mgt_rdy : 0
+rx_frameclk : 1
+rx_wordclk : 0
+tx_pll : 0
+-------
+Time: 2024-09-03T23:06:24.590829Z
+PPrEmu MD1 : None
+PPrEmu MD2 : None
+PPrEmu MD3 : None
+PPrEmu MD4 : None
+PprGTH MD1 : None
+PprGTH MD2 : uplink B0
+PprGTH MD3 : None
+PprGTH MD4 : None
+ber : 2.3283064478259182e-05
+bitslip : 12
+crc : 4294967295
+data_error : 0
+downlink_status : False
+frames : 1537228664999
+gbtrx_rdy : 0
+gbttx_rdy_lost : 0
+latency : 0
+mgt_rdy : 0
+rx_frameclk : 1
+rx_wordclk : 0
+tx_pll : 0
+-------
+Time: 2024-09-03T23:06:24.629801Z
+PPrEmu MD1 : None
+PPrEmu MD2 : None
+PPrEmu MD3 : None
+PPrEmu MD4 : None
+PprGTH MD1 : None
+PprGTH MD2 : uplink B1
+PprGTH MD3 : None
+PprGTH MD4 : None
+ber : 2.3283064478259182e-05
+bitslip : 23
+crc : 4294967295
+data_error : 0
+downlink_status : False
+frames : 1537228664999
+gbtrx_rdy : 0
+gbttx_rdy_lost : 0
+latency : 0
+mgt_rdy : 0
+rx_frameclk : 1
+rx_wordclk : 0
+tx_pll : 0
+-------
+Time: 2024-09-03T23:06:24.663999Z
+PPrEmu MD1 : None
+PPrEmu MD2 : uplink A0
+PPrEmu MD3 : None
+PPrEmu MD4 : None
+PprGTH MD1 : None
+PprGTH MD2 : None
+PprGTH MD3 : None
+PprGTH MD4 : None
+ber : 2.3283064478259182e-05
+bitslip : 21
+crc : 4294967295
+data_error : 0
+downlink_status : False
+frames : 1537228664999
+gbtrx_rdy : 0
+gbttx_rdy_lost : 0
+latency : 0
+mgt_rdy : 0
+rx_frameclk : 1
+rx_wordclk : 0
+tx_pll : 0
+-------
+Time: 2024-09-03T23:06:24.698055Z
+PPrEmu MD1 : None
+PPrEmu MD2 : uplink A1
+PPrEmu MD3 : None
+PPrEmu MD4 : None
+PprGTH MD1 : None
+PprGTH MD2 : None
+PprGTH MD3 : None
+PprGTH MD4 : None
+ber : 2.3283064478259182e-05
+bitslip : 16
+crc : 4294967295
+data_error : 0
+downlink_status : False
+frames : 1537228664999
+gbtrx_rdy : 0
+gbttx_rdy_lost : 0
+latency : 0
+mgt_rdy : 0
+rx_frameclk : 1
+rx_wordclk : 0
+tx_pll : 0
+-------
+Time: 2024-09-03T23:06:24.732229Z
+PPrEmu MD1 : None
+PPrEmu MD2 : uplink B0
+PPrEmu MD3 : None
+PPrEmu MD4 : None
+PprGTH MD1 : None
+PprGTH MD2 : None
+PprGTH MD3 : None
+PprGTH MD4 : None
+ber : 2.3283064478259182e-05
+bitslip : 12
+crc : 4294967295
+data_error : 0
+downlink_status : False
+frames : 1537228664999
+gbtrx_rdy : 0
+gbttx_rdy_lost : 0
+latency : 0
+mgt_rdy : 0
+rx_frameclk : 1
+rx_wordclk : 0
+tx_pll : 0
+-------
+Time: 2024-09-03T23:06:24.767865Z
+PPrEmu MD1 : None
+PPrEmu MD2 : uplink B1
+PPrEmu MD3 : None
+PPrEmu MD4 : None
+PprGTH MD1 : None
+PprGTH MD2 : None
+PprGTH MD3 : None
+PprGTH MD4 : None
+ber : 2.3283064478259182e-05
+bitslip : 23
+crc : 4294967295
+data_error : 0
+downlink_status : False
+frames : 1537228664999
+gbtrx_rdy : 0
+gbttx_rdy_lost : 0
+latency : 0
+mgt_rdy : 0
+rx_frameclk : 1
+rx_wordclk : 0
+tx_pll : 0
+-------
+Time: 2024-09-03T23:06:28.127972Z
+PPrEmu MD1 : None
+PPrEmu MD2 : None
+PPrEmu MD3 : None
+PPrEmu MD4 : None
+PprGTH MD1 : None
+PprGTH MD2 : None
+PprGTH MD3 : uplink A0
+PprGTH MD4 : None
+ber : 2.327867766496833e-05
+bitslip : 9
+crc : 4294967295
+data_error : 0
+downlink_status : False
+frames : 1537518352207
+gbtrx_rdy : 0
+gbttx_rdy_lost : 0
+latency : 0
+mgt_rdy : 0
+rx_frameclk : 1
+rx_wordclk : 0
+tx_pll : 0
+-------
+Time: 2024-09-03T23:06:28.165721Z
+PPrEmu MD1 : None
+PPrEmu MD2 : None
+PPrEmu MD3 : None
+PPrEmu MD4 : None
+PprGTH MD1 : None
+PprGTH MD2 : None
+PprGTH MD3 : uplink A1
+PprGTH MD4 : None
+ber : 2.327867766496833e-05
+bitslip : 24
+crc : 4294967295
+data_error : 0
+downlink_status : False
+frames : 1537518352207
+gbtrx_rdy : 0
+gbttx_rdy_lost : 0
+latency : 0
+mgt_rdy : 0
+rx_frameclk : 1
+rx_wordclk : 0
+tx_pll : 0
+-------
+Time: 2024-09-03T23:06:28.200597Z
+PPrEmu MD1 : None
+PPrEmu MD2 : None
+PPrEmu MD3 : None
+PPrEmu MD4 : None
+PprGTH MD1 : None
+PprGTH MD2 : None
+PprGTH MD3 : uplink B0
+PprGTH MD4 : None
+ber : 2.327867766496833e-05
+bitslip : 22
+crc : 4294967295
+data_error : 0
+downlink_status : False
+frames : 1537518352207
+gbtrx_rdy : 0
+gbttx_rdy_lost : 0
+latency : 0
+mgt_rdy : 0
+rx_frameclk : 1
+rx_wordclk : 0
+tx_pll : 0
+-------
+Time: 2024-09-03T23:06:28.236666Z
+PPrEmu MD1 : None
+PPrEmu MD2 : None
+PPrEmu MD3 : None
+PPrEmu MD4 : None
+PprGTH MD1 : None
+PprGTH MD2 : None
+PprGTH MD3 : uplink B1
+PprGTH MD4 : None
+ber : 2.327867766496833e-05
+bitslip : 30
+crc : 4294967295
+data_error : 0
+downlink_status : False
+frames : 1537518352207
+gbtrx_rdy : 0
+gbttx_rdy_lost : 0
+latency : 0
+mgt_rdy : 0
+rx_frameclk : 1
+rx_wordclk : 0
+tx_pll : 0
+-------
+Time: 2024-09-03T23:06:28.271009Z
+PPrEmu MD1 : None
+PPrEmu MD2 : None
+PPrEmu MD3 : uplink A0
+PPrEmu MD4 : None
+PprGTH MD1 : None
+PprGTH MD2 : None
+PprGTH MD3 : None
+PprGTH MD4 : None
+ber : 2.327867766496833e-05
+bitslip : 9
+crc : 4294967295
+data_error : 0
+downlink_status : False
+frames : 1537518352207
+gbtrx_rdy : 0
+gbttx_rdy_lost : 0
+latency : 0
+mgt_rdy : 0
+rx_frameclk : 1
+rx_wordclk : 0
+tx_pll : 0
+-------
+Time: 2024-09-03T23:06:28.305175Z
+PPrEmu MD1 : None
+PPrEmu MD2 : None
+PPrEmu MD3 : uplink A1
+PPrEmu MD4 : None
+PprGTH MD1 : None
+PprGTH MD2 : None
+PprGTH MD3 : None
+PprGTH MD4 : None
+ber : 2.327867766496833e-05
+bitslip : 24
+crc : 4294967295
+data_error : 0
+downlink_status : False
+frames : 1537518352207
+gbtrx_rdy : 0
+gbttx_rdy_lost : 0
+latency : 0
+mgt_rdy : 0
+rx_frameclk : 1
+rx_wordclk : 0
+tx_pll : 0
+-------
+Time: 2024-09-03T23:06:28.339406Z
+PPrEmu MD1 : None
+PPrEmu MD2 : None
+PPrEmu MD3 : uplink B0
+PPrEmu MD4 : None
+PprGTH MD1 : None
+PprGTH MD2 : None
+PprGTH MD3 : None
+PprGTH MD4 : None
+ber : 2.327867766496833e-05
+bitslip : 22
+crc : 4294967295
+data_error : 0
+downlink_status : False
+frames : 1537518352207
+gbtrx_rdy : 0
+gbttx_rdy_lost : 0
+latency : 0
+mgt_rdy : 0
+rx_frameclk : 1
+rx_wordclk : 0
+tx_pll : 0
+-------
+Time: 2024-09-03T23:06:28.373021Z
+PPrEmu MD1 : None
+PPrEmu MD2 : None
+PPrEmu MD3 : uplink B1
+PPrEmu MD4 : None
+PprGTH MD1 : None
+PprGTH MD2 : None
+PprGTH MD3 : None
+PprGTH MD4 : None
+ber : 2.327867766496833e-05
+bitslip : 30
+crc : 4294967295
+data_error : 0
+downlink_status : False
+frames : 1537518352207
+gbtrx_rdy : 0
+gbttx_rdy_lost : 0
+latency : 0
+mgt_rdy : 0
+rx_frameclk : 1
+rx_wordclk : 0
+tx_pll : 0
+-------
+Time: 2024-09-03T23:06:31.621970Z
+PPrEmu MD1 : None
+PPrEmu MD2 : None
+PPrEmu MD3 : None
+PPrEmu MD4 : None
+PprGTH MD1 : None
+PprGTH MD2 : None
+PprGTH MD3 : None
+PprGTH MD4 : uplink A0
+ber : 2.3274437763384246e-05
+bitslip : 9
+crc : 4294967295
+data_error : 0
+downlink_status : False
+frames : 1537798441744
+gbtrx_rdy : 0
+gbttx_rdy_lost : 0
+latency : 0
+mgt_rdy : 0
+rx_frameclk : 1
+rx_wordclk : 0
+tx_pll : 0
+-------
+Time: 2024-09-03T23:06:31.661762Z
+PPrEmu MD1 : None
+PPrEmu MD2 : None
+PPrEmu MD3 : None
+PPrEmu MD4 : None
+PprGTH MD1 : None
+PprGTH MD2 : None
+PprGTH MD3 : None
+PprGTH MD4 : uplink A1
+ber : 2.3274437763384246e-05
+bitslip : 9
+crc : 4294967295
+data_error : 0
+downlink_status : False
+frames : 1537798441744
+gbtrx_rdy : 0
+gbttx_rdy_lost : 0
+latency : 0
+mgt_rdy : 0
+rx_frameclk : 1
+rx_wordclk : 0
+tx_pll : 0
+-------
+Time: 2024-09-03T23:06:31.703793Z
+PPrEmu MD1 : None
+PPrEmu MD2 : None
+PPrEmu MD3 : None
+PPrEmu MD4 : None
+PprGTH MD1 : None
+PprGTH MD2 : None
+PprGTH MD3 : None
+PprGTH MD4 : uplink B0
+ber : 2.3274437763384246e-05
+bitslip : 39
+crc : 4294967295
+data_error : 0
+downlink_status : False
+frames : 1537798441744
+gbtrx_rdy : 0
+gbttx_rdy_lost : 0
+latency : 0
+mgt_rdy : 0
+rx_frameclk : 1
+rx_wordclk : 0
+tx_pll : 0
+-------
+Time: 2024-09-03T23:06:31.746414Z
+PPrEmu MD1 : None
+PPrEmu MD2 : None
+PPrEmu MD3 : None
+PPrEmu MD4 : None
+PprGTH MD1 : None
+PprGTH MD2 : None
+PprGTH MD3 : None
+PprGTH MD4 : uplink B1
+ber : 2.3274437763384246e-05
+bitslip : 19
+crc : 4294967295
+data_error : 0
+downlink_status : False
+frames : 1537798441744
+gbtrx_rdy : 0
+gbttx_rdy_lost : 0
+latency : 0
+mgt_rdy : 0
+rx_frameclk : 1
+rx_wordclk : 0
+tx_pll : 0
+-------
+Time: 2024-09-03T23:06:31.786758Z
+PPrEmu MD1 : None
+PPrEmu MD2 : None
+PPrEmu MD3 : None
+PPrEmu MD4 : uplink A0
+PprGTH MD1 : None
+PprGTH MD2 : None
+PprGTH MD3 : None
+PprGTH MD4 : None
+ber : 2.3274437763384246e-05
+bitslip : 9
+crc : 4294967295
+data_error : 0
+downlink_status : False
+frames : 1537798441744
+gbtrx_rdy : 0
+gbttx_rdy_lost : 0
+latency : 0
+mgt_rdy : 0
+rx_frameclk : 1
+rx_wordclk : 0
+tx_pll : 0
+-------
+Time: 2024-09-03T23:06:31.821556Z
+PPrEmu MD1 : None
+PPrEmu MD2 : None
+PPrEmu MD3 : None
+PPrEmu MD4 : uplink A1
+PprGTH MD1 : None
+PprGTH MD2 : None
+PprGTH MD3 : None
+PprGTH MD4 : None
+ber : 2.3274437763384246e-05
+bitslip : 9
+crc : 4294967295
+data_error : 0
+downlink_status : False
+frames : 1537798441744
+gbtrx_rdy : 0
+gbttx_rdy_lost : 0
+latency : 0
+mgt_rdy : 0
+rx_frameclk : 1
+rx_wordclk : 0
+tx_pll : 0
+-------
+Time: 2024-09-03T23:06:31.855908Z
+PPrEmu MD1 : None
+PPrEmu MD2 : None
+PPrEmu MD3 : None
+PPrEmu MD4 : uplink B0
+PprGTH MD1 : None
+PprGTH MD2 : None
+PprGTH MD3 : None
+PprGTH MD4 : None
+ber : 2.3274437763384246e-05
+bitslip : 39
+crc : 4294967295
+data_error : 0
+downlink_status : False
+frames : 1537798441744
+gbtrx_rdy : 0
+gbttx_rdy_lost : 0
+latency : 0
+mgt_rdy : 0
+rx_frameclk : 1
+rx_wordclk : 0
+tx_pll : 0
+-------
+Time: 2024-09-03T23:06:31.889922Z
+PPrEmu MD1 : None
+PPrEmu MD2 : None
+PPrEmu MD3 : None
+PPrEmu MD4 : uplink B1
+PprGTH MD1 : None
+PprGTH MD2 : None
+PprGTH MD3 : None
+PprGTH MD4 : None
+ber : 2.3274437763384246e-05
+bitslip : 19
+crc : 4294967295
+data_error : 0
+downlink_status : False
+frames : 1537798441744
+gbtrx_rdy : 0
+gbttx_rdy_lost : 0
+latency : 0
+mgt_rdy : 0
+rx_frameclk : 1
+rx_wordclk : 0
+tx_pll : 0
+-------
+Time: 2024-09-03T23:06:36.237578Z
+PPrEmu MD1 : None
+PPrEmu MD2 : None
+PPrEmu MD3 : None
+PPrEmu MD4 : None
+PprGTH MD1 : uplink A0
+PprGTH MD2 : None
+PprGTH MD3 : None
+PprGTH MD4 : None
+ber : 0.0
+bitslip : 0
+crc : 0
+data_error : 0
+downlink_status : False
+frames : 1538168394373
+gbtrx_rdy : 1
+gbttx_rdy_lost : 0
+latency : 23
+mgt_rdy : 1
+rx_frameclk : 1
+rx_wordclk : 1
+tx_pll : 0
+-------
+Time: 2024-09-03T23:06:36.396020Z
+PPrEmu MD1 : None
+PPrEmu MD2 : None
+PPrEmu MD3 : None
+PPrEmu MD4 : None
+PprGTH MD1 : uplink A1
+PprGTH MD2 : None
+PprGTH MD3 : None
+PprGTH MD4 : None
+ber : 2.326883991111361e-05
+bitslip : 29
+crc : 4294967295
+data_error : 0
+downlink_status : False
+frames : 1538168394373
+gbtrx_rdy : 0
+gbttx_rdy_lost : 0
+latency : 23
+mgt_rdy : 0
+rx_frameclk : 1
+rx_wordclk : 0
+tx_pll : 0
+-------
+Time: 2024-09-03T23:06:36.441566Z
+PPrEmu MD1 : None
+PPrEmu MD2 : None
+PPrEmu MD3 : None
+PPrEmu MD4 : None
+PprGTH MD1 : uplink B0
+PprGTH MD2 : None
+PprGTH MD3 : None
+PprGTH MD4 : None
+ber : 0.0
+bitslip : 13
+crc : 0
+data_error : 0
+downlink_status : False
+frames : 1538168394373
+gbtrx_rdy : 0
+gbttx_rdy_lost : 0
+latency : 23
+mgt_rdy : 0
+rx_frameclk : 1
+rx_wordclk : 0
+tx_pll : 0
+-------
+Time: 2024-09-03T23:06:36.475508Z
+PPrEmu MD1 : None
+PPrEmu MD2 : None
+PPrEmu MD3 : None
+PPrEmu MD4 : None
+PprGTH MD1 : uplink B1
+PprGTH MD2 : None
+PprGTH MD3 : None
+PprGTH MD4 : None
+ber : 0.0
+bitslip : 0
+crc : 0
+data_error : 0
+downlink_status : False
+frames : 1538168394373
+gbtrx_rdy : 1
+gbttx_rdy_lost : 0
+latency : 23
+mgt_rdy : 1
+rx_frameclk : 1
+rx_wordclk : 1
+tx_pll : 0
+-------
+Time: 2024-09-03T23:06:36.509789Z
+PPrEmu MD1 : uplink A0
+PPrEmu MD2 : None
+PPrEmu MD3 : None
+PPrEmu MD4 : None
+PprGTH MD1 : None
+PprGTH MD2 : None
+PprGTH MD3 : None
+PprGTH MD4 : None
+ber : 0.0
+bitslip : 0
+crc : 0
+data_error : 0
+downlink_status : False
+frames : 1538168394373
+gbtrx_rdy : 1
+gbttx_rdy_lost : 0
+latency : 23
+mgt_rdy : 1
+rx_frameclk : 1
+rx_wordclk : 1
+tx_pll : 0
+-------
+Time: 2024-09-03T23:06:36.543989Z
+PPrEmu MD1 : uplink A1
+PPrEmu MD2 : None
+PPrEmu MD3 : None
+PPrEmu MD4 : None
+PprGTH MD1 : None
+PprGTH MD2 : None
+PprGTH MD3 : None
+PprGTH MD4 : None
+ber : 2.326883991111361e-05
+bitslip : 29
+crc : 4294967295
+data_error : 0
+downlink_status : False
+frames : 1538168394373
+gbtrx_rdy : 0
+gbttx_rdy_lost : 0
+latency : 23
+mgt_rdy : 0
+rx_frameclk : 1
+rx_wordclk : 0
+tx_pll : 0
+-------
+Time: 2024-09-03T23:06:36.578220Z
+PPrEmu MD1 : uplink B0
+PPrEmu MD2 : None
+PPrEmu MD3 : None
+PPrEmu MD4 : None
+PprGTH MD1 : None
+PprGTH MD2 : None
+PprGTH MD3 : None
+PprGTH MD4 : None
+ber : 0.0
+bitslip : 13
+crc : 0
+data_error : 0
+downlink_status : False
+frames : 1538168394373
+gbtrx_rdy : 0
+gbttx_rdy_lost : 0
+latency : 23
+mgt_rdy : 0
+rx_frameclk : 1
+rx_wordclk : 0
+tx_pll : 0
+-------
+Time: 2024-09-03T23:06:36.612427Z
+PPrEmu MD1 : uplink B1
+PPrEmu MD2 : None
+PPrEmu MD3 : None
+PPrEmu MD4 : None
+PprGTH MD1 : None
+PprGTH MD2 : None
+PprGTH MD3 : None
+PprGTH MD4 : None
+ber : 0.0
+bitslip : 0
+crc : 0
+data_error : 0
+downlink_status : False
+frames : 1538168394373
+gbtrx_rdy : 1
+gbttx_rdy_lost : 0
+latency : 23
+mgt_rdy : 1
+rx_frameclk : 1
+rx_wordclk : 1
+tx_pll : 0
+-------
+Time: 2024-09-03T23:06:39.882369Z
+PPrEmu MD1 : None
+PPrEmu MD2 : None
+PPrEmu MD3 : None
+PPrEmu MD4 : None
+PprGTH MD1 : None
+PprGTH MD2 : uplink A0
+PprGTH MD3 : None
+PprGTH MD4 : None
+ber : 2.3264421547274805e-05
+bitslip : 38
+crc : 4294967295
+data_error : 0
+downlink_status : False
+frames : 1538460522316
+gbtrx_rdy : 0
+gbttx_rdy_lost : 0
+latency : 0
+mgt_rdy : 0
+rx_frameclk : 1
+rx_wordclk : 0
+tx_pll : 0
+-------
+Time: 2024-09-03T23:06:39.930877Z
+PPrEmu MD1 : None
+PPrEmu MD2 : None
+PPrEmu MD3 : None
+PPrEmu MD4 : None
+PprGTH MD1 : None
+PprGTH MD2 : uplink A1
+PprGTH MD3 : None
+PprGTH MD4 : None
+ber : 2.3264421547274805e-05
+bitslip : 10
+crc : 4294967295
+data_error : 0
+downlink_status : False
+frames : 1538460522316
+gbtrx_rdy : 0
+gbttx_rdy_lost : 0
+latency : 0
+mgt_rdy : 0
+rx_frameclk : 1
+rx_wordclk : 0
+tx_pll : 0
+-------
+Time: 2024-09-03T23:06:39.970670Z
+PPrEmu MD1 : None
+PPrEmu MD2 : None
+PPrEmu MD3 : None
+PPrEmu MD4 : None
+PprGTH MD1 : None
+PprGTH MD2 : uplink B0
+PprGTH MD3 : None
+PprGTH MD4 : None
+ber : 2.3264421547274805e-05
+bitslip : 27
+crc : 4294967295
+data_error : 0
+downlink_status : False
+frames : 1538460522316
+gbtrx_rdy : 0
+gbttx_rdy_lost : 0
+latency : 0
+mgt_rdy : 0
+rx_frameclk : 1
+rx_wordclk : 0
+tx_pll : 0
+-------
+Time: 2024-09-03T23:06:40.010133Z
+PPrEmu MD1 : None
+PPrEmu MD2 : None
+PPrEmu MD3 : None
+PPrEmu MD4 : None
+PprGTH MD1 : None
+PprGTH MD2 : uplink B1
+PprGTH MD3 : None
+PprGTH MD4 : None
+ber : 2.3264421547274805e-05
+bitslip : 10
+crc : 4294967295
+data_error : 0
+downlink_status : False
+frames : 1538460522316
+gbtrx_rdy : 0
+gbttx_rdy_lost : 0
+latency : 0
+mgt_rdy : 0
+rx_frameclk : 1
+rx_wordclk : 0
+tx_pll : 0
+-------
+Time: 2024-09-03T23:06:40.067780Z
+PPrEmu MD1 : None
+PPrEmu MD2 : uplink A0
+PPrEmu MD3 : None
+PPrEmu MD4 : None
+PprGTH MD1 : None
+PprGTH MD2 : None
+PprGTH MD3 : None
+PprGTH MD4 : None
+ber : 2.3264421547274805e-05
+bitslip : 38
+crc : 4294967295
+data_error : 0
+downlink_status : False
+frames : 1538460522316
+gbtrx_rdy : 0
+gbttx_rdy_lost : 0
+latency : 0
+mgt_rdy : 0
+rx_frameclk : 1
+rx_wordclk : 0
+tx_pll : 0
+-------
+Time: 2024-09-03T23:06:40.125531Z
+PPrEmu MD1 : None
+PPrEmu MD2 : uplink A1
+PPrEmu MD3 : None
+PPrEmu MD4 : None
+PprGTH MD1 : None
+PprGTH MD2 : None
+PprGTH MD3 : None
+PprGTH MD4 : None
+ber : 2.3264421547274805e-05
+bitslip : 10
+crc : 4294967295
+data_error : 0
+downlink_status : False
+frames : 1538460522316
+gbtrx_rdy : 0
+gbttx_rdy_lost : 0
+latency : 0
+mgt_rdy : 0
+rx_frameclk : 1
+rx_wordclk : 0
+tx_pll : 0
+-------
+Time: 2024-09-03T23:06:40.160188Z
+PPrEmu MD1 : None
+PPrEmu MD2 : uplink B0
+PPrEmu MD3 : None
+PPrEmu MD4 : None
+PprGTH MD1 : None
+PprGTH MD2 : None
+PprGTH MD3 : None
+PprGTH MD4 : None
+ber : 2.3264421547274805e-05
+bitslip : 27
+crc : 4294967295
+data_error : 0
+downlink_status : False
+frames : 1538460522316
+gbtrx_rdy : 0
+gbttx_rdy_lost : 0
+latency : 0
+mgt_rdy : 0
+rx_frameclk : 1
+rx_wordclk : 0
+tx_pll : 0
+-------
+Time: 2024-09-03T23:06:40.196169Z
+PPrEmu MD1 : None
+PPrEmu MD2 : uplink B1
+PPrEmu MD3 : None
+PPrEmu MD4 : None
+PprGTH MD1 : None
+PprGTH MD2 : None
+PprGTH MD3 : None
+PprGTH MD4 : None
+ber : 2.3264421547274805e-05
+bitslip : 10
+crc : 4294967295
+data_error : 0
+downlink_status : False
+frames : 1538460522316
+gbtrx_rdy : 0
+gbttx_rdy_lost : 0
+latency : 0
+mgt_rdy : 0
+rx_frameclk : 1
+rx_wordclk : 0
+tx_pll : 0
+-------
+Time: 2024-09-03T23:06:43.448537Z
+PPrEmu MD1 : None
+PPrEmu MD2 : None
+PPrEmu MD3 : None
+PPrEmu MD4 : None
+PprGTH MD1 : None
+PprGTH MD2 : None
+PprGTH MD3 : uplink A0
+PprGTH MD4 : None
+ber : 2.3260099363098977e-05
+bitslip : 5
+crc : 4294967295
+data_error : 0
+downlink_status : False
+frames : 1538746398555
+gbtrx_rdy : 0
+gbttx_rdy_lost : 0
+latency : 0
+mgt_rdy : 0
+rx_frameclk : 1
+rx_wordclk : 0
+tx_pll : 0
+-------
+Time: 2024-09-03T23:06:43.487427Z
+PPrEmu MD1 : None
+PPrEmu MD2 : None
+PPrEmu MD3 : None
+PPrEmu MD4 : None
+PprGTH MD1 : None
+PprGTH MD2 : None
+PprGTH MD3 : uplink A1
+PprGTH MD4 : None
+ber : 2.3260099363098977e-05
+bitslip : 35
+crc : 4294967295
+data_error : 0
+downlink_status : False
+frames : 1538746398555
+gbtrx_rdy : 0
+gbttx_rdy_lost : 0
+latency : 0
+mgt_rdy : 0
+rx_frameclk : 1
+rx_wordclk : 0
+tx_pll : 0
+-------
+Time: 2024-09-03T23:06:43.530031Z
+PPrEmu MD1 : None
+PPrEmu MD2 : None
+PPrEmu MD3 : None
+PPrEmu MD4 : None
+PprGTH MD1 : None
+PprGTH MD2 : None
+PprGTH MD3 : uplink B0
+PprGTH MD4 : None
+ber : 2.3260099363098977e-05
+bitslip : 8
+crc : 4294967295
+data_error : 0
+downlink_status : False
+frames : 1538746398555
+gbtrx_rdy : 0
+gbttx_rdy_lost : 0
+latency : 0
+mgt_rdy : 0
+rx_frameclk : 1
+rx_wordclk : 0
+tx_pll : 0
+-------
+Time: 2024-09-03T23:06:43.570703Z
+PPrEmu MD1 : None
+PPrEmu MD2 : None
+PPrEmu MD3 : None
+PPrEmu MD4 : None
+PprGTH MD1 : None
+PprGTH MD2 : None
+PprGTH MD3 : uplink B1
+PprGTH MD4 : None
+ber : 2.3260099363098977e-05
+bitslip : 15
+crc : 4294967295
+data_error : 0
+downlink_status : False
+frames : 1538746398555
+gbtrx_rdy : 0
+gbttx_rdy_lost : 0
+latency : 0
+mgt_rdy : 0
+rx_frameclk : 1
+rx_wordclk : 0
+tx_pll : 0
+-------
+Time: 2024-09-03T23:06:43.614573Z
+PPrEmu MD1 : None
+PPrEmu MD2 : None
+PPrEmu MD3 : uplink A0
+PPrEmu MD4 : None
+PprGTH MD1 : None
+PprGTH MD2 : None
+PprGTH MD3 : None
+PprGTH MD4 : None
+ber : 2.3260099363098977e-05
+bitslip : 5
+crc : 4294967295
+data_error : 0
+downlink_status : False
+frames : 1538746398555
+gbtrx_rdy : 0
+gbttx_rdy_lost : 0
+latency : 0
+mgt_rdy : 0
+rx_frameclk : 1
+rx_wordclk : 0
+tx_pll : 0
+-------
+Time: 2024-09-03T23:06:43.656227Z
+PPrEmu MD1 : None
+PPrEmu MD2 : None
+PPrEmu MD3 : uplink A1
+PPrEmu MD4 : None
+PprGTH MD1 : None
+PprGTH MD2 : None
+PprGTH MD3 : None
+PprGTH MD4 : None
+ber : 2.3260099363098977e-05
+bitslip : 35
+crc : 4294967295
+data_error : 0
+downlink_status : False
+frames : 1538746398555
+gbtrx_rdy : 0
+gbttx_rdy_lost : 0
+latency : 0
+mgt_rdy : 0
+rx_frameclk : 1
+rx_wordclk : 0
+tx_pll : 0
+-------
+Time: 2024-09-03T23:06:43.689917Z
+PPrEmu MD1 : None
+PPrEmu MD2 : None
+PPrEmu MD3 : uplink B0
+PPrEmu MD4 : None
+PprGTH MD1 : None
+PprGTH MD2 : None
+PprGTH MD3 : None
+PprGTH MD4 : None
+ber : 2.3260099363098977e-05
+bitslip : 8
+crc : 4294967295
+data_error : 0
+downlink_status : False
+frames : 1538746398555
+gbtrx_rdy : 0
+gbttx_rdy_lost : 0
+latency : 0
+mgt_rdy : 0
+rx_frameclk : 1
+rx_wordclk : 0
+tx_pll : 0
+-------
+Time: 2024-09-03T23:06:43.723716Z
+PPrEmu MD1 : None
+PPrEmu MD2 : None
+PPrEmu MD3 : uplink B1
+PPrEmu MD4 : None
+PprGTH MD1 : None
+PprGTH MD2 : None
+PprGTH MD3 : None
+PprGTH MD4 : None
+ber : 2.3260099363098977e-05
+bitslip : 15
+crc : 4294967295
+data_error : 0
+downlink_status : False
+frames : 1538746398555
+gbtrx_rdy : 0
+gbttx_rdy_lost : 0
+latency : 0
+mgt_rdy : 0
+rx_frameclk : 1
+rx_wordclk : 0
+tx_pll : 0
+-------
+Time: 2024-09-03T23:06:47.021710Z
+PPrEmu MD1 : None
+PPrEmu MD2 : None
+PPrEmu MD3 : None
+PPrEmu MD4 : None
+PprGTH MD1 : None
+PprGTH MD2 : None
+PprGTH MD3 : None
+PprGTH MD4 : uplink A0
+ber : 2.3255770264347006e-05
+bitslip : 4
+crc : 4294967295
+data_error : 0
+downlink_status : False
+frames : 1539032838653
+gbtrx_rdy : 0
+gbttx_rdy_lost : 0
+latency : 0
+mgt_rdy : 0
+rx_frameclk : 1
+rx_wordclk : 0
+tx_pll : 0
+-------
+Time: 2024-09-03T23:06:47.061243Z
+PPrEmu MD1 : None
+PPrEmu MD2 : None
+PPrEmu MD3 : None
+PPrEmu MD4 : None
+PprGTH MD1 : None
+PprGTH MD2 : None
+PprGTH MD3 : None
+PprGTH MD4 : uplink A1
+ber : 2.3255770264347006e-05
+bitslip : 27
+crc : 4294967295
+data_error : 0
+downlink_status : False
+frames : 1539032838653
+gbtrx_rdy : 0
+gbttx_rdy_lost : 0
+latency : 0
+mgt_rdy : 0
+rx_frameclk : 1
+rx_wordclk : 0
+tx_pll : 0
+-------
+Time: 2024-09-03T23:06:47.104782Z
+PPrEmu MD1 : None
+PPrEmu MD2 : None
+PPrEmu MD3 : None
+PPrEmu MD4 : None
+PprGTH MD1 : None
+PprGTH MD2 : None
+PprGTH MD3 : None
+PprGTH MD4 : uplink B0
+ber : 2.3255770264347006e-05
+bitslip : 21
+crc : 4294967295
+data_error : 0
+downlink_status : False
+frames : 1539032838653
+gbtrx_rdy : 0
+gbttx_rdy_lost : 0
+latency : 0
+mgt_rdy : 0
+rx_frameclk : 1
+rx_wordclk : 0
+tx_pll : 0
+-------
+Time: 2024-09-03T23:06:47.144569Z
+PPrEmu MD1 : None
+PPrEmu MD2 : None
+PPrEmu MD3 : None
+PPrEmu MD4 : None
+PprGTH MD1 : None
+PprGTH MD2 : None
+PprGTH MD3 : None
+PprGTH MD4 : uplink B1
+ber : 2.3255770264347006e-05
+bitslip : 30
+crc : 4294967295
+data_error : 0
+downlink_status : False
+frames : 1539032838653
+gbtrx_rdy : 0
+gbttx_rdy_lost : 0
+latency : 0
+mgt_rdy : 0
+rx_frameclk : 1
+rx_wordclk : 0
+tx_pll : 0
+-------
+Time: 2024-09-03T23:06:47.187599Z
+PPrEmu MD1 : None
+PPrEmu MD2 : None
+PPrEmu MD3 : None
+PPrEmu MD4 : uplink A0
+PprGTH MD1 : None
+PprGTH MD2 : None
+PprGTH MD3 : None
+PprGTH MD4 : None
+ber : 2.3255770264347006e-05
+bitslip : 4
+crc : 4294967295
+data_error : 0
+downlink_status : False
+frames : 1539032838653
+gbtrx_rdy : 0
+gbttx_rdy_lost : 0
+latency : 0
+mgt_rdy : 0
+rx_frameclk : 1
+rx_wordclk : 0
+tx_pll : 0
+-------
+Time: 2024-09-03T23:06:47.230894Z
+PPrEmu MD1 : None
+PPrEmu MD2 : None
+PPrEmu MD3 : None
+PPrEmu MD4 : uplink A1
+PprGTH MD1 : None
+PprGTH MD2 : None
+PprGTH MD3 : None
+PprGTH MD4 : None
+ber : 2.3255770264347006e-05
+bitslip : 27
+crc : 4294967295
+data_error : 0
+downlink_status : False
+frames : 1539032838653
+gbtrx_rdy : 0
+gbttx_rdy_lost : 0
+latency : 0
+mgt_rdy : 0
+rx_frameclk : 1
+rx_wordclk : 0
+tx_pll : 0
+-------
+Time: 2024-09-03T23:06:47.268006Z
+PPrEmu MD1 : None
+PPrEmu MD2 : None
+PPrEmu MD3 : None
+PPrEmu MD4 : uplink B0
+PprGTH MD1 : None
+PprGTH MD2 : None
+PprGTH MD3 : None
+PprGTH MD4 : None
+ber : 2.3255770264347006e-05
+bitslip : 21
+crc : 4294967295
+data_error : 0
+downlink_status : False
+frames : 1539032838653
+gbtrx_rdy : 0
+gbttx_rdy_lost : 0
+latency : 0
+mgt_rdy : 0
+rx_frameclk : 1
+rx_wordclk : 0
+tx_pll : 0
+-------
+Time: 2024-09-03T23:06:47.301924Z
+PPrEmu MD1 : None
+PPrEmu MD2 : None
+PPrEmu MD3 : None
+PPrEmu MD4 : uplink B1
+PprGTH MD1 : None
+PprGTH MD2 : None
+PprGTH MD3 : None
+PprGTH MD4 : None
+ber : 2.3255770264347006e-05
+bitslip : 30
+crc : 4294967295
+data_error : 0
+downlink_status : False
+frames : 1539032838653
+gbtrx_rdy : 0
+gbttx_rdy_lost : 0
+latency : 0
+mgt_rdy : 0
+rx_frameclk : 1
+rx_wordclk : 0
+tx_pll : 0
+-------
+Time: 2024-09-03T23:06:51.600101Z
+PPrEmu MD1 : None
+PPrEmu MD2 : None
+PPrEmu MD3 : None
+PPrEmu MD4 : None
+PprGTH MD1 : uplink A0
+PprGTH MD2 : None
+PprGTH MD3 : None
+PprGTH MD4 : None
+ber : 0.0
+bitslip : 0
+crc : 0
+data_error : 0
+downlink_status : False
+frames : 1539399786584
+gbtrx_rdy : 1
+gbttx_rdy_lost : 0
+latency : 23
+mgt_rdy : 1
+rx_frameclk : 1
+rx_wordclk : 1
+tx_pll : 0
+-------
+Time: 2024-09-03T23:06:51.680967Z
+PPrEmu MD1 : None
+PPrEmu MD2 : None
+PPrEmu MD3 : None
+PPrEmu MD4 : None
+PprGTH MD1 : uplink A1
+PprGTH MD2 : None
+PprGTH MD3 : None
+PprGTH MD4 : None
+ber : 2.3250226768202153e-05
+bitslip : 13
+crc : 4294967295
+data_error : 0
+downlink_status : False
+frames : 1539399786584
+gbtrx_rdy : 0
+gbttx_rdy_lost : 0
+latency : 23
+mgt_rdy : 0
+rx_frameclk : 1
+rx_wordclk : 0
+tx_pll : 0
+-------
+Time: 2024-09-03T23:06:51.722144Z
+PPrEmu MD1 : None
+PPrEmu MD2 : None
+PPrEmu MD3 : None
+PPrEmu MD4 : None
+PprGTH MD1 : uplink B0
+PprGTH MD2 : None
+PprGTH MD3 : None
+PprGTH MD4 : None
+ber : 0.0
+bitslip : 37
+crc : 0
+data_error : 0
+downlink_status : False
+frames : 1539399786584
+gbtrx_rdy : 0
+gbttx_rdy_lost : 0
+latency : 23
+mgt_rdy : 0
+rx_frameclk : 1
+rx_wordclk : 0
+tx_pll : 0
+-------
+Time: 2024-09-03T23:06:51.763848Z
+PPrEmu MD1 : None
+PPrEmu MD2 : None
+PPrEmu MD3 : None
+PPrEmu MD4 : None
+PprGTH MD1 : uplink B1
+PprGTH MD2 : None
+PprGTH MD3 : None
+PprGTH MD4 : None
+ber : 0.0
+bitslip : 0
+crc : 0
+data_error : 0
+downlink_status : False
+frames : 1539399786584
+gbtrx_rdy : 1
+gbttx_rdy_lost : 0
+latency : 23
+mgt_rdy : 1
+rx_frameclk : 1
+rx_wordclk : 1
+tx_pll : 0
+-------
+Time: 2024-09-03T23:06:51.797910Z
+PPrEmu MD1 : uplink A0
+PPrEmu MD2 : None
+PPrEmu MD3 : None
+PPrEmu MD4 : None
+PprGTH MD1 : None
+PprGTH MD2 : None
+PprGTH MD3 : None
+PprGTH MD4 : None
+ber : 0.0
+bitslip : 0
+crc : 0
+data_error : 0
+downlink_status : False
+frames : 1539399786584
+gbtrx_rdy : 1
+gbttx_rdy_lost : 0
+latency : 23
+mgt_rdy : 1
+rx_frameclk : 1
+rx_wordclk : 1
+tx_pll : 0
+-------
+Time: 2024-09-03T23:06:51.832355Z
+PPrEmu MD1 : uplink A1
+PPrEmu MD2 : None
+PPrEmu MD3 : None
+PPrEmu MD4 : None
+PprGTH MD1 : None
+PprGTH MD2 : None
+PprGTH MD3 : None
+PprGTH MD4 : None
+ber : 2.3250226768202153e-05
+bitslip : 13
+crc : 4294967295
+data_error : 0
+downlink_status : False
+frames : 1539399786584
+gbtrx_rdy : 0
+gbttx_rdy_lost : 0
+latency : 23
+mgt_rdy : 0
+rx_frameclk : 1
+rx_wordclk : 0
+tx_pll : 0
+-------
+Time: 2024-09-03T23:06:51.865598Z
+PPrEmu MD1 : uplink B0
+PPrEmu MD2 : None
+PPrEmu MD3 : None
+PPrEmu MD4 : None
+PprGTH MD1 : None
+PprGTH MD2 : None
+PprGTH MD3 : None
+PprGTH MD4 : None
+ber : 0.0
+bitslip : 37
+crc : 0
+data_error : 0
+downlink_status : False
+frames : 1539399786584
+gbtrx_rdy : 0
+gbttx_rdy_lost : 0
+latency : 23
+mgt_rdy : 0
+rx_frameclk : 1
+rx_wordclk : 0
+tx_pll : 0
+-------
+Time: 2024-09-03T23:06:51.899389Z
+PPrEmu MD1 : uplink B1
+PPrEmu MD2 : None
+PPrEmu MD3 : None
+PPrEmu MD4 : None
+PprGTH MD1 : None
+PprGTH MD2 : None
+PprGTH MD3 : None
+PprGTH MD4 : None
+ber : 0.0
+bitslip : 0
+crc : 0
+data_error : 0
+downlink_status : False
+frames : 1539399786584
+gbtrx_rdy : 1
+gbttx_rdy_lost : 0
+latency : 23
+mgt_rdy : 1
+rx_frameclk : 1
+rx_wordclk : 1
+tx_pll : 0
+-------
+Time: 2024-09-03T23:06:55.143493Z
+PPrEmu MD1 : None
+PPrEmu MD2 : None
+PPrEmu MD3 : None
+PPrEmu MD4 : None
+PprGTH MD1 : None
+PprGTH MD2 : uplink A0
+PprGTH MD3 : None
+PprGTH MD4 : None
+ber : 2.32459375885994e-05
+bitslip : 20
+crc : 4294967295
+data_error : 0
+downlink_status : False
+frames : 1539683825984
+gbtrx_rdy : 0
+gbttx_rdy_lost : 0
+latency : 0
+mgt_rdy : 0
+rx_frameclk : 1
+rx_wordclk : 0
+tx_pll : 0
+-------
+Time: 2024-09-03T23:06:55.180930Z
+PPrEmu MD1 : None
+PPrEmu MD2 : None
+PPrEmu MD3 : None
+PPrEmu MD4 : None
+PprGTH MD1 : None
+PprGTH MD2 : uplink A1
+PprGTH MD3 : None
+PprGTH MD4 : None
+ber : 2.32459375885994e-05
+bitslip : 12
+crc : 4294967295
+data_error : 0
+downlink_status : False
+frames : 1539683825984
+gbtrx_rdy : 0
+gbttx_rdy_lost : 0
+latency : 0
+mgt_rdy : 0
+rx_frameclk : 1
+rx_wordclk : 0
+tx_pll : 0
+-------
+Time: 2024-09-03T23:06:55.294844Z
+PPrEmu MD1 : None
+PPrEmu MD2 : None
+PPrEmu MD3 : None
+PPrEmu MD4 : None
+PprGTH MD1 : None
+PprGTH MD2 : uplink B0
+PprGTH MD3 : None
+PprGTH MD4 : None
+ber : 2.32459375885994e-05
+bitslip : 10
+crc : 4294967295
+data_error : 0
+downlink_status : False
+frames : 1539683825984
+gbtrx_rdy : 0
+gbttx_rdy_lost : 0
+latency : 0
+mgt_rdy : 0
+rx_frameclk : 1
+rx_wordclk : 0
+tx_pll : 0
+-------
+Time: 2024-09-03T23:06:55.364324Z
+PPrEmu MD1 : None
+PPrEmu MD2 : None
+PPrEmu MD3 : None
+PPrEmu MD4 : None
+PprGTH MD1 : None
+PprGTH MD2 : uplink B1
+PprGTH MD3 : None
+PprGTH MD4 : None
+ber : 2.32459375885994e-05
+bitslip : 27
+crc : 4294967295
+data_error : 0
+downlink_status : False
+frames : 1539683825984
+gbtrx_rdy : 0
+gbttx_rdy_lost : 0
+latency : 0
+mgt_rdy : 0
+rx_frameclk : 1
+rx_wordclk : 0
+tx_pll : 0
+-------
+Time: 2024-09-03T23:06:55.529363Z
+PPrEmu MD1 : None
+PPrEmu MD2 : uplink A0
+PPrEmu MD3 : None
+PPrEmu MD4 : None
+PprGTH MD1 : None
+PprGTH MD2 : None
+PprGTH MD3 : None
+PprGTH MD4 : None
+ber : 2.32459375885994e-05
+bitslip : 20
+crc : 4294967295
+data_error : 0
+downlink_status : False
+frames : 1539683825984
+gbtrx_rdy : 0
+gbttx_rdy_lost : 0
+latency : 0
+mgt_rdy : 0
+rx_frameclk : 1
+rx_wordclk : 0
+tx_pll : 0
+-------
+Time: 2024-09-03T23:06:55.567799Z
+PPrEmu MD1 : None
+PPrEmu MD2 : uplink A1
+PPrEmu MD3 : None
+PPrEmu MD4 : None
+PprGTH MD1 : None
+PprGTH MD2 : None
+PprGTH MD3 : None
+PprGTH MD4 : None
+ber : 2.32459375885994e-05
+bitslip : 12
+crc : 4294967295
+data_error : 0
+downlink_status : False
+frames : 1539683825984
+gbtrx_rdy : 0
+gbttx_rdy_lost : 0
+latency : 0
+mgt_rdy : 0
+rx_frameclk : 1
+rx_wordclk : 0
+tx_pll : 0
+-------
+Time: 2024-09-03T23:06:55.602237Z
+PPrEmu MD1 : None
+PPrEmu MD2 : uplink B0
+PPrEmu MD3 : None
+PPrEmu MD4 : None
+PprGTH MD1 : None
+PprGTH MD2 : None
+PprGTH MD3 : None
+PprGTH MD4 : None
+ber : 2.32459375885994e-05
+bitslip : 10
+crc : 4294967295
+data_error : 0
+downlink_status : False
+frames : 1539683825984
+gbtrx_rdy : 0
+gbttx_rdy_lost : 0
+latency : 0
+mgt_rdy : 0
+rx_frameclk : 1
+rx_wordclk : 0
+tx_pll : 0
+-------
+Time: 2024-09-03T23:06:55.637018Z
+PPrEmu MD1 : None
+PPrEmu MD2 : uplink B1
+PPrEmu MD3 : None
+PPrEmu MD4 : None
+PprGTH MD1 : None
+PprGTH MD2 : None
+PprGTH MD3 : None
+PprGTH MD4 : None
+ber : 2.32459375885994e-05
+bitslip : 27
+crc : 4294967295
+data_error : 0
+downlink_status : False
+frames : 1539683825984
+gbtrx_rdy : 0
+gbttx_rdy_lost : 0
+latency : 0
+mgt_rdy : 0
+rx_frameclk : 1
+rx_wordclk : 0
+tx_pll : 0
+-------
+Time: 2024-09-03T23:06:58.995804Z
+PPrEmu MD1 : None
+PPrEmu MD2 : None
+PPrEmu MD3 : None
+PPrEmu MD4 : None
+PprGTH MD1 : None
+PprGTH MD2 : None
+PprGTH MD3 : uplink A0
+PprGTH MD4 : None
+ber : 2.3241276787065303e-05
+bitslip : 3
+crc : 4294967295
+data_error : 0
+downlink_status : False
+frames : 1539992593906
+gbtrx_rdy : 0
+gbttx_rdy_lost : 0
+latency : 0
+mgt_rdy : 0
+rx_frameclk : 1
+rx_wordclk : 0
+tx_pll : 0
+-------
+Time: 2024-09-03T23:06:59.032508Z
+PPrEmu MD1 : None
+PPrEmu MD2 : None
+PPrEmu MD3 : None
+PPrEmu MD4 : None
+PprGTH MD1 : None
+PprGTH MD2 : None
+PprGTH MD3 : uplink A1
+PprGTH MD4 : None
+ber : 2.3241276787065303e-05
+bitslip : 10
+crc : 4294967295
+data_error : 0
+downlink_status : False
+frames : 1539992593906
+gbtrx_rdy : 0
+gbttx_rdy_lost : 0
+latency : 0
+mgt_rdy : 0
+rx_frameclk : 1
+rx_wordclk : 0
+tx_pll : 0
+-------
+Time: 2024-09-03T23:06:59.066698Z
+PPrEmu MD1 : None
+PPrEmu MD2 : None
+PPrEmu MD3 : None
+PPrEmu MD4 : None
+PprGTH MD1 : None
+PprGTH MD2 : None
+PprGTH MD3 : uplink B0
+PprGTH MD4 : None
+ber : 2.3241276787065303e-05
+bitslip : 6
+crc : 4294967295
+data_error : 0
+downlink_status : False
+frames : 1539992593906
+gbtrx_rdy : 0
+gbttx_rdy_lost : 0
+latency : 0
+mgt_rdy : 0
+rx_frameclk : 1
+rx_wordclk : 0
+tx_pll : 0
+-------
+Time: 2024-09-03T23:06:59.100505Z
+PPrEmu MD1 : None
+PPrEmu MD2 : None
+PPrEmu MD3 : None
+PPrEmu MD4 : None
+PprGTH MD1 : None
+PprGTH MD2 : None
+PprGTH MD3 : uplink B1
+PprGTH MD4 : None
+ber : 2.3241276787065303e-05
+bitslip : 21
+crc : 4294967295
+data_error : 0
+downlink_status : False
+frames : 1539992593906
+gbtrx_rdy : 0
+gbttx_rdy_lost : 0
+latency : 0
+mgt_rdy : 0
+rx_frameclk : 1
+rx_wordclk : 0
+tx_pll : 0
+-------
+Time: 2024-09-03T23:06:59.134753Z
+PPrEmu MD1 : None
+PPrEmu MD2 : None
+PPrEmu MD3 : uplink A0
+PPrEmu MD4 : None
+PprGTH MD1 : None
+PprGTH MD2 : None
+PprGTH MD3 : None
+PprGTH MD4 : None
+ber : 2.3241276787065303e-05
+bitslip : 3
+crc : 4294967295
+data_error : 0
+downlink_status : False
+frames : 1539992593906
+gbtrx_rdy : 0
+gbttx_rdy_lost : 0
+latency : 0
+mgt_rdy : 0
+rx_frameclk : 1
+rx_wordclk : 0
+tx_pll : 0
+-------
+Time: 2024-09-03T23:06:59.168428Z
+PPrEmu MD1 : None
+PPrEmu MD2 : None
+PPrEmu MD3 : uplink A1
+PPrEmu MD4 : None
+PprGTH MD1 : None
+PprGTH MD2 : None
+PprGTH MD3 : None
+PprGTH MD4 : None
+ber : 2.3241276787065303e-05
+bitslip : 10
+crc : 4294967295
+data_error : 0
+downlink_status : False
+frames : 1539992593906
+gbtrx_rdy : 0
+gbttx_rdy_lost : 0
+latency : 0
+mgt_rdy : 0
+rx_frameclk : 1
+rx_wordclk : 0
+tx_pll : 0
+-------
+Time: 2024-09-03T23:06:59.213814Z
+PPrEmu MD1 : None
+PPrEmu MD2 : None
+PPrEmu MD3 : uplink B0
+PPrEmu MD4 : None
+PprGTH MD1 : None
+PprGTH MD2 : None
+PprGTH MD3 : None
+PprGTH MD4 : None
+ber : 2.3241276787065303e-05
+bitslip : 6
+crc : 4294967295
+data_error : 0
+downlink_status : False
+frames : 1539992593906
+gbtrx_rdy : 0
+gbttx_rdy_lost : 0
+latency : 0
+mgt_rdy : 0
+rx_frameclk : 1
+rx_wordclk : 0
+tx_pll : 0
+-------
+Time: 2024-09-03T23:06:59.248127Z
+PPrEmu MD1 : None
+PPrEmu MD2 : None
+PPrEmu MD3 : uplink B1
+PPrEmu MD4 : None
+PprGTH MD1 : None
+PprGTH MD2 : None
+PprGTH MD3 : None
+PprGTH MD4 : None
+ber : 2.3241276787065303e-05
+bitslip : 21
+crc : 4294967295
+data_error : 0
+downlink_status : False
+frames : 1539992593906
+gbtrx_rdy : 0
+gbttx_rdy_lost : 0
+latency : 0
+mgt_rdy : 0
+rx_frameclk : 1
+rx_wordclk : 0
+tx_pll : 0
+-------
+Time: 2024-09-03T23:07:02.621941Z
+PPrEmu MD1 : None
+PPrEmu MD2 : None
+PPrEmu MD3 : None
+PPrEmu MD4 : None
+PprGTH MD1 : None
+PprGTH MD2 : None
+PprGTH MD3 : None
+PprGTH MD4 : uplink A0
+ber : 2.3236890024193765e-05
+bitslip : 10
+crc : 4294967295
+data_error : 0
+downlink_status : False
+frames : 1540283320519
+gbtrx_rdy : 0
+gbttx_rdy_lost : 0
+latency : 0
+mgt_rdy : 0
+rx_frameclk : 1
+rx_wordclk : 0
+tx_pll : 0
+-------
+Time: 2024-09-03T23:07:02.661412Z
+PPrEmu MD1 : None
+PPrEmu MD2 : None
+PPrEmu MD3 : None
+PPrEmu MD4 : None
+PprGTH MD1 : None
+PprGTH MD2 : None
+PprGTH MD3 : None
+PprGTH MD4 : uplink A1
+ber : 2.3236890024193765e-05
+bitslip : 34
+crc : 4294967295
+data_error : 0
+downlink_status : False
+frames : 1540283320519
+gbtrx_rdy : 0
+gbttx_rdy_lost : 0
+latency : 0
+mgt_rdy : 0
+rx_frameclk : 1
+rx_wordclk : 0
+tx_pll : 0
+-------
+Time: 2024-09-03T23:07:02.703655Z
+PPrEmu MD1 : None
+PPrEmu MD2 : None
+PPrEmu MD3 : None
+PPrEmu MD4 : None
+PprGTH MD1 : None
+PprGTH MD2 : None
+PprGTH MD3 : None
+PprGTH MD4 : uplink B0
+ber : 2.3236890024193765e-05
+bitslip : 4
+crc : 4294967295
+data_error : 0
+downlink_status : False
+frames : 1540283320519
+gbtrx_rdy : 0
+gbttx_rdy_lost : 0
+latency : 0
+mgt_rdy : 0
+rx_frameclk : 1
+rx_wordclk : 0
+tx_pll : 0
+-------
+Time: 2024-09-03T23:07:02.739404Z
+PPrEmu MD1 : None
+PPrEmu MD2 : None
+PPrEmu MD3 : None
+PPrEmu MD4 : None
+PprGTH MD1 : None
+PprGTH MD2 : None
+PprGTH MD3 : None
+PprGTH MD4 : uplink B1
+ber : 2.3236890024193765e-05
+bitslip : 7
+crc : 4294967295
+data_error : 0
+downlink_status : False
+frames : 1540283320519
+gbtrx_rdy : 0
+gbttx_rdy_lost : 0
+latency : 0
+mgt_rdy : 0
+rx_frameclk : 1
+rx_wordclk : 0
+tx_pll : 0
+-------
+Time: 2024-09-03T23:07:02.774924Z
+PPrEmu MD1 : None
+PPrEmu MD2 : None
+PPrEmu MD3 : None
+PPrEmu MD4 : uplink A0
+PprGTH MD1 : None
+PprGTH MD2 : None
+PprGTH MD3 : None
+PprGTH MD4 : None
+ber : 2.3236890024193765e-05
+bitslip : 10
+crc : 4294967295
+data_error : 0
+downlink_status : False
+frames : 1540283320519
+gbtrx_rdy : 0
+gbttx_rdy_lost : 0
+latency : 0
+mgt_rdy : 0
+rx_frameclk : 1
+rx_wordclk : 0
+tx_pll : 0
+-------
+Time: 2024-09-03T23:07:02.809435Z
+PPrEmu MD1 : None
+PPrEmu MD2 : None
+PPrEmu MD3 : None
+PPrEmu MD4 : uplink A1
+PprGTH MD1 : None
+PprGTH MD2 : None
+PprGTH MD3 : None
+PprGTH MD4 : None
+ber : 2.3236890024193765e-05
+bitslip : 34
+crc : 4294967295
+data_error : 0
+downlink_status : False
+frames : 1540283320519
+gbtrx_rdy : 0
+gbttx_rdy_lost : 0
+latency : 0
+mgt_rdy : 0
+rx_frameclk : 1
+rx_wordclk : 0
+tx_pll : 0
+-------
+Time: 2024-09-03T23:07:02.843369Z
+PPrEmu MD1 : None
+PPrEmu MD2 : None
+PPrEmu MD3 : None
+PPrEmu MD4 : uplink B0
+PprGTH MD1 : None
+PprGTH MD2 : None
+PprGTH MD3 : None
+PprGTH MD4 : None
+ber : 2.3236890024193765e-05
+bitslip : 4
+crc : 4294967295
+data_error : 0
+downlink_status : False
+frames : 1540283320519
+gbtrx_rdy : 0
+gbttx_rdy_lost : 0
+latency : 0
+mgt_rdy : 0
+rx_frameclk : 1
+rx_wordclk : 0
+tx_pll : 0
+-------
+Time: 2024-09-03T23:07:02.877668Z
+PPrEmu MD1 : None
+PPrEmu MD2 : None
+PPrEmu MD3 : None
+PPrEmu MD4 : uplink B1
+PprGTH MD1 : None
+PprGTH MD2 : None
+PprGTH MD3 : None
+PprGTH MD4 : None
+ber : 2.3236890024193765e-05
+bitslip : 7
+crc : 4294967295
+data_error : 0
+downlink_status : False
+frames : 1540283320519
+gbtrx_rdy : 0
+gbttx_rdy_lost : 0
+latency : 0
+mgt_rdy : 0
+rx_frameclk : 1
+rx_wordclk : 0
+tx_pll : 0
+-------
+Time: 2024-09-03T23:07:07.301043Z
+PPrEmu MD1 : None
+PPrEmu MD2 : None
+PPrEmu MD3 : None
+PPrEmu MD4 : None
+PprGTH MD1 : uplink A0
+PprGTH MD2 : None
+PprGTH MD3 : None
+PprGTH MD4 : None
+ber : 0.0
+bitslip : 0
+crc : 0
+data_error : 0
+downlink_status : False
+frames : 1540658350911
+gbtrx_rdy : 1
+gbttx_rdy_lost : 0
+latency : 23
+mgt_rdy : 1
+rx_frameclk : 1
+rx_wordclk : 1
+tx_pll : 0
+-------
+Time: 2024-09-03T23:07:07.470178Z
+PPrEmu MD1 : None
+PPrEmu MD2 : None
+PPrEmu MD3 : None
+PPrEmu MD4 : None
+PprGTH MD1 : uplink A1
+PprGTH MD2 : None
+PprGTH MD3 : None
+PprGTH MD4 : None
+ber : 2.3231233650105714e-05
+bitslip : 5
+crc : 4294967295
+data_error : 0
+downlink_status : False
+frames : 1540658350911
+gbtrx_rdy : 0
+gbttx_rdy_lost : 0
+latency : 23
+mgt_rdy : 0
+rx_frameclk : 1
+rx_wordclk : 0
+tx_pll : 0
+-------
+Time: 2024-09-03T23:07:07.504384Z
+PPrEmu MD1 : None
+PPrEmu MD2 : None
+PPrEmu MD3 : None
+PPrEmu MD4 : None
+PprGTH MD1 : uplink B0
+PprGTH MD2 : None
+PprGTH MD3 : None
+PprGTH MD4 : None
+ber : 0.0
+bitslip : 29
+crc : 0
+data_error : 0
+downlink_status : False
+frames : 1540658350911
+gbtrx_rdy : 0
+gbttx_rdy_lost : 0
+latency : 23
+mgt_rdy : 0
+rx_frameclk : 1
+rx_wordclk : 0
+tx_pll : 0
+-------
+Time: 2024-09-03T23:07:07.538357Z
+PPrEmu MD1 : None
+PPrEmu MD2 : None
+PPrEmu MD3 : None
+PPrEmu MD4 : None
+PprGTH MD1 : uplink B1
+PprGTH MD2 : None
+PprGTH MD3 : None
+PprGTH MD4 : None
+ber : 0.0
+bitslip : 0
+crc : 0
+data_error : 0
+downlink_status : False
+frames : 1540658350911
+gbtrx_rdy : 1
+gbttx_rdy_lost : 0
+latency : 23
+mgt_rdy : 1
+rx_frameclk : 1
+rx_wordclk : 1
+tx_pll : 0
+-------
+Time: 2024-09-03T23:07:07.572428Z
+PPrEmu MD1 : uplink A0
+PPrEmu MD2 : None
+PPrEmu MD3 : None
+PPrEmu MD4 : None
+PprGTH MD1 : None
+PprGTH MD2 : None
+PprGTH MD3 : None
+PprGTH MD4 : None
+ber : 0.0
+bitslip : 0
+crc : 0
+data_error : 0
+downlink_status : False
+frames : 1540658350911
+gbtrx_rdy : 1
+gbttx_rdy_lost : 0
+latency : 23
+mgt_rdy : 1
+rx_frameclk : 1
+rx_wordclk : 1
+tx_pll : 0
+-------
+Time: 2024-09-03T23:07:07.606595Z
+PPrEmu MD1 : uplink A1
+PPrEmu MD2 : None
+PPrEmu MD3 : None
+PPrEmu MD4 : None
+PprGTH MD1 : None
+PprGTH MD2 : None
+PprGTH MD3 : None
+PprGTH MD4 : None
+ber : 2.3231233650105714e-05
+bitslip : 5
+crc : 4294967295
+data_error : 0
+downlink_status : False
+frames : 1540658350911
+gbtrx_rdy : 0
+gbttx_rdy_lost : 0
+latency : 23
+mgt_rdy : 0
+rx_frameclk : 1
+rx_wordclk : 0
+tx_pll : 0
+-------
+Time: 2024-09-03T23:07:07.640654Z
+PPrEmu MD1 : uplink B0
+PPrEmu MD2 : None
+PPrEmu MD3 : None
+PPrEmu MD4 : None
+PprGTH MD1 : None
+PprGTH MD2 : None
+PprGTH MD3 : None
+PprGTH MD4 : None
+ber : 0.0
+bitslip : 29
+crc : 0
+data_error : 0
+downlink_status : False
+frames : 1540658350911
+gbtrx_rdy : 0
+gbttx_rdy_lost : 0
+latency : 23
+mgt_rdy : 0
+rx_frameclk : 1
+rx_wordclk : 0
+tx_pll : 0
+-------
+Time: 2024-09-03T23:07:07.676174Z
+PPrEmu MD1 : uplink B1
+PPrEmu MD2 : None
+PPrEmu MD3 : None
+PPrEmu MD4 : None
+PprGTH MD1 : None
+PprGTH MD2 : None
+PprGTH MD3 : None
+PprGTH MD4 : None
+ber : 0.0
+bitslip : 0
+crc : 0
+data_error : 0
+downlink_status : False
+frames : 1540658350911
+gbtrx_rdy : 1
+gbttx_rdy_lost : 0
+latency : 23
+mgt_rdy : 1
+rx_frameclk : 1
+rx_wordclk : 1
+tx_pll : 0
+-------
+Time: 2024-09-03T23:07:11.036943Z
+PPrEmu MD1 : None
+PPrEmu MD2 : None
+PPrEmu MD3 : None
+PPrEmu MD4 : None
+PprGTH MD1 : None
+PprGTH MD2 : uplink A0
+PprGTH MD3 : None
+PprGTH MD4 : None
+ber : 2.322671870873389e-05
+bitslip : 38
+crc : 4294967295
+data_error : 0
+downlink_status : False
+frames : 1540957832823
+gbtrx_rdy : 0
+gbttx_rdy_lost : 0
+latency : 0
+mgt_rdy : 0
+rx_frameclk : 1
+rx_wordclk : 0
+tx_pll : 0
+-------
+Time: 2024-09-03T23:07:11.074618Z
+PPrEmu MD1 : None
+PPrEmu MD2 : None
+PPrEmu MD3 : None
+PPrEmu MD4 : None
+PprGTH MD1 : None
+PprGTH MD2 : uplink A1
+PprGTH MD3 : None
+PprGTH MD4 : None
+ber : 2.322671870873389e-05
+bitslip : 12
+crc : 4294967295
+data_error : 0
+downlink_status : False
+frames : 1540957832823
+gbtrx_rdy : 0
+gbttx_rdy_lost : 0
+latency : 0
+mgt_rdy : 0
+rx_frameclk : 1
+rx_wordclk : 0
+tx_pll : 0
+-------
+Time: 2024-09-03T23:07:11.111698Z
+PPrEmu MD1 : None
+PPrEmu MD2 : None
+PPrEmu MD3 : None
+PPrEmu MD4 : None
+PprGTH MD1 : None
+PprGTH MD2 : uplink B0
+PprGTH MD3 : None
+PprGTH MD4 : None
+ber : 2.322671870873389e-05
+bitslip : 25
+crc : 4294967295
+data_error : 0
+downlink_status : False
+frames : 1540957832823
+gbtrx_rdy : 0
+gbttx_rdy_lost : 0
+latency : 0
+mgt_rdy : 0
+rx_frameclk : 1
+rx_wordclk : 0
+tx_pll : 0
+-------
+Time: 2024-09-03T23:07:11.146033Z
+PPrEmu MD1 : None
+PPrEmu MD2 : None
+PPrEmu MD3 : None
+PPrEmu MD4 : None
+PprGTH MD1 : None
+PprGTH MD2 : uplink B1
+PprGTH MD3 : None
+PprGTH MD4 : None
+ber : 2.322671870873389e-05
+bitslip : 22
+crc : 4294967295
+data_error : 0
+downlink_status : False
+frames : 1540957832823
+gbtrx_rdy : 0
+gbttx_rdy_lost : 0
+latency : 0
+mgt_rdy : 0
+rx_frameclk : 1
+rx_wordclk : 0
+tx_pll : 0
+-------
+Time: 2024-09-03T23:07:11.180426Z
+PPrEmu MD1 : None
+PPrEmu MD2 : uplink A0
+PPrEmu MD3 : None
+PPrEmu MD4 : None
+PprGTH MD1 : None
+PprGTH MD2 : None
+PprGTH MD3 : None
+PprGTH MD4 : None
+ber : 2.322671870873389e-05
+bitslip : 38
+crc : 4294967295
+data_error : 0
+downlink_status : False
+frames : 1540957832823
+gbtrx_rdy : 0
+gbttx_rdy_lost : 0
+latency : 0
+mgt_rdy : 0
+rx_frameclk : 1
+rx_wordclk : 0
+tx_pll : 0
+-------
+Time: 2024-09-03T23:07:11.213779Z
+PPrEmu MD1 : None
+PPrEmu MD2 : uplink A1
+PPrEmu MD3 : None
+PPrEmu MD4 : None
+PprGTH MD1 : None
+PprGTH MD2 : None
+PprGTH MD3 : None
+PprGTH MD4 : None
+ber : 2.322671870873389e-05
+bitslip : 12
+crc : 4294967295
+data_error : 0
+downlink_status : False
+frames : 1540957832823
+gbtrx_rdy : 0
+gbttx_rdy_lost : 0
+latency : 0
+mgt_rdy : 0
+rx_frameclk : 1
+rx_wordclk : 0
+tx_pll : 0
+-------
+Time: 2024-09-03T23:07:11.247725Z
+PPrEmu MD1 : None
+PPrEmu MD2 : uplink B0
+PPrEmu MD3 : None
+PPrEmu MD4 : None
+PprGTH MD1 : None
+PprGTH MD2 : None
+PprGTH MD3 : None
+PprGTH MD4 : None
+ber : 2.322671870873389e-05
+bitslip : 25
+crc : 4294967295
+data_error : 0
+downlink_status : False
+frames : 1540957832823
+gbtrx_rdy : 0
+gbttx_rdy_lost : 0
+latency : 0
+mgt_rdy : 0
+rx_frameclk : 1
+rx_wordclk : 0
+tx_pll : 0
+-------
+Time: 2024-09-03T23:07:11.314361Z
+PPrEmu MD1 : None
+PPrEmu MD2 : uplink B1
+PPrEmu MD3 : None
+PPrEmu MD4 : None
+PprGTH MD1 : None
+PprGTH MD2 : None
+PprGTH MD3 : None
+PprGTH MD4 : None
+ber : 2.322671870873389e-05
+bitslip : 22
+crc : 4294967295
+data_error : 0
+downlink_status : False
+frames : 1540957832823
+gbtrx_rdy : 0
+gbttx_rdy_lost : 0
+latency : 0
+mgt_rdy : 0
+rx_frameclk : 1
+rx_wordclk : 0
+tx_pll : 0
+-------
+Time: 2024-09-03T23:07:14.574311Z
+PPrEmu MD1 : None
+PPrEmu MD2 : None
+PPrEmu MD3 : None
+PPrEmu MD4 : None
+PprGTH MD1 : None
+PprGTH MD2 : None
+PprGTH MD3 : uplink A0
+PprGTH MD4 : None
+ber : 2.3222445674809664e-05
+bitslip : 30
+crc : 4294967295
+data_error : 0
+downlink_status : False
+frames : 1541241375960
+gbtrx_rdy : 0
+gbttx_rdy_lost : 0
+latency : 0
+mgt_rdy : 0
+rx_frameclk : 1
+rx_wordclk : 0
+tx_pll : 0
+-------
+Time: 2024-09-03T23:07:14.617993Z
+PPrEmu MD1 : None
+PPrEmu MD2 : None
+PPrEmu MD3 : None
+PPrEmu MD4 : None
+PprGTH MD1 : None
+PprGTH MD2 : None
+PprGTH MD3 : uplink A1
+PprGTH MD4 : None
+ber : 2.3222445674809664e-05
+bitslip : 13
+crc : 4294967295
+data_error : 0
+downlink_status : False
+frames : 1541241375960
+gbtrx_rdy : 0
+gbttx_rdy_lost : 0
+latency : 0
+mgt_rdy : 0
+rx_frameclk : 1
+rx_wordclk : 0
+tx_pll : 0
+-------
+Time: 2024-09-03T23:07:14.650722Z
+PPrEmu MD1 : None
+PPrEmu MD2 : None
+PPrEmu MD3 : None
+PPrEmu MD4 : None
+PprGTH MD1 : None
+PprGTH MD2 : None
+PprGTH MD3 : uplink B0
+PprGTH MD4 : None
+ber : 2.3222445674809664e-05
+bitslip : 31
+crc : 4294967295
+data_error : 0
+downlink_status : False
+frames : 1541241375960
+gbtrx_rdy : 0
+gbttx_rdy_lost : 0
+latency : 0
+mgt_rdy : 0
+rx_frameclk : 1
+rx_wordclk : 0
+tx_pll : 0
+-------
+Time: 2024-09-03T23:07:14.685357Z
+PPrEmu MD1 : None
+PPrEmu MD2 : None
+PPrEmu MD3 : None
+PPrEmu MD4 : None
+PprGTH MD1 : None
+PprGTH MD2 : None
+PprGTH MD3 : uplink B1
+PprGTH MD4 : None
+ber : 2.3222445674809664e-05
+bitslip : 1
+crc : 4294967295
+data_error : 0
+downlink_status : False
+frames : 1541241375960
+gbtrx_rdy : 0
+gbttx_rdy_lost : 0
+latency : 0
+mgt_rdy : 0
+rx_frameclk : 1
+rx_wordclk : 0
+tx_pll : 0
+-------
+Time: 2024-09-03T23:07:14.720235Z
+PPrEmu MD1 : None
+PPrEmu MD2 : None
+PPrEmu MD3 : uplink A0
+PPrEmu MD4 : None
+PprGTH MD1 : None
+PprGTH MD2 : None
+PprGTH MD3 : None
+PprGTH MD4 : None
+ber : 2.3222445674809664e-05
+bitslip : 30
+crc : 4294967295
+data_error : 0
+downlink_status : False
+frames : 1541241375960
+gbtrx_rdy : 0
+gbttx_rdy_lost : 0
+latency : 0
+mgt_rdy : 0
+rx_frameclk : 1
+rx_wordclk : 0
+tx_pll : 0
+-------
+Time: 2024-09-03T23:07:14.754537Z
+PPrEmu MD1 : None
+PPrEmu MD2 : None
+PPrEmu MD3 : uplink A1
+PPrEmu MD4 : None
+PprGTH MD1 : None
+PprGTH MD2 : None
+PprGTH MD3 : None
+PprGTH MD4 : None
+ber : 2.3222445674809664e-05
+bitslip : 13
+crc : 4294967295
+data_error : 0
+downlink_status : False
+frames : 1541241375960
+gbtrx_rdy : 0
+gbttx_rdy_lost : 0
+latency : 0
+mgt_rdy : 0
+rx_frameclk : 1
+rx_wordclk : 0
+tx_pll : 0
+-------
+Time: 2024-09-03T23:07:14.788079Z
+PPrEmu MD1 : None
+PPrEmu MD2 : None
+PPrEmu MD3 : uplink B0
+PPrEmu MD4 : None
+PprGTH MD1 : None
+PprGTH MD2 : None
+PprGTH MD3 : None
+PprGTH MD4 : None
+ber : 2.3222445674809664e-05
+bitslip : 31
+crc : 4294967295
+data_error : 0
+downlink_status : False
+frames : 1541241375960
+gbtrx_rdy : 0
+gbttx_rdy_lost : 0
+latency : 0
+mgt_rdy : 0
+rx_frameclk : 1
+rx_wordclk : 0
+tx_pll : 0
+-------
+Time: 2024-09-03T23:07:14.821996Z
+PPrEmu MD1 : None
+PPrEmu MD2 : None
+PPrEmu MD3 : uplink B1
+PPrEmu MD4 : None
+PprGTH MD1 : None
+PprGTH MD2 : None
+PprGTH MD3 : None
+PprGTH MD4 : None
+ber : 2.3222445674809664e-05
+bitslip : 1
+crc : 4294967295
+data_error : 0
+downlink_status : False
+frames : 1541241375960
+gbtrx_rdy : 0
+gbttx_rdy_lost : 0
+latency : 0
+mgt_rdy : 0
+rx_frameclk : 1
+rx_wordclk : 0
+tx_pll : 0
+-------
+Time: 2024-09-03T23:07:18.091034Z
+PPrEmu MD1 : None
+PPrEmu MD2 : None
+PPrEmu MD3 : None
+PPrEmu MD4 : None
+PprGTH MD1 : None
+PprGTH MD2 : None
+PprGTH MD3 : None
+PprGTH MD4 : uplink A0
+ber : 2.3218199338950508e-05
+bitslip : 25
+crc : 4294967295
+data_error : 0
+downlink_status : False
+frames : 1541523250899
+gbtrx_rdy : 0
+gbttx_rdy_lost : 0
+latency : 0
+mgt_rdy : 0
+rx_frameclk : 1
+rx_wordclk : 0
+tx_pll : 0
+-------
+Time: 2024-09-03T23:07:18.141773Z
+PPrEmu MD1 : None
+PPrEmu MD2 : None
+PPrEmu MD3 : None
+PPrEmu MD4 : None
+PprGTH MD1 : None
+PprGTH MD2 : None
+PprGTH MD3 : None
+PprGTH MD4 : uplink A1
+ber : 2.3218199338950508e-05
+bitslip : 0
+crc : 4294967295
+data_error : 0
+downlink_status : False
+frames : 1541523250899
+gbtrx_rdy : 0
+gbttx_rdy_lost : 0
+latency : 0
+mgt_rdy : 0
+rx_frameclk : 1
+rx_wordclk : 0
+tx_pll : 0
+-------
+Time: 2024-09-03T23:07:18.176448Z
+PPrEmu MD1 : None
+PPrEmu MD2 : None
+PPrEmu MD3 : None
+PPrEmu MD4 : None
+PprGTH MD1 : None
+PprGTH MD2 : None
+PprGTH MD3 : None
+PprGTH MD4 : uplink B0
+ber : 2.3218199338950508e-05
+bitslip : 31
+crc : 4294967295
+data_error : 0
+downlink_status : False
+frames : 1541523250899
+gbtrx_rdy : 0
+gbttx_rdy_lost : 0
+latency : 0
+mgt_rdy : 0
+rx_frameclk : 1
+rx_wordclk : 0
+tx_pll : 0
+-------
+Time: 2024-09-03T23:07:18.211300Z
+PPrEmu MD1 : None
+PPrEmu MD2 : None
+PPrEmu MD3 : None
+PPrEmu MD4 : None
+PprGTH MD1 : None
+PprGTH MD2 : None
+PprGTH MD3 : None
+PprGTH MD4 : uplink B1
+ber : 2.3218199338950508e-05
+bitslip : 16
+crc : 4294967295
+data_error : 0
+downlink_status : False
+frames : 1541523250899
+gbtrx_rdy : 0
+gbttx_rdy_lost : 0
+latency : 0
+mgt_rdy : 0
+rx_frameclk : 1
+rx_wordclk : 0
+tx_pll : 0
+-------
+Time: 2024-09-03T23:07:18.246076Z
+PPrEmu MD1 : None
+PPrEmu MD2 : None
+PPrEmu MD3 : None
+PPrEmu MD4 : uplink A0
+PprGTH MD1 : None
+PprGTH MD2 : None
+PprGTH MD3 : None
+PprGTH MD4 : None
+ber : 2.3218199338950508e-05
+bitslip : 25
+crc : 4294967295
+data_error : 0
+downlink_status : False
+frames : 1541523250899
+gbtrx_rdy : 0
+gbttx_rdy_lost : 0
+latency : 0
+mgt_rdy : 0
+rx_frameclk : 1
+rx_wordclk : 0
+tx_pll : 0
+-------
+Time: 2024-09-03T23:07:18.280400Z
+PPrEmu MD1 : None
+PPrEmu MD2 : None
+PPrEmu MD3 : None
+PPrEmu MD4 : uplink A1
+PprGTH MD1 : None
+PprGTH MD2 : None
+PprGTH MD3 : None
+PprGTH MD4 : None
+ber : 2.3218199338950508e-05
+bitslip : 0
+crc : 4294967295
+data_error : 0
+downlink_status : False
+frames : 1541523250899
+gbtrx_rdy : 0
+gbttx_rdy_lost : 0
+latency : 0
+mgt_rdy : 0
+rx_frameclk : 1
+rx_wordclk : 0
+tx_pll : 0
+-------
+Time: 2024-09-03T23:07:18.314441Z
+PPrEmu MD1 : None
+PPrEmu MD2 : None
+PPrEmu MD3 : None
+PPrEmu MD4 : uplink B0
+PprGTH MD1 : None
+PprGTH MD2 : None
+PprGTH MD3 : None
+PprGTH MD4 : None
+ber : 2.3218199338950508e-05
+bitslip : 31
+crc : 4294967295
+data_error : 0
+downlink_status : False
+frames : 1541523250899
+gbtrx_rdy : 0
+gbttx_rdy_lost : 0
+latency : 0
+mgt_rdy : 0
+rx_frameclk : 1
+rx_wordclk : 0
+tx_pll : 0
+-------
+Time: 2024-09-03T23:07:18.348595Z
+PPrEmu MD1 : None
+PPrEmu MD2 : None
+PPrEmu MD3 : None
+PPrEmu MD4 : uplink B1
+PprGTH MD1 : None
+PprGTH MD2 : None
+PprGTH MD3 : None
+PprGTH MD4 : None
+ber : 2.3218199338950508e-05
+bitslip : 16
+crc : 4294967295
+data_error : 0
+downlink_status : False
+frames : 1541523250899
+gbtrx_rdy : 0
+gbttx_rdy_lost : 0
+latency : 0
+mgt_rdy : 0
+rx_frameclk : 1
+rx_wordclk : 0
+tx_pll : 0
+-------
+Time: 2024-09-03T23:07:22.666354Z
+PPrEmu MD1 : None
+PPrEmu MD2 : None
+PPrEmu MD3 : None
+PPrEmu MD4 : None
+PprGTH MD1 : uplink A0
+PprGTH MD2 : None
+PprGTH MD3 : None
+PprGTH MD4 : None
+ber : 0.0
+bitslip : 0
+crc : 0
+data_error : 0
+downlink_status : False
+frames : 1541890001046
+gbtrx_rdy : 1
+gbttx_rdy_lost : 0
+latency : 23
+mgt_rdy : 1
+rx_frameclk : 1
+rx_wordclk : 1
+tx_pll : 0
+-------
+Time: 2024-09-03T23:07:22.708386Z
+PPrEmu MD1 : None
+PPrEmu MD2 : None
+PPrEmu MD3 : None
+PPrEmu MD4 : None
+PprGTH MD1 : uplink A1
+PprGTH MD2 : None
+PprGTH MD3 : None
+PprGTH MD4 : None
+ber : 2.3212676715407415e-05
+bitslip : 21
+crc : 4294967295
+data_error : 0
+downlink_status : False
+frames : 1541890001046
+gbtrx_rdy : 0
+gbttx_rdy_lost : 0
+latency : 23
+mgt_rdy : 0
+rx_frameclk : 1
+rx_wordclk : 0
+tx_pll : 0
+-------
+Time: 2024-09-03T23:07:22.744381Z
+PPrEmu MD1 : None
+PPrEmu MD2 : None
+PPrEmu MD3 : None
+PPrEmu MD4 : None
+PprGTH MD1 : uplink B0
+PprGTH MD2 : None
+PprGTH MD3 : None
+PprGTH MD4 : None
+ber : 0.0
+bitslip : 37
+crc : 0
+data_error : 0
+downlink_status : False
+frames : 1541890001046
+gbtrx_rdy : 0
+gbttx_rdy_lost : 0
+latency : 23
+mgt_rdy : 0
+rx_frameclk : 1
+rx_wordclk : 0
+tx_pll : 0
+-------
+Time: 2024-09-03T23:07:22.780382Z
+PPrEmu MD1 : None
+PPrEmu MD2 : None
+PPrEmu MD3 : None
+PPrEmu MD4 : None
+PprGTH MD1 : uplink B1
+PprGTH MD2 : None
+PprGTH MD3 : None
+PprGTH MD4 : None
+ber : 0.0
+bitslip : 0
+crc : 0
+data_error : 0
+downlink_status : False
+frames : 1541890001046
+gbtrx_rdy : 1
+gbttx_rdy_lost : 0
+latency : 23
+mgt_rdy : 1
+rx_frameclk : 1
+rx_wordclk : 1
+tx_pll : 0
+-------
+Time: 2024-09-03T23:07:22.817675Z
+PPrEmu MD1 : uplink A0
+PPrEmu MD2 : None
+PPrEmu MD3 : None
+PPrEmu MD4 : None
+PprGTH MD1 : None
+PprGTH MD2 : None
+PprGTH MD3 : None
+PprGTH MD4 : None
+ber : 0.0
+bitslip : 0
+crc : 0
+data_error : 0
+downlink_status : False
+frames : 1541890001046
+gbtrx_rdy : 1
+gbttx_rdy_lost : 0
+latency : 23
+mgt_rdy : 1
+rx_frameclk : 1
+rx_wordclk : 1
+tx_pll : 0
+-------
+Time: 2024-09-03T23:07:22.869144Z
+PPrEmu MD1 : uplink A1
+PPrEmu MD2 : None
+PPrEmu MD3 : None
+PPrEmu MD4 : None
+PprGTH MD1 : None
+PprGTH MD2 : None
+PprGTH MD3 : None
+PprGTH MD4 : None
+ber : 2.3212676715407415e-05
+bitslip : 21
+crc : 4294967295
+data_error : 0
+downlink_status : False
+frames : 1541890001046
+gbtrx_rdy : 0
+gbttx_rdy_lost : 0
+latency : 23
+mgt_rdy : 0
+rx_frameclk : 1
+rx_wordclk : 0
+tx_pll : 0
+-------
+Time: 2024-09-03T23:07:22.903494Z
+PPrEmu MD1 : uplink B0
+PPrEmu MD2 : None
+PPrEmu MD3 : None
+PPrEmu MD4 : None
+PprGTH MD1 : None
+PprGTH MD2 : None
+PprGTH MD3 : None
+PprGTH MD4 : None
+ber : 0.0
+bitslip : 37
+crc : 0
+data_error : 0
+downlink_status : False
+frames : 1541890001046
+gbtrx_rdy : 0
+gbttx_rdy_lost : 0
+latency : 23
+mgt_rdy : 0
+rx_frameclk : 1
+rx_wordclk : 0
+tx_pll : 0
+-------
+Time: 2024-09-03T23:07:22.937423Z
+PPrEmu MD1 : uplink B1
+PPrEmu MD2 : None
+PPrEmu MD3 : None
+PPrEmu MD4 : None
+PprGTH MD1 : None
+PprGTH MD2 : None
+PprGTH MD3 : None
+PprGTH MD4 : None
+ber : 0.0
+bitslip : 0
+crc : 0
+data_error : 0
+downlink_status : False
+frames : 1541890001046
+gbtrx_rdy : 1
+gbttx_rdy_lost : 0
+latency : 23
+mgt_rdy : 1
+rx_frameclk : 1
+rx_wordclk : 1
+tx_pll : 0
+-------
+Time: 2024-09-03T23:07:26.186217Z
+PPrEmu MD1 : None
+PPrEmu MD2 : None
+PPrEmu MD3 : None
+PPrEmu MD4 : None
+PprGTH MD1 : None
+PprGTH MD2 : uplink A0
+PprGTH MD3 : None
+PprGTH MD4 : None
+ber : 2.320842963430448e-05
+bitslip : 10
+crc : 4294967295
+data_error : 0
+downlink_status : False
+frames : 1542172162829
+gbtrx_rdy : 0
+gbttx_rdy_lost : 0
+latency : 0
+mgt_rdy : 0
+rx_frameclk : 1
+rx_wordclk : 0
+tx_pll : 0
+-------
+Time: 2024-09-03T23:07:26.225817Z
+PPrEmu MD1 : None
+PPrEmu MD2 : None
+PPrEmu MD3 : None
+PPrEmu MD4 : None
+PprGTH MD1 : None
+PprGTH MD2 : uplink A1
+PprGTH MD3 : None
+PprGTH MD4 : None
+ber : 2.320842963430448e-05
+bitslip : 38
+crc : 4294967295
+data_error : 0
+downlink_status : False
+frames : 1542172162829
+gbtrx_rdy : 0
+gbttx_rdy_lost : 0
+latency : 0
+mgt_rdy : 0
+rx_frameclk : 1
+rx_wordclk : 0
+tx_pll : 0
+-------
+Time: 2024-09-03T23:07:26.266314Z
+PPrEmu MD1 : None
+PPrEmu MD2 : None
+PPrEmu MD3 : None
+PPrEmu MD4 : None
+PprGTH MD1 : None
+PprGTH MD2 : uplink B0
+PprGTH MD3 : None
+PprGTH MD4 : None
+ber : 2.320842963430448e-05
+bitslip : 19
+crc : 4294967295
+data_error : 0
+downlink_status : False
+frames : 1542172162829
+gbtrx_rdy : 0
+gbttx_rdy_lost : 0
+latency : 0
+mgt_rdy : 0
+rx_frameclk : 1
+rx_wordclk : 0
+tx_pll : 0
+-------
+Time: 2024-09-03T23:07:26.302389Z
+PPrEmu MD1 : None
+PPrEmu MD2 : None
+PPrEmu MD3 : None
+PPrEmu MD4 : None
+PprGTH MD1 : None
+PprGTH MD2 : uplink B1
+PprGTH MD3 : None
+PprGTH MD4 : None
+ber : 2.320842963430448e-05
+bitslip : 2
+crc : 4294967295
+data_error : 0
+downlink_status : False
+frames : 1542172162829
+gbtrx_rdy : 0
+gbttx_rdy_lost : 0
+latency : 0
+mgt_rdy : 0
+rx_frameclk : 1
+rx_wordclk : 0
+tx_pll : 0
+-------
+Time: 2024-09-03T23:07:26.338514Z
+PPrEmu MD1 : None
+PPrEmu MD2 : uplink A0
+PPrEmu MD3 : None
+PPrEmu MD4 : None
+PprGTH MD1 : None
+PprGTH MD2 : None
+PprGTH MD3 : None
+PprGTH MD4 : None
+ber : 2.320842963430448e-05
+bitslip : 10
+crc : 4294967295
+data_error : 0
+downlink_status : False
+frames : 1542172162829
+gbtrx_rdy : 0
+gbttx_rdy_lost : 0
+latency : 0
+mgt_rdy : 0
+rx_frameclk : 1
+rx_wordclk : 0
+tx_pll : 0
+-------
+Time: 2024-09-03T23:07:26.377797Z
+PPrEmu MD1 : None
+PPrEmu MD2 : uplink A1
+PPrEmu MD3 : None
+PPrEmu MD4 : None
+PprGTH MD1 : None
+PprGTH MD2 : None
+PprGTH MD3 : None
+PprGTH MD4 : None
+ber : 2.320842963430448e-05
+bitslip : 38
+crc : 4294967295
+data_error : 0
+downlink_status : False
+frames : 1542172162829
+gbtrx_rdy : 0
+gbttx_rdy_lost : 0
+latency : 0
+mgt_rdy : 0
+rx_frameclk : 1
+rx_wordclk : 0
+tx_pll : 0
+-------
+Time: 2024-09-03T23:07:26.412118Z
+PPrEmu MD1 : None
+PPrEmu MD2 : uplink B0
+PPrEmu MD3 : None
+PPrEmu MD4 : None
+PprGTH MD1 : None
+PprGTH MD2 : None
+PprGTH MD3 : None
+PprGTH MD4 : None
+ber : 2.320842963430448e-05
+bitslip : 19
+crc : 4294967295
+data_error : 0
+downlink_status : False
+frames : 1542172162829
+gbtrx_rdy : 0
+gbttx_rdy_lost : 0
+latency : 0
+mgt_rdy : 0
+rx_frameclk : 1
+rx_wordclk : 0
+tx_pll : 0
+-------
+Time: 2024-09-03T23:07:26.446484Z
+PPrEmu MD1 : None
+PPrEmu MD2 : uplink B1
+PPrEmu MD3 : None
+PPrEmu MD4 : None
+PprGTH MD1 : None
+PprGTH MD2 : None
+PprGTH MD3 : None
+PprGTH MD4 : None
+ber : 2.320842963430448e-05
+bitslip : 2
+crc : 4294967295
+data_error : 0
+downlink_status : False
+frames : 1542172162829
+gbtrx_rdy : 0
+gbttx_rdy_lost : 0
+latency : 0
+mgt_rdy : 0
+rx_frameclk : 1
+rx_wordclk : 0
+tx_pll : 0
+-------
+Time: 2024-09-03T23:07:29.691721Z
+PPrEmu MD1 : None
+PPrEmu MD2 : None
+PPrEmu MD3 : None
+PPrEmu MD4 : None
+PprGTH MD1 : None
+PprGTH MD2 : None
+PprGTH MD3 : uplink A0
+PprGTH MD4 : None
+ber : 2.320420221589696e-05
+bitslip : 25
+crc : 4294967295
+data_error : 0
+downlink_status : False
+frames : 1542453120861
+gbtrx_rdy : 0
+gbttx_rdy_lost : 0
+latency : 0
+mgt_rdy : 0
+rx_frameclk : 1
+rx_wordclk : 0
+tx_pll : 0
+-------
+Time: 2024-09-03T23:07:29.728767Z
+PPrEmu MD1 : None
+PPrEmu MD2 : None
+PPrEmu MD3 : None
+PPrEmu MD4 : None
+PprGTH MD1 : None
+PprGTH MD2 : None
+PprGTH MD3 : uplink A1
+PprGTH MD4 : None
+ber : 2.320420221589696e-05
+bitslip : 4
+crc : 4294967295
+data_error : 0
+downlink_status : False
+frames : 1542453120861
+gbtrx_rdy : 0
+gbttx_rdy_lost : 0
+latency : 0
+mgt_rdy : 0
+rx_frameclk : 1
+rx_wordclk : 0
+tx_pll : 0
+-------
+Time: 2024-09-03T23:07:29.762542Z
+PPrEmu MD1 : None
+PPrEmu MD2 : None
+PPrEmu MD3 : None
+PPrEmu MD4 : None
+PprGTH MD1 : None
+PprGTH MD2 : None
+PprGTH MD3 : uplink B0
+PprGTH MD4 : None
+ber : 2.320420221589696e-05
+bitslip : 18
+crc : 4294967295
+data_error : 0
+downlink_status : False
+frames : 1542453120861
+gbtrx_rdy : 0
+gbttx_rdy_lost : 0
+latency : 0
+mgt_rdy : 0
+rx_frameclk : 1
+rx_wordclk : 0
+tx_pll : 0
+-------
+Time: 2024-09-03T23:07:29.832167Z
+PPrEmu MD1 : None
+PPrEmu MD2 : None
+PPrEmu MD3 : None
+PPrEmu MD4 : None
+PprGTH MD1 : None
+PprGTH MD2 : None
+PprGTH MD3 : uplink B1
+PprGTH MD4 : None
+ber : 2.320420221589696e-05
+bitslip : 26
+crc : 4294967295
+data_error : 0
+downlink_status : False
+frames : 1542453120861
+gbtrx_rdy : 0
+gbttx_rdy_lost : 0
+latency : 0
+mgt_rdy : 0
+rx_frameclk : 1
+rx_wordclk : 0
+tx_pll : 0
+-------
+Time: 2024-09-03T23:07:29.866207Z
+PPrEmu MD1 : None
+PPrEmu MD2 : None
+PPrEmu MD3 : uplink A0
+PPrEmu MD4 : None
+PprGTH MD1 : None
+PprGTH MD2 : None
+PprGTH MD3 : None
+PprGTH MD4 : None
+ber : 2.320420221589696e-05
+bitslip : 25
+crc : 4294967295
+data_error : 0
+downlink_status : False
+frames : 1542453120861
+gbtrx_rdy : 0
+gbttx_rdy_lost : 0
+latency : 0
+mgt_rdy : 0
+rx_frameclk : 1
+rx_wordclk : 0
+tx_pll : 0
+-------
+Time: 2024-09-03T23:07:29.900501Z
+PPrEmu MD1 : None
+PPrEmu MD2 : None
+PPrEmu MD3 : uplink A1
+PPrEmu MD4 : None
+PprGTH MD1 : None
+PprGTH MD2 : None
+PprGTH MD3 : None
+PprGTH MD4 : None
+ber : 2.320420221589696e-05
+bitslip : 4
+crc : 4294967295
+data_error : 0
+downlink_status : False
+frames : 1542453120861
+gbtrx_rdy : 0
+gbttx_rdy_lost : 0
+latency : 0
+mgt_rdy : 0
+rx_frameclk : 1
+rx_wordclk : 0
+tx_pll : 0
+-------
+Time: 2024-09-03T23:07:29.934795Z
+PPrEmu MD1 : None
+PPrEmu MD2 : None
+PPrEmu MD3 : uplink B0
+PPrEmu MD4 : None
+PprGTH MD1 : None
+PprGTH MD2 : None
+PprGTH MD3 : None
+PprGTH MD4 : None
+ber : 2.320420221589696e-05
+bitslip : 18
+crc : 4294967295
+data_error : 0
+downlink_status : False
+frames : 1542453120861
+gbtrx_rdy : 0
+gbttx_rdy_lost : 0
+latency : 0
+mgt_rdy : 0
+rx_frameclk : 1
+rx_wordclk : 0
+tx_pll : 0
+-------
+Time: 2024-09-03T23:07:29.969054Z
+PPrEmu MD1 : None
+PPrEmu MD2 : None
+PPrEmu MD3 : uplink B1
+PPrEmu MD4 : None
+PprGTH MD1 : None
+PprGTH MD2 : None
+PprGTH MD3 : None
+PprGTH MD4 : None
+ber : 2.320420221589696e-05
+bitslip : 26
+crc : 4294967295
+data_error : 0
+downlink_status : False
+frames : 1542453120861
+gbtrx_rdy : 0
+gbttx_rdy_lost : 0
+latency : 0
+mgt_rdy : 0
+rx_frameclk : 1
+rx_wordclk : 0
+tx_pll : 0
+-------
+Time: 2024-09-03T23:07:33.218975Z
+PPrEmu MD1 : None
+PPrEmu MD2 : None
+PPrEmu MD3 : None
+PPrEmu MD4 : None
+PprGTH MD1 : None
+PprGTH MD2 : None
+PprGTH MD3 : None
+PprGTH MD4 : uplink A0
+ber : 2.3199949234024465e-05
+bitslip : 28
+crc : 4294967295
+data_error : 0
+downlink_status : False
+frames : 1542735881185
+gbtrx_rdy : 0
+gbttx_rdy_lost : 0
+latency : 0
+mgt_rdy : 0
+rx_frameclk : 1
+rx_wordclk : 0
+tx_pll : 0
+-------
+Time: 2024-09-03T23:07:33.258080Z
+PPrEmu MD1 : None
+PPrEmu MD2 : None
+PPrEmu MD3 : None
+PPrEmu MD4 : None
+PprGTH MD1 : None
+PprGTH MD2 : None
+PprGTH MD3 : None
+PprGTH MD4 : uplink A1
+ber : 2.3199949234024465e-05
+bitslip : 19
+crc : 4294967295
+data_error : 0
+downlink_status : False
+frames : 1542735881185
+gbtrx_rdy : 0
+gbttx_rdy_lost : 0
+latency : 0
+mgt_rdy : 0
+rx_frameclk : 1
+rx_wordclk : 0
+tx_pll : 0
+-------
+Time: 2024-09-03T23:07:33.300295Z
+PPrEmu MD1 : None
+PPrEmu MD2 : None
+PPrEmu MD3 : None
+PPrEmu MD4 : None
+PprGTH MD1 : None
+PprGTH MD2 : None
+PprGTH MD3 : None
+PprGTH MD4 : uplink B0
+ber : 2.3199949234024465e-05
+bitslip : 12
+crc : 4294967295
+data_error : 0
+downlink_status : False
+frames : 1542735881185
+gbtrx_rdy : 0
+gbttx_rdy_lost : 0
+latency : 0
+mgt_rdy : 0
+rx_frameclk : 1
+rx_wordclk : 0
+tx_pll : 0
+-------
+Time: 2024-09-03T23:07:33.342772Z
+PPrEmu MD1 : None
+PPrEmu MD2 : None
+PPrEmu MD3 : None
+PPrEmu MD4 : None
+PprGTH MD1 : None
+PprGTH MD2 : None
+PprGTH MD3 : None
+PprGTH MD4 : uplink B1
+ber : 2.3199949234024465e-05
+bitslip : 28
+crc : 4294967295
+data_error : 0
+downlink_status : False
+frames : 1542735881185
+gbtrx_rdy : 0
+gbttx_rdy_lost : 0
+latency : 0
+mgt_rdy : 0
+rx_frameclk : 1
+rx_wordclk : 0
+tx_pll : 0
+-------
+Time: 2024-09-03T23:07:33.383739Z
+PPrEmu MD1 : None
+PPrEmu MD2 : None
+PPrEmu MD3 : None
+PPrEmu MD4 : uplink A0
+PprGTH MD1 : None
+PprGTH MD2 : None
+PprGTH MD3 : None
+PprGTH MD4 : None
+ber : 2.3199949234024465e-05
+bitslip : 28
+crc : 4294967295
+data_error : 0
+downlink_status : False
+frames : 1542735881185
+gbtrx_rdy : 0
+gbttx_rdy_lost : 0
+latency : 0
+mgt_rdy : 0
+rx_frameclk : 1
+rx_wordclk : 0
+tx_pll : 0
+-------
+Time: 2024-09-03T23:07:33.417276Z
+PPrEmu MD1 : None
+PPrEmu MD2 : None
+PPrEmu MD3 : None
+PPrEmu MD4 : uplink A1
+PprGTH MD1 : None
+PprGTH MD2 : None
+PprGTH MD3 : None
+PprGTH MD4 : None
+ber : 2.3199949234024465e-05
+bitslip : 19
+crc : 4294967295
+data_error : 0
+downlink_status : False
+frames : 1542735881185
+gbtrx_rdy : 0
+gbttx_rdy_lost : 0
+latency : 0
+mgt_rdy : 0
+rx_frameclk : 1
+rx_wordclk : 0
+tx_pll : 0
+-------
+Time: 2024-09-03T23:07:33.451640Z
+PPrEmu MD1 : None
+PPrEmu MD2 : None
+PPrEmu MD3 : None
+PPrEmu MD4 : uplink B0
+PprGTH MD1 : None
+PprGTH MD2 : None
+PprGTH MD3 : None
+PprGTH MD4 : None
+ber : 2.3199949234024465e-05
+bitslip : 12
+crc : 4294967295
+data_error : 0
+downlink_status : False
+frames : 1542735881185
+gbtrx_rdy : 0
+gbttx_rdy_lost : 0
+latency : 0
+mgt_rdy : 0
+rx_frameclk : 1
+rx_wordclk : 0
+tx_pll : 0
+-------
+Time: 2024-09-03T23:07:33.497033Z
+PPrEmu MD1 : None
+PPrEmu MD2 : None
+PPrEmu MD3 : None
+PPrEmu MD4 : uplink B1
+PprGTH MD1 : None
+PprGTH MD2 : None
+PprGTH MD3 : None
+PprGTH MD4 : None
+ber : 2.3199949234024465e-05
+bitslip : 28
+crc : 4294967295
+data_error : 0
+downlink_status : False
+frames : 1542735881185
+gbtrx_rdy : 0
+gbttx_rdy_lost : 0
+latency : 0
+mgt_rdy : 0
+rx_frameclk : 1
+rx_wordclk : 0
+tx_pll : 0
+-------
+Time: 2024-09-03T23:07:37.781996Z
+PPrEmu MD1 : None
+PPrEmu MD2 : None
+PPrEmu MD3 : None
+PPrEmu MD4 : None
+PprGTH MD1 : uplink A0
+PprGTH MD2 : None
+PprGTH MD3 : None
+PprGTH MD4 : None
+ber : 0.0
+bitslip : 0
+crc : 0
+data_error : 0
+downlink_status : False
+frames : 1543101647227
+gbtrx_rdy : 1
+gbttx_rdy_lost : 0
+latency : 23
+mgt_rdy : 1
+rx_frameclk : 1
+rx_wordclk : 1
+tx_pll : 0
+-------
+Time: 2024-09-03T23:07:37.822914Z
+PPrEmu MD1 : None
+PPrEmu MD2 : None
+PPrEmu MD3 : None
+PPrEmu MD4 : None
+PprGTH MD1 : uplink A1
+PprGTH MD2 : None
+PprGTH MD3 : None
+PprGTH MD4 : None
+ber : 2.319445008001787e-05
+bitslip : 5
+crc : 4294967295
+data_error : 0
+downlink_status : False
+frames : 1543101647227
+gbtrx_rdy : 0
+gbttx_rdy_lost : 0
+latency : 23
+mgt_rdy : 0
+rx_frameclk : 1
+rx_wordclk : 0
+tx_pll : 0
+-------
+Time: 2024-09-03T23:07:37.863635Z
+PPrEmu MD1 : None
+PPrEmu MD2 : None
+PPrEmu MD3 : None
+PPrEmu MD4 : None
+PprGTH MD1 : uplink B0
+PprGTH MD2 : None
+PprGTH MD3 : None
+PprGTH MD4 : None
+ber : 0.0
+bitslip : 21
+crc : 0
+data_error : 0
+downlink_status : False
+frames : 1543101647227
+gbtrx_rdy : 0
+gbttx_rdy_lost : 0
+latency : 23
+mgt_rdy : 0
+rx_frameclk : 1
+rx_wordclk : 0
+tx_pll : 0
+-------
+Time: 2024-09-03T23:07:37.906001Z
+PPrEmu MD1 : None
+PPrEmu MD2 : None
+PPrEmu MD3 : None
+PPrEmu MD4 : None
+PprGTH MD1 : uplink B1
+PprGTH MD2 : None
+PprGTH MD3 : None
+PprGTH MD4 : None
+ber : 0.0
+bitslip : 0
+crc : 0
+data_error : 0
+downlink_status : False
+frames : 1543101647227
+gbtrx_rdy : 1
+gbttx_rdy_lost : 0
+latency : 23
+mgt_rdy : 1
+rx_frameclk : 1
+rx_wordclk : 1
+tx_pll : 0
+-------
+Time: 2024-09-03T23:07:37.945105Z
+PPrEmu MD1 : uplink A0
+PPrEmu MD2 : None
+PPrEmu MD3 : None
+PPrEmu MD4 : None
+PprGTH MD1 : None
+PprGTH MD2 : None
+PprGTH MD3 : None
+PprGTH MD4 : None
+ber : 0.0
+bitslip : 0
+crc : 0
+data_error : 0
+downlink_status : False
+frames : 1543101647227
+gbtrx_rdy : 1
+gbttx_rdy_lost : 0
+latency : 23
+mgt_rdy : 1
+rx_frameclk : 1
+rx_wordclk : 1
+tx_pll : 0
+-------
+Time: 2024-09-03T23:07:37.979749Z
+PPrEmu MD1 : uplink A1
+PPrEmu MD2 : None
+PPrEmu MD3 : None
+PPrEmu MD4 : None
+PprGTH MD1 : None
+PprGTH MD2 : None
+PprGTH MD3 : None
+PprGTH MD4 : None
+ber : 2.319445008001787e-05
+bitslip : 5
+crc : 4294967295
+data_error : 0
+downlink_status : False
+frames : 1543101647227
+gbtrx_rdy : 0
+gbttx_rdy_lost : 0
+latency : 23
+mgt_rdy : 0
+rx_frameclk : 1
+rx_wordclk : 0
+tx_pll : 0
+-------
+Time: 2024-09-03T23:07:38.013477Z
+PPrEmu MD1 : uplink B0
+PPrEmu MD2 : None
+PPrEmu MD3 : None
+PPrEmu MD4 : None
+PprGTH MD1 : None
+PprGTH MD2 : None
+PprGTH MD3 : None
+PprGTH MD4 : None
+ber : 0.0
+bitslip : 21
+crc : 0
+data_error : 0
+downlink_status : False
+frames : 1543101647227
+gbtrx_rdy : 0
+gbttx_rdy_lost : 0
+latency : 23
+mgt_rdy : 0
+rx_frameclk : 1
+rx_wordclk : 0
+tx_pll : 0
+-------
+Time: 2024-09-03T23:07:38.047239Z
+PPrEmu MD1 : uplink B1
+PPrEmu MD2 : None
+PPrEmu MD3 : None
+PPrEmu MD4 : None
+PprGTH MD1 : None
+PprGTH MD2 : None
+PprGTH MD3 : None
+PprGTH MD4 : None
+ber : 0.0
+bitslip : 0
+crc : 0
+data_error : 0
+downlink_status : False
+frames : 1543101647227
+gbtrx_rdy : 1
+gbttx_rdy_lost : 0
+latency : 23
+mgt_rdy : 1
+rx_frameclk : 1
+rx_wordclk : 1
+tx_pll : 0
+-------
+Time: 2024-09-03T23:07:41.406451Z
+PPrEmu MD1 : None
+PPrEmu MD2 : None
+PPrEmu MD3 : None
+PPrEmu MD4 : None
+PprGTH MD1 : None
+PprGTH MD2 : uplink A0
+PprGTH MD3 : None
+PprGTH MD4 : None
+ber : 2.31900838593716e-05
+bitslip : 15
+crc : 4294967295
+data_error : 0
+downlink_status : False
+frames : 1543392181850
+gbtrx_rdy : 0
+gbttx_rdy_lost : 0
+latency : 0
+mgt_rdy : 0
+rx_frameclk : 1
+rx_wordclk : 0
+tx_pll : 0
+-------
+Time: 2024-09-03T23:07:41.445601Z
+PPrEmu MD1 : None
+PPrEmu MD2 : None
+PPrEmu MD3 : None
+PPrEmu MD4 : None
+PprGTH MD1 : None
+PprGTH MD2 : uplink A1
+PprGTH MD3 : None
+PprGTH MD4 : None
+ber : 2.31900838593716e-05
+bitslip : 37
+crc : 4294967295
+data_error : 0
+downlink_status : False
+frames : 1543392181850
+gbtrx_rdy : 0
+gbttx_rdy_lost : 0
+latency : 0
+mgt_rdy : 0
+rx_frameclk : 1
+rx_wordclk : 0
+tx_pll : 0
+-------
+Time: 2024-09-03T23:07:41.480640Z
+PPrEmu MD1 : None
+PPrEmu MD2 : None
+PPrEmu MD3 : None
+PPrEmu MD4 : None
+PprGTH MD1 : None
+PprGTH MD2 : uplink B0
+PprGTH MD3 : None
+PprGTH MD4 : None
+ber : 2.31900838593716e-05
+bitslip : 7
+crc : 4294967295
+data_error : 0
+downlink_status : False
+frames : 1543392181850
+gbtrx_rdy : 0
+gbttx_rdy_lost : 0
+latency : 0
+mgt_rdy : 0
+rx_frameclk : 1
+rx_wordclk : 0
+tx_pll : 0
+-------
+Time: 2024-09-03T23:07:41.514846Z
+PPrEmu MD1 : None
+PPrEmu MD2 : None
+PPrEmu MD3 : None
+PPrEmu MD4 : None
+PprGTH MD1 : None
+PprGTH MD2 : uplink B1
+PprGTH MD3 : None
+PprGTH MD4 : None
+ber : 2.31900838593716e-05
+bitslip : 32
+crc : 4294967295
+data_error : 0
+downlink_status : False
+frames : 1543392181850
+gbtrx_rdy : 0
+gbttx_rdy_lost : 0
+latency : 0
+mgt_rdy : 0
+rx_frameclk : 1
+rx_wordclk : 0
+tx_pll : 0
+-------
+Time: 2024-09-03T23:07:41.549139Z
+PPrEmu MD1 : None
+PPrEmu MD2 : uplink A0
+PPrEmu MD3 : None
+PPrEmu MD4 : None
+PprGTH MD1 : None
+PprGTH MD2 : None
+PprGTH MD3 : None
+PprGTH MD4 : None
+ber : 2.31900838593716e-05
+bitslip : 15
+crc : 4294967295
+data_error : 0
+downlink_status : False
+frames : 1543392181850
+gbtrx_rdy : 0
+gbttx_rdy_lost : 0
+latency : 0
+mgt_rdy : 0
+rx_frameclk : 1
+rx_wordclk : 0
+tx_pll : 0
+-------
+Time: 2024-09-03T23:07:41.583152Z
+PPrEmu MD1 : None
+PPrEmu MD2 : uplink A1
+PPrEmu MD3 : None
+PPrEmu MD4 : None
+PprGTH MD1 : None
+PprGTH MD2 : None
+PprGTH MD3 : None
+PprGTH MD4 : None
+ber : 2.31900838593716e-05
+bitslip : 37
+crc : 4294967295
+data_error : 0
+downlink_status : False
+frames : 1543392181850
+gbtrx_rdy : 0
+gbttx_rdy_lost : 0
+latency : 0
+mgt_rdy : 0
+rx_frameclk : 1
+rx_wordclk : 0
+tx_pll : 0
+-------
+Time: 2024-09-03T23:07:41.617396Z
+PPrEmu MD1 : None
+PPrEmu MD2 : uplink B0
+PPrEmu MD3 : None
+PPrEmu MD4 : None
+PprGTH MD1 : None
+PprGTH MD2 : None
+PprGTH MD3 : None
+PprGTH MD4 : None
+ber : 2.31900838593716e-05
+bitslip : 7
+crc : 4294967295
+data_error : 0
+downlink_status : False
+frames : 1543392181850
+gbtrx_rdy : 0
+gbttx_rdy_lost : 0
+latency : 0
+mgt_rdy : 0
+rx_frameclk : 1
+rx_wordclk : 0
+tx_pll : 0
+-------
+Time: 2024-09-03T23:07:41.678598Z
+PPrEmu MD1 : None
+PPrEmu MD2 : uplink B1
+PPrEmu MD3 : None
+PPrEmu MD4 : None
+PprGTH MD1 : None
+PprGTH MD2 : None
+PprGTH MD3 : None
+PprGTH MD4 : None
+ber : 2.31900838593716e-05
+bitslip : 32
+crc : 4294967295
+data_error : 0
+downlink_status : False
+frames : 1543392181850
+gbtrx_rdy : 0
+gbttx_rdy_lost : 0
+latency : 0
+mgt_rdy : 0
+rx_frameclk : 1
+rx_wordclk : 0
+tx_pll : 0
+-------
+Time: 2024-09-03T23:07:44.934712Z
+PPrEmu MD1 : None
+PPrEmu MD2 : None
+PPrEmu MD3 : None
+PPrEmu MD4 : None
+PprGTH MD1 : None
+PprGTH MD2 : None
+PprGTH MD3 : uplink A0
+PprGTH MD4 : None
+ber : 2.3185835474938705e-05
+bitslip : 20
+crc : 4294967295
+data_error : 0
+downlink_status : False
+frames : 1543674980515
+gbtrx_rdy : 0
+gbttx_rdy_lost : 0
+latency : 0
+mgt_rdy : 0
+rx_frameclk : 1
+rx_wordclk : 0
+tx_pll : 0
+-------
+Time: 2024-09-03T23:07:44.973388Z
+PPrEmu MD1 : None
+PPrEmu MD2 : None
+PPrEmu MD3 : None
+PPrEmu MD4 : None
+PprGTH MD1 : None
+PprGTH MD2 : None
+PprGTH MD3 : uplink A1
+PprGTH MD4 : None
+ber : 2.3185835474938705e-05
+bitslip : 5
+crc : 4294967295
+data_error : 0
+downlink_status : False
+frames : 1543674980515
+gbtrx_rdy : 0
+gbttx_rdy_lost : 0
+latency : 0
+mgt_rdy : 0
+rx_frameclk : 1
+rx_wordclk : 0
+tx_pll : 0
+-------
+Time: 2024-09-03T23:07:45.017599Z
+PPrEmu MD1 : None
+PPrEmu MD2 : None
+PPrEmu MD3 : None
+PPrEmu MD4 : None
+PprGTH MD1 : None
+PprGTH MD2 : None
+PprGTH MD3 : uplink B0
+PprGTH MD4 : None
+ber : 2.3185835474938705e-05
+bitslip : 39
+crc : 4294967295
+data_error : 0
+downlink_status : False
+frames : 1543674980515
+gbtrx_rdy : 0
+gbttx_rdy_lost : 0
+latency : 0
+mgt_rdy : 0
+rx_frameclk : 1
+rx_wordclk : 0
+tx_pll : 0
+-------
+Time: 2024-09-03T23:07:45.057812Z
+PPrEmu MD1 : None
+PPrEmu MD2 : None
+PPrEmu MD3 : None
+PPrEmu MD4 : None
+PprGTH MD1 : None
+PprGTH MD2 : None
+PprGTH MD3 : uplink B1
+PprGTH MD4 : None
+ber : 2.3185835474938705e-05
+bitslip : 22
+crc : 4294967295
+data_error : 0
+downlink_status : False
+frames : 1543674980515
+gbtrx_rdy : 0
+gbttx_rdy_lost : 0
+latency : 0
+mgt_rdy : 0
+rx_frameclk : 1
+rx_wordclk : 0
+tx_pll : 0
+-------
+Time: 2024-09-03T23:07:45.100560Z
+PPrEmu MD1 : None
+PPrEmu MD2 : None
+PPrEmu MD3 : uplink A0
+PPrEmu MD4 : None
+PprGTH MD1 : None
+PprGTH MD2 : None
+PprGTH MD3 : None
+PprGTH MD4 : None
+ber : 2.3185835474938705e-05
+bitslip : 20
+crc : 4294967295
+data_error : 0
+downlink_status : False
+frames : 1543674980515
+gbtrx_rdy : 0
+gbttx_rdy_lost : 0
+latency : 0
+mgt_rdy : 0
+rx_frameclk : 1
+rx_wordclk : 0
+tx_pll : 0
+-------
+Time: 2024-09-03T23:07:45.141583Z
+PPrEmu MD1 : None
+PPrEmu MD2 : None
+PPrEmu MD3 : uplink A1
+PPrEmu MD4 : None
+PprGTH MD1 : None
+PprGTH MD2 : None
+PprGTH MD3 : None
+PprGTH MD4 : None
+ber : 2.3185835474938705e-05
+bitslip : 5
+crc : 4294967295
+data_error : 0
+downlink_status : False
+frames : 1543674980515
+gbtrx_rdy : 0
+gbttx_rdy_lost : 0
+latency : 0
+mgt_rdy : 0
+rx_frameclk : 1
+rx_wordclk : 0
+tx_pll : 0
+-------
+Time: 2024-09-03T23:07:45.175007Z
+PPrEmu MD1 : None
+PPrEmu MD2 : None
+PPrEmu MD3 : uplink B0
+PPrEmu MD4 : None
+PprGTH MD1 : None
+PprGTH MD2 : None
+PprGTH MD3 : None
+PprGTH MD4 : None
+ber : 2.3185835474938705e-05
+bitslip : 39
+crc : 4294967295
+data_error : 0
+downlink_status : False
+frames : 1543674980515
+gbtrx_rdy : 0
+gbttx_rdy_lost : 0
+latency : 0
+mgt_rdy : 0
+rx_frameclk : 1
+rx_wordclk : 0
+tx_pll : 0
+-------
+Time: 2024-09-03T23:07:45.209392Z
+PPrEmu MD1 : None
+PPrEmu MD2 : None
+PPrEmu MD3 : uplink B1
+PPrEmu MD4 : None
+PprGTH MD1 : None
+PprGTH MD2 : None
+PprGTH MD3 : None
+PprGTH MD4 : None
+ber : 2.3185835474938705e-05
+bitslip : 22
+crc : 4294967295
+data_error : 0
+downlink_status : False
+frames : 1543674980515
+gbtrx_rdy : 0
+gbttx_rdy_lost : 0
+latency : 0
+mgt_rdy : 0
+rx_frameclk : 1
+rx_wordclk : 0
+tx_pll : 0
+-------
+Time: 2024-09-03T23:07:48.456114Z
+PPrEmu MD1 : None
+PPrEmu MD2 : None
+PPrEmu MD3 : None
+PPrEmu MD4 : None
+PprGTH MD1 : None
+PprGTH MD2 : None
+PprGTH MD3 : None
+PprGTH MD4 : uplink A0
+ber : 2.318159627144099e-05
+bitslip : 23
+crc : 4294967295
+data_error : 0
+downlink_status : False
+frames : 1543957271359
+gbtrx_rdy : 0
+gbttx_rdy_lost : 0
+latency : 0
+mgt_rdy : 0
+rx_frameclk : 1
+rx_wordclk : 0
+tx_pll : 0
+-------
+Time: 2024-09-03T23:07:48.495734Z
+PPrEmu MD1 : None
+PPrEmu MD2 : None
+PPrEmu MD3 : None
+PPrEmu MD4 : None
+PprGTH MD1 : None
+PprGTH MD2 : None
+PprGTH MD3 : None
+PprGTH MD4 : uplink A1
+ber : 2.318159627144099e-05
+bitslip : 29
+crc : 4294967295
+data_error : 0
+downlink_status : False
+frames : 1543957271359
+gbtrx_rdy : 0
+gbttx_rdy_lost : 0
+latency : 0
+mgt_rdy : 0
+rx_frameclk : 1
+rx_wordclk : 0
+tx_pll : 0
+-------
+Time: 2024-09-03T23:07:48.533854Z
+PPrEmu MD1 : None
+PPrEmu MD2 : None
+PPrEmu MD3 : None
+PPrEmu MD4 : None
+PprGTH MD1 : None
+PprGTH MD2 : None
+PprGTH MD3 : None
+PprGTH MD4 : uplink B0
+ber : 2.318159627144099e-05
+bitslip : 34
+crc : 4294967295
+data_error : 0
+downlink_status : False
+frames : 1543957271359
+gbtrx_rdy : 0
+gbttx_rdy_lost : 0
+latency : 0
+mgt_rdy : 0
+rx_frameclk : 1
+rx_wordclk : 0
+tx_pll : 0
+-------
+Time: 2024-09-03T23:07:48.569992Z
+PPrEmu MD1 : None
+PPrEmu MD2 : None
+PPrEmu MD3 : None
+PPrEmu MD4 : None
+PprGTH MD1 : None
+PprGTH MD2 : None
+PprGTH MD3 : None
+PprGTH MD4 : uplink B1
+ber : 2.318159627144099e-05
+bitslip : 30
+crc : 4294967295
+data_error : 0
+downlink_status : False
+frames : 1543957271359
+gbtrx_rdy : 0
+gbttx_rdy_lost : 0
+latency : 0
+mgt_rdy : 0
+rx_frameclk : 1
+rx_wordclk : 0
+tx_pll : 0
+-------
+Time: 2024-09-03T23:07:48.727498Z
+PPrEmu MD1 : None
+PPrEmu MD2 : None
+PPrEmu MD3 : None
+PPrEmu MD4 : uplink A0
+PprGTH MD1 : None
+PprGTH MD2 : None
+PprGTH MD3 : None
+PprGTH MD4 : None
+ber : 2.318159627144099e-05
+bitslip : 23
+crc : 4294967295
+data_error : 0
+downlink_status : False
+frames : 1543957271359
+gbtrx_rdy : 0
+gbttx_rdy_lost : 0
+latency : 0
+mgt_rdy : 0
+rx_frameclk : 1
+rx_wordclk : 0
+tx_pll : 0
+-------
+Time: 2024-09-03T23:07:48.781489Z
+PPrEmu MD1 : None
+PPrEmu MD2 : None
+PPrEmu MD3 : None
+PPrEmu MD4 : uplink A1
+PprGTH MD1 : None
+PprGTH MD2 : None
+PprGTH MD3 : None
+PprGTH MD4 : None
+ber : 2.318159627144099e-05
+bitslip : 29
+crc : 4294967295
+data_error : 0
+downlink_status : False
+frames : 1543957271359
+gbtrx_rdy : 0
+gbttx_rdy_lost : 0
+latency : 0
+mgt_rdy : 0
+rx_frameclk : 1
+rx_wordclk : 0
+tx_pll : 0
+-------
+Time: 2024-09-03T23:07:48.817544Z
+PPrEmu MD1 : None
+PPrEmu MD2 : None
+PPrEmu MD3 : None
+PPrEmu MD4 : uplink B0
+PprGTH MD1 : None
+PprGTH MD2 : None
+PprGTH MD3 : None
+PprGTH MD4 : None
+ber : 2.318159627144099e-05
+bitslip : 34
+crc : 4294967295
+data_error : 0
+downlink_status : False
+frames : 1543957271359
+gbtrx_rdy : 0
+gbttx_rdy_lost : 0
+latency : 0
+mgt_rdy : 0
+rx_frameclk : 1
+rx_wordclk : 0
+tx_pll : 0
+-------
+Time: 2024-09-03T23:07:48.851758Z
+PPrEmu MD1 : None
+PPrEmu MD2 : None
+PPrEmu MD3 : None
+PPrEmu MD4 : uplink B1
+PprGTH MD1 : None
+PprGTH MD2 : None
+PprGTH MD3 : None
+PprGTH MD4 : None
+ber : 2.318159627144099e-05
+bitslip : 30
+crc : 4294967295
+data_error : 0
+downlink_status : False
+frames : 1543957271359
+gbtrx_rdy : 0
+gbttx_rdy_lost : 0
+latency : 0
+mgt_rdy : 0
+rx_frameclk : 1
+rx_wordclk : 0
+tx_pll : 0
+-------
+Time: 2024-09-03T23:07:53.121747Z
+PPrEmu MD1 : None
+PPrEmu MD2 : None
+PPrEmu MD3 : None
+PPrEmu MD4 : None
+PprGTH MD1 : uplink A0
+PprGTH MD2 : None
+PprGTH MD3 : None
+PprGTH MD4 : None
+ber : 0.0
+bitslip : 0
+crc : 0
+data_error : 0
+downlink_status : False
+frames : 1544331216681
+gbtrx_rdy : 1
+gbttx_rdy_lost : 0
+latency : 23
+mgt_rdy : 1
+rx_frameclk : 1
+rx_wordclk : 1
+tx_pll : 0
+-------
+Time: 2024-09-03T23:07:53.246227Z
+PPrEmu MD1 : None
+PPrEmu MD2 : None
+PPrEmu MD3 : None
+PPrEmu MD4 : None
+PprGTH MD1 : uplink A1
+PprGTH MD2 : None
+PprGTH MD3 : None
+PprGTH MD4 : None
+ber : 2.3175983065291583e-05
+bitslip : 13
+crc : 4294967295
+data_error : 0
+downlink_status : False
+frames : 1544331216681
+gbtrx_rdy : 0
+gbttx_rdy_lost : 0
+latency : 23
+mgt_rdy : 0
+rx_frameclk : 1
+rx_wordclk : 0
+tx_pll : 0
+-------
+Time: 2024-09-03T23:07:53.282168Z
+PPrEmu MD1 : None
+PPrEmu MD2 : None
+PPrEmu MD3 : None
+PPrEmu MD4 : None
+PprGTH MD1 : uplink B0
+PprGTH MD2 : None
+PprGTH MD3 : None
+PprGTH MD4 : None
+ber : 0.0
+bitslip : 5
+crc : 0
+data_error : 0
+downlink_status : False
+frames : 1544331216681
+gbtrx_rdy : 0
+gbttx_rdy_lost : 0
+latency : 23
+mgt_rdy : 0
+rx_frameclk : 1
+rx_wordclk : 0
+tx_pll : 0
+-------
+Time: 2024-09-03T23:07:53.322450Z
+PPrEmu MD1 : None
+PPrEmu MD2 : None
+PPrEmu MD3 : None
+PPrEmu MD4 : None
+PprGTH MD1 : uplink B1
+PprGTH MD2 : None
+PprGTH MD3 : None
+PprGTH MD4 : None
+ber : 0.0
+bitslip : 0
+crc : 0
+data_error : 0
+downlink_status : False
+frames : 1544331216681
+gbtrx_rdy : 1
+gbttx_rdy_lost : 0
+latency : 23
+mgt_rdy : 1
+rx_frameclk : 1
+rx_wordclk : 1
+tx_pll : 0
+-------
+Time: 2024-09-03T23:07:53.356455Z
+PPrEmu MD1 : uplink A0
+PPrEmu MD2 : None
+PPrEmu MD3 : None
+PPrEmu MD4 : None
+PprGTH MD1 : None
+PprGTH MD2 : None
+PprGTH MD3 : None
+PprGTH MD4 : None
+ber : 0.0
+bitslip : 0
+crc : 0
+data_error : 0
+downlink_status : False
+frames : 1544331216681
+gbtrx_rdy : 1
+gbttx_rdy_lost : 0
+latency : 23
+mgt_rdy : 1
+rx_frameclk : 1
+rx_wordclk : 1
+tx_pll : 0
+-------
+Time: 2024-09-03T23:07:53.390693Z
+PPrEmu MD1 : uplink A1
+PPrEmu MD2 : None
+PPrEmu MD3 : None
+PPrEmu MD4 : None
+PprGTH MD1 : None
+PprGTH MD2 : None
+PprGTH MD3 : None
+PprGTH MD4 : None
+ber : 2.3175983065291583e-05
+bitslip : 13
+crc : 4294967295
+data_error : 0
+downlink_status : False
+frames : 1544331216681
+gbtrx_rdy : 0
+gbttx_rdy_lost : 0
+latency : 23
+mgt_rdy : 0
+rx_frameclk : 1
+rx_wordclk : 0
+tx_pll : 0
+-------
+Time: 2024-09-03T23:07:53.426307Z
+PPrEmu MD1 : uplink B0
+PPrEmu MD2 : None
+PPrEmu MD3 : None
+PPrEmu MD4 : None
+PprGTH MD1 : None
+PprGTH MD2 : None
+PprGTH MD3 : None
+PprGTH MD4 : None
+ber : 0.0
+bitslip : 5
+crc : 0
+data_error : 0
+downlink_status : False
+frames : 1544331216681
+gbtrx_rdy : 0
+gbttx_rdy_lost : 0
+latency : 23
+mgt_rdy : 0
+rx_frameclk : 1
+rx_wordclk : 0
+tx_pll : 0
+-------
+Time: 2024-09-03T23:07:53.465377Z
+PPrEmu MD1 : uplink B1
+PPrEmu MD2 : None
+PPrEmu MD3 : None
+PPrEmu MD4 : None
+PprGTH MD1 : None
+PprGTH MD2 : None
+PprGTH MD3 : None
+PprGTH MD4 : None
+ber : 0.0
+bitslip : 0
+crc : 0
+data_error : 0
+downlink_status : False
+frames : 1544331216681
+gbtrx_rdy : 1
+gbttx_rdy_lost : 0
+latency : 23
+mgt_rdy : 1
+rx_frameclk : 1
+rx_wordclk : 1
+tx_pll : 0
+-------
+Time: 2024-09-03T23:07:56.760983Z
+PPrEmu MD1 : None
+PPrEmu MD2 : None
+PPrEmu MD3 : None
+PPrEmu MD4 : None
+PprGTH MD1 : None
+PprGTH MD2 : uplink A0
+PprGTH MD3 : None
+PprGTH MD4 : None
+ber : 2.3171605463147885e-05
+bitslip : 22
+crc : 4294967295
+data_error : 0
+downlink_status : False
+frames : 1544622973230
+gbtrx_rdy : 0
+gbttx_rdy_lost : 0
+latency : 0
+mgt_rdy : 0
+rx_frameclk : 1
+rx_wordclk : 0
+tx_pll : 0
+-------
+Time: 2024-09-03T23:07:56.799214Z
+PPrEmu MD1 : None
+PPrEmu MD2 : None
+PPrEmu MD3 : None
+PPrEmu MD4 : None
+PprGTH MD1 : None
+PprGTH MD2 : uplink A1
+PprGTH MD3 : None
+PprGTH MD4 : None
+ber : 2.3171605463147885e-05
+bitslip : 25
+crc : 4294967295
+data_error : 0
+downlink_status : False
+frames : 1544622973230
+gbtrx_rdy : 0
+gbttx_rdy_lost : 0
+latency : 0
+mgt_rdy : 0
+rx_frameclk : 1
+rx_wordclk : 0
+tx_pll : 0
+-------
+Time: 2024-09-03T23:07:56.839028Z
+PPrEmu MD1 : None
+PPrEmu MD2 : None
+PPrEmu MD3 : None
+PPrEmu MD4 : None
+PprGTH MD1 : None
+PprGTH MD2 : uplink B0
+PprGTH MD3 : None
+PprGTH MD4 : None
+ber : 2.3171605463147885e-05
+bitslip : 19
+crc : 4294967295
+data_error : 0
+downlink_status : False
+frames : 1544622973230
+gbtrx_rdy : 0
+gbttx_rdy_lost : 0
+latency : 0
+mgt_rdy : 0
+rx_frameclk : 1
+rx_wordclk : 0
+tx_pll : 0
+-------
+Time: 2024-09-03T23:07:56.880559Z
+PPrEmu MD1 : None
+PPrEmu MD2 : None
+PPrEmu MD3 : None
+PPrEmu MD4 : None
+PprGTH MD1 : None
+PprGTH MD2 : uplink B1
+PprGTH MD3 : None
+PprGTH MD4 : None
+ber : 2.3171605463147885e-05
+bitslip : 29
+crc : 4294967295
+data_error : 0
+downlink_status : False
+frames : 1544622973230
+gbtrx_rdy : 0
+gbttx_rdy_lost : 0
+latency : 0
+mgt_rdy : 0
+rx_frameclk : 1
+rx_wordclk : 0
+tx_pll : 0
+-------
+Time: 2024-09-03T23:07:56.919602Z
+PPrEmu MD1 : None
+PPrEmu MD2 : uplink A0
+PPrEmu MD3 : None
+PPrEmu MD4 : None
+PprGTH MD1 : None
+PprGTH MD2 : None
+PprGTH MD3 : None
+PprGTH MD4 : None
+ber : 2.3171605463147885e-05
+bitslip : 22
+crc : 4294967295
+data_error : 0
+downlink_status : False
+frames : 1544622973230
+gbtrx_rdy : 0
+gbttx_rdy_lost : 0
+latency : 0
+mgt_rdy : 0
+rx_frameclk : 1
+rx_wordclk : 0
+tx_pll : 0
+-------
+Time: 2024-09-03T23:07:56.955583Z
+PPrEmu MD1 : None
+PPrEmu MD2 : uplink A1
+PPrEmu MD3 : None
+PPrEmu MD4 : None
+PprGTH MD1 : None
+PprGTH MD2 : None
+PprGTH MD3 : None
+PprGTH MD4 : None
+ber : 2.3171605463147885e-05
+bitslip : 25
+crc : 4294967295
+data_error : 0
+downlink_status : False
+frames : 1544622973230
+gbtrx_rdy : 0
+gbttx_rdy_lost : 0
+latency : 0
+mgt_rdy : 0
+rx_frameclk : 1
+rx_wordclk : 0
+tx_pll : 0
+-------
+Time: 2024-09-03T23:07:56.996185Z
+PPrEmu MD1 : None
+PPrEmu MD2 : uplink B0
+PPrEmu MD3 : None
+PPrEmu MD4 : None
+PprGTH MD1 : None
+PprGTH MD2 : None
+PprGTH MD3 : None
+PprGTH MD4 : None
+ber : 2.3171605463147885e-05
+bitslip : 19
+crc : 4294967295
+data_error : 0
+downlink_status : False
+frames : 1544622973230
+gbtrx_rdy : 0
+gbttx_rdy_lost : 0
+latency : 0
+mgt_rdy : 0
+rx_frameclk : 1
+rx_wordclk : 0
+tx_pll : 0
+-------
+Time: 2024-09-03T23:07:57.034995Z
+PPrEmu MD1 : None
+PPrEmu MD2 : uplink B1
+PPrEmu MD3 : None
+PPrEmu MD4 : None
+PprGTH MD1 : None
+PprGTH MD2 : None
+PprGTH MD3 : None
+PprGTH MD4 : None
+ber : 2.3171605463147885e-05
+bitslip : 29
+crc : 4294967295
+data_error : 0
+downlink_status : False
+frames : 1544622973230
+gbtrx_rdy : 0
+gbttx_rdy_lost : 0
+latency : 0
+mgt_rdy : 0
+rx_frameclk : 1
+rx_wordclk : 0
+tx_pll : 0
+-------

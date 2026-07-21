@@ -1,0 +1,12 @@
+[Unit]
+Description=Timer for the DaughtBoard Qualification service
+
+[Timer]
+#OnCalendar=*-*-* *:*:00 #Run every minute, on the zeroth second
+OnCalendar=*-*-* *:0/5
+OnCalendar=*-*-* 02:00:00
+Unit=DaughterBoardQual.service
+AccuracySec=1ms
+
+[Install]
+WantedBy=timers.target

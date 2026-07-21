@@ -1,0 +1,15 @@
+now=$(date +'%Y/%m/%d - %H:%M:%S')
+echo "Current Date and Time: ${now}"
+
+#result=$(mysql --login-path=tiledb tiledb -s -s -e "SELECT id from benchtest WHERE test_pass=2 LIMIT 1")
+resultproc=$(mysql --login-path=tiledb tiledb -e "SELECT * from benchtest WHERE test_pass=0")
+echo "Unprocessed benchtests:"
+echo "${resultproc}"
+
+resultunproc=$(mysql --login-path=tiledb tiledb -e "SELECT * from benchtest WHERE test_pass=1")
+echo "Unprocessed benchtests:"
+echo "${resultunproc}"
+echo ""
+#if [[ "${result}" -gt 0 ]]; then
+#    echo "${result}"
+#fi

@@ -1,0 +1,11 @@
+[Unit]
+Description=Timer for the DaughtBoard Logging service
+
+[Timer]
+#OnCalendar=*-*-* *:*:00 #Run every minute, on the zeroth second
+OnCalendar=*-*-* 23:55:00
+Unit=DaughterBoardLog.service
+AccuracySec=1ms
+
+[Install]
+WantedBy=timers.target

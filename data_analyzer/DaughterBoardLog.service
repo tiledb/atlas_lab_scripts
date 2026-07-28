@@ -1,0 +1,13 @@
+[Unit]
+Description=DaughterBoard Logging Service
+After=network.target
+
+[Service]
+User=root
+ExecStart=/bin/bash /root/atlas_lab_scripts/data_analyzer/DaughterBoardLog.sh
+WorkingDirectory=/root/atlas_lab_scripts/data_analyzer
+StandardOutput=append:/root/atlas_lab_scripts/data_analyzer/DBQLog.log
+StandardError=append:/root/atlas_lab_scripts/data_analyzer/DBQLog.log
+
+[Install]
+WantedBy=multi-user.target

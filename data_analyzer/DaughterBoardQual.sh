@@ -63,9 +63,15 @@ if [[ "${unproc}" -gt 0 ]]; then
     proctest=$(mysql --login-path=tiledb tiledb -t -e "SELECT * from benchtest")
     echo -e "${proctest}\n"
 
+    # echo -e "Generating Production Plots!\n"
+    # python3 production_plots.py
     deactivate
     exit
 fi
+
+source myenv/bin/activate
+echo -e "Generating Production Plots!\n"
+python3 production_plots.py
 
 echo -e "No unproccessed benchtests found. Exiting...\n"
 deactivate

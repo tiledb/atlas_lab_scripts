@@ -140,6 +140,7 @@ def production_plots():
         print("\nFetching daughterboard data...")
         db_query = """
             SELECT d.serial_no, d.batch_id, d.db_status, d.burn_in,
+                   d.burn_in_start, d.burn_in_stop,
                    d.kin_lot, d.pro_lot, d.gbt_lot,
                    d.ina_lot, d.ltm_lot, d.mos_lot, d.op4_lot, d.ok4_lot, d.ok1_lot,
                    d.mem_lot, d.sfp_lot, d.e_test, d.p_test, d.a0, d.a1, d.b0, d.b1
@@ -159,7 +160,8 @@ def production_plots():
         # Fetch benchtest information for each daughterboard
         print("Fetching benchtest information...")
         benchtest_query = """
-            SELECT id, db_slot1, db_slot2, db_slot3, db_slot4
+            SELECT id, db_slot1, db_slot2, db_slot3, db_slot4,
+                   test_stop
             FROM benchtest
             WHERE db_slot1 IS NOT NULL OR db_slot2 IS NOT NULL 
                OR db_slot3 IS NOT NULL OR db_slot4 IS NOT NULL
@@ -169,10 +171,12 @@ def production_plots():
         benchtest_columns = [desc[0] for desc in cursor.description]
         df_benchtests = pd.DataFrame(benchtest_rows, columns=benchtest_columns)
         
-        # Build mapping from serial_no to list of dbslot@benchtest_id
+        # Build mapping from serial_no to list of (dbslot@benchtest_id, test_stop)
         serial_to_benchtests = {}
+        serial_to_test_stop = {}
         for _, row in df_benchtests.iterrows():
             bt_id = int(row['id'])
+            test_stop = row['test_stop']
             for slot_num in range(1, 5):
                 slot_col = f'db_slot{slot_num}'
                 serial = row[slot_col]
@@ -180,14 +184,21 @@ def production_plots():
                     if serial not in serial_to_benchtests:
                         serial_to_benchtests[serial] = []
                     serial_to_benchtests[serial].append(f'dbslot{slot_num}@bt_{bt_id}')
+                    # Store test_stop timestamp for this serial
+                    if pd.notna(test_stop):
+                        serial_to_test_stop[serial] = test_stop
         
         print(f"Found benchtest info for {len(serial_to_benchtests)} boards")
+        print(f"Found test_stop timestamps for {len(serial_to_test_stop)} boards")
         
         # Decode serial numbers to get tag, batch, and position
         decoded = df_daughterboards['serial_no'].apply(decode_serial)
         df_daughterboards['tag'] = decoded.apply(lambda x: x['tag'])
         df_daughterboards['decoded_batch'] = decoded.apply(lambda x: x['batch'])
         df_daughterboards['position_in_batch'] = decoded.apply(lambda x: x['position'])
+        
+        # Add test_stop timestamp from benchtest data
+        df_daughterboards['test_stop'] = df_daughterboards['serial_no'].map(serial_to_test_stop)
         
         # Filter out tags to ignore (currently only tag 90)
         tags_to_ignore = [90]
@@ -604,9 +615,9 @@ def production_plots():
     overall_yield = (total_passed / total_boards * 100) if total_boards > 0 else 0
     
     fig_summary = make_subplots(
-        rows=1, cols=2,
-        subplot_titles=["Overall Status", "Batch Distribution"],
-        specs=[[{"type": "pie"}, {"type": "bar"}]]
+        rows=4, cols=1,
+        subplot_titles=["Overall Status", "Cumulative Board Count (by Batch)", "Cumulative Board Count (by Time)", "Burn-In Timeline"],
+        specs=[[{"type": "pie"}], [{"type": "scatter"}], [{"type": "scatter"}], [{"type": "scatter"}]]
     )
     
     # Overall Status Pie
@@ -616,21 +627,229 @@ def production_plots():
         row=1, col=1
     )
     
-    # Batch Distribution - use decoded_batch from serial parser
-    batch_distribution = df_daughterboards['decoded_batch'].value_counts().sort_index()
+    
+    # Cumulative Board Count by decoded batch
+    # Group by decoded_batch and calculate cumulative counts for passed and not passed
+    df_sorted = df_daughterboards.sort_values('decoded_batch')
+    batch_stats = df_sorted.groupby('decoded_batch').agg(
+        total_count=('db_status', 'count'),
+        passed_count=('db_status', 'sum')
+    ).reset_index()
+    batch_stats['not_passed_count'] = batch_stats['total_count'] - batch_stats['passed_count']
+    batch_stats['cumulative_passed'] = batch_stats['passed_count'].cumsum()
+    batch_stats['cumulative_not_passed'] = batch_stats['not_passed_count'].cumsum()
+    
+    # Add scatter lines for cumulative counts with hover text
+    hover_text_passed = [
+        f"Batch: {batch}<br>" +
+        f"Total in batch: {total}<br>" +
+        f"Passed in batch: {passed}<br>" +
+        f"Cumulative Passed: {cum}"
+        for batch, total, passed, cum in zip(
+            batch_stats['decoded_batch'],
+            batch_stats['total_count'],
+            batch_stats['passed_count'],
+            batch_stats['cumulative_passed']
+        )
+    ]
+    
+    hover_text_not_passed = [
+        f"Batch: {batch}<br>" +
+        f"Total in batch: {total}<br>" +
+        f"Not Passed in batch: {not_passed}<br>" +
+        f"Cumulative Not Passed: {cum}"
+        for batch, total, not_passed, cum in zip(
+            batch_stats['decoded_batch'],
+            batch_stats['total_count'],
+            batch_stats['not_passed_count'],
+            batch_stats['cumulative_not_passed']
+        )
+    ]
+    
     fig_summary.add_trace(
-        go.Bar(x=batch_distribution.index, y=batch_distribution.values,
-               marker_color='#636EFA'),
-        row=1, col=2
+        go.Scatter(x=batch_stats['decoded_batch'], y=batch_stats['cumulative_passed'],
+                   mode='lines+markers', name='Cumulative Passed (by Batch)',
+                   line=dict(color='#00CC96', width=2),
+                   marker=dict(size=6),
+                   hovertemplate='%{text}<extra></extra>',
+                   text=hover_text_passed),
+        row=2, col=1
+    )
+    fig_summary.add_trace(
+        go.Scatter(x=batch_stats['decoded_batch'], y=batch_stats['cumulative_not_passed'],
+                   mode='lines+markers', name='Cumulative Not Passed (by Batch)',
+                   line=dict(color='#EF553B', width=2),
+                   marker=dict(size=6),
+                   hovertemplate='%{text}<extra></extra>',
+                   text=hover_text_not_passed),
+        row=2, col=1
     )
     
-    fig_summary.update_layout(
-        title=f"Production Summary Dashboard - Total Boards: {total_boards}, Yield: {overall_yield:.1f}%",
-        height=400,
-        showlegend=False
+    # Cumulative Board Count by test_stop timestamp (one point per board)
+    # Filter boards that have test_stop timestamps
+    df_with_time = df_daughterboards[df_daughterboards['test_stop'].notna()].copy()
+    df_with_time = df_with_time.sort_values('test_stop').reset_index(drop=True)
+    
+    # Calculate cumulative counts
+    df_with_time['cumulative_passed'] = (df_with_time['db_status'] == 1).cumsum()
+    df_with_time['cumulative_not_passed'] = (df_with_time['db_status'] == 0).cumsum()
+    
+    # Create hover text for datetime plot
+    hover_time_passed = [
+        f"Serial: {serial}<br>" +
+        f"Test Stop: {test_stop}<br>" +
+        f"Status: {'Passed' if status == 1 else 'Failed'}<br>" +
+        f"Cumulative Passed: {cum}"
+        for serial, test_stop, status, cum in zip(
+            df_with_time['serial_no'],
+            df_with_time['test_stop'],
+            df_with_time['db_status'],
+            df_with_time['cumulative_passed']
+        )
+    ]
+    
+    hover_time_not_passed = [
+        f"Serial: {serial}<br>" +
+        f"Test Stop: {test_stop}<br>" +
+        f"Status: {'Passed' if status == 1 else 'Failed'}<br>" +
+        f"Cumulative Not Passed: {cum}"
+        for serial, test_stop, status, cum in zip(
+            df_with_time['serial_no'],
+            df_with_time['test_stop'],
+            df_with_time['db_status'],
+            df_with_time['cumulative_not_passed']
+        )
+    ]
+    
+    # Add datetime-based cumulative plot (only show points for respective status)
+    df_passed = df_with_time[df_with_time['db_status'] == 1]
+    df_not_passed = df_with_time[df_with_time['db_status'] == 0]
+    
+    fig_summary.add_trace(
+        go.Scatter(x=df_passed['test_stop'], y=df_passed['cumulative_passed'],
+                   mode='lines+markers', name='Cumulative Passed (by Time)',
+                   line=dict(color='#00CC96', width=2),
+                   marker=dict(color='#00CC96', size=6),
+                   hovertemplate='%{text}<extra></extra>',
+                   text=[f"Serial: {s}<br>Test Stop: {t}<br>Cumulative Passed: {c}"
+                         for s, t, c in zip(df_passed['serial_no'], df_passed['test_stop'], df_passed['cumulative_passed'])]),
+        row=3, col=1
     )
-    fig_summary.update_xaxes(title_text="Decoded Batch", row=1, col=2)
-    fig_summary.update_yaxes(title_text="Board Count", row=1, col=2)
+    fig_summary.add_trace(
+        go.Scatter(x=df_not_passed['test_stop'], y=df_not_passed['cumulative_not_passed'],
+                   mode='lines+markers', name='Cumulative Not Passed (by Time)',
+                   line=dict(color='#EF553B', width=2),
+                   marker=dict(color='#EF553B', size=6),
+                   hovertemplate='%{text}<extra></extra>',
+                   text=[f"Serial: {s}<br>Test Stop: {t}<br>Cumulative Not Passed: {c}"
+                         for s, t, c in zip(df_not_passed['serial_no'], df_not_passed['test_stop'], df_not_passed['cumulative_not_passed'])]),
+        row=3, col=1
+    )
+    
+    # Burn-In Timeline plot
+    # Filter boards that have burn_in_start and burn_in_stop
+    df_burnin = df_daughterboards[
+        df_daughterboards['burn_in_start'].notna() & 
+        df_daughterboards['burn_in_stop'].notna()
+    ].copy()
+    
+    if len(df_burnin) > 0:
+        # Calculate center point using timedelta arithmetic
+        df_burnin['burn_in_center'] = df_burnin['burn_in_start'] + (df_burnin['burn_in_stop'] - df_burnin['burn_in_start']) / 2
+        
+        # Calculate error bar values (distance from center to start/stop) in milliseconds
+        df_burnin['error_minus'] = (df_burnin['burn_in_center'] - df_burnin['burn_in_start']).dt.total_seconds() * 1000
+        df_burnin['error_plus'] = (df_burnin['burn_in_stop'] - df_burnin['burn_in_center']).dt.total_seconds() * 1000
+        
+        # Assign y-axis values as cumulative board count
+        df_burnin = df_burnin.sort_values('burn_in_center')
+        df_burnin['y_pos'] = range(1, len(df_burnin) + 1)
+        
+        # Create hover text
+        hover_burnin = [
+            f"Serial: {serial}<br>" +
+            f"Batch: {batch}<br>" +
+            f"Burn In Start: {start}<br>" +
+            f"Burn In Stop: {stop}<br>" +
+            f"Center: {center}"
+            for serial, batch, start, stop, center in zip(
+                df_burnin['serial_no'],
+                df_burnin['decoded_batch'],
+                df_burnin['burn_in_start'],
+                df_burnin['burn_in_stop'],
+                df_burnin['burn_in_center']
+            )
+        ]
+        
+        # Add scatter plot with error bars
+        fig_summary.add_trace(
+            go.Scatter(
+                x=df_burnin['burn_in_center'],
+                y=df_burnin['y_pos'],
+                mode='markers',
+                name='Burn-In Period',
+                marker=dict(color='#AB63FA', size=8),
+                error_x=dict(
+                    array=df_burnin['error_plus'],
+                    arrayminus=df_burnin['error_minus'],
+                    symmetric=False,
+                    color='#AB63FA',
+                    thickness=4,
+                    width=10
+                ),
+                hovertemplate='%{text}<extra></extra>',
+                text=hover_burnin
+            ),
+            row=4, col=1
+        )
+    else:
+        print("No burn-in data found for timeline plot")
+        df_burnin = pd.DataFrame(columns=['burn_in_center', 'y_pos'])
+    
+    # Calculate shared x-axis and y-axis ranges for time-based plots
+    all_times = []
+    if len(df_with_time) > 0:
+        all_times.extend(df_with_time['test_stop'].dropna().tolist())
+    if len(df_burnin) > 0:
+        all_times.extend(df_burnin['burn_in_start'].dropna().tolist())
+        all_times.extend(df_burnin['burn_in_stop'].dropna().tolist())
+    
+    if all_times:
+        min_time = min(all_times)
+        max_time = max(all_times)
+        # Add some padding
+        time_padding = (max_time - min_time) * 0.05
+        xaxis_range = [min_time - time_padding, max_time + time_padding]
+    else:
+        xaxis_range = None
+    
+    # Calculate shared y-axis range
+    all_y_values = []
+    if len(df_with_time) > 0:
+        all_y_values.extend(df_with_time['cumulative_passed'].tolist())
+        all_y_values.extend(df_with_time['cumulative_not_passed'].tolist())
+    if len(df_burnin) > 0:
+        all_y_values.extend(df_burnin['y_pos'].tolist())
+    
+    if all_y_values:
+        min_y = min(all_y_values)
+        max_y = max(all_y_values)
+        yaxis_range = [min_y - 1, max_y + 1]
+    else:
+        yaxis_range = None
+    
+    fig_summary.update_layout(
+        title=f"Production Summary Dashboard - Total Boards: {total_boards}, Yield: {overall_yield:.1f}% ({timenow.strftime('%Y-%m-%d - %H:%M:%S')})",
+        height=1300,
+        showlegend=True
+    )
+    fig_summary.update_xaxes(title_text="Decoded Batch", row=2, col=1,
+                             tickmode='linear', tick0=0, dtick=1)
+    fig_summary.update_yaxes(title_text="Cumulative Board Count", row=2, col=1)
+    fig_summary.update_xaxes(title_text="Test Passed Time", row=3, col=1, range=xaxis_range)
+    fig_summary.update_yaxes(title_text="Cumulative Board Count", row=3, col=1, range=yaxis_range)
+    fig_summary.update_xaxes(title_text="Burn-In Time", row=4, col=1, range=xaxis_range)
+    fig_summary.update_yaxes(title_text="Cumulative Board Count", row=4, col=1, range=yaxis_range)
     
     fig_summary.write_html(output_dir + "summary_dashboard.html")
     print("✅ Summary dashboard saved")

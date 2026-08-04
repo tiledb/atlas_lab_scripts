@@ -32,7 +32,7 @@ xADC:
   mb_mon_1.2v(vaux14): [25,35]
   mb_mon_1.8v(vaux12): [540,590]
   mb_mon_2.5v(vaux15): [1350,1650]
-  max_temp: [25,70]
+  max_temp: [25,80]
   db_temperature: [25,70]
   min_temp: [25, 70]
   max_vram: [900,950]

@@ -56,7 +56,8 @@ if [[ "${unproc}" -gt 0 ]]; then
     echo "${unproctest}"
 
     echo "Processing..."
-    python3 DBQ_Mk5.py
+    # python3 DBQ_Mk5.py
+    python3 DBQ_Mk6.py
 
     echo -e "Processing Complete!\n"
     mysql --login-path=tiledb tiledb -e "UPDATE benchtest SET test_pass = '3' WHERE id = ${unproc}"
@@ -71,7 +72,7 @@ fi
 
 source myenv/bin/activate
 echo -e "Generating Production Plots!\n"
-python3 production_plots.py
+python3 production_plots_v1.py
 
 echo -e "No unproccessed benchtests found. Exiting...\n"
 deactivate

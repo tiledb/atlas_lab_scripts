@@ -13,6 +13,7 @@ import math
 from pathlib import Path
 import argparse
 import shutil
+import csv
 
 # Mathematics Packages
 import numpy as np
@@ -22,7 +23,7 @@ import pandas as pd
 import plotly.express as plotlyEX
 
 # Server Packages
-import yaml
+from ruamel.yaml import YAML
 
 # MySQL for MariaDB
 import mysql.connector
@@ -37,8 +38,55 @@ from influxdb import InfluxDBClient
 
 # Load configuration data from .yaml file
 def load_yaml_conf(filepath):
+    yaml = YAML()
     with open(filepath, "r") as file:
-        return yaml.safe_load(file)
+        return yaml.load(file)
+
+# Save configuration data to .yaml file while preserving exact formatting
+def save_yaml_conf(filepath, data):
+    # Load original data to get structure with formatting metadata
+    yaml = YAML()
+    yaml.preserve_quotes = True
+    with open(filepath, "r") as file:
+        original_data = yaml.load(file)
+    
+    # Recursively update values in original data while preserving structure
+    def update_values(original, new):
+        if isinstance(new, dict):
+            for key, value in new.items():
+                if key in original:
+                    original[key] = update_values(original[key], value)
+                else:
+                    original[key] = value
+        elif isinstance(new, list):
+            # For lists, update element by element to preserve sequence style
+            if isinstance(original, list):
+                for i in range(min(len(original), len(new))):
+                    original[i] = new[i]
+                # If new list is longer, append remaining elements
+                for i in range(len(original), len(new)):
+                    original.append(new[i])
+                # If new list is shorter, truncate
+                while len(original) > len(new):
+                    original.pop()
+            else:
+                return new
+        else:
+            return new
+        return original
+    
+    update_values(original_data, data)
+    
+    # Save with ruamel.yaml to preserve formatting
+    yaml = YAML()
+    yaml.preserve_quotes = True
+    yaml.default_flow_style = False
+    yaml.indent(mapping=2, sequence=4, offset=2)
+    yaml.width = 4096
+    
+    with open(filepath, "w") as file:
+        yaml.dump(original_data, file)
+
 #def load_secrets(filepath="../secrets/secrets.yaml"):
 #    with open(filepath, "r") as file:
 #        return yaml.safe_load(file)
@@ -61,7 +109,7 @@ def backup_log_file(filepath):
 
 
 # Main
-def DBQ_Mk6(regenerate_mode=None, specific_benchtest_ids=None):
+def DBQ_Mk6(regenerate_mode=None, specific_benchtest_ids=None, specific_daughterboard_id=None):
 
     timenow = datetime.now()
     print(f'Current Date/Time: {timenow}')
@@ -152,27 +200,63 @@ def DBQ_Mk6(regenerate_mode=None, specific_benchtest_ids=None):
                 if regenerate_mode is not None:
                     if specific_benchtest_ids is not None:
                         if row[0] in specific_benchtest_ids:
+                            # Check if specific daughterboard ID is provided and if it's in this benchtest
+                            if specific_daughterboard_id is not None:
+                                if specific_daughterboard_id in [row[5], row[6], row[7], row[8]]:
+                                    if row[1] is not None and row[2] is not None:
+                                        benchtest_proc[row[0]] = dict([("benchtest_pass", row[4]),
+                                                                       ("benchtest_timestamp", [row[1].strftime("%Y-%m-%dT%H:%M:%SZ"), row[2].strftime("%Y-%m-%dT%H:%M:%SZ")]),
+                                                                       ("benchtest_serialnos", [row[5], row[6], row[7], row[8]] )])
+                                    else:
+                                        print(f'  Skipping benchtest {row[0]} due to missing timestamp data')
+                                else:
+                                    print(f'  Skipping benchtest {row[0]} as it does not contain daughterboard {specific_daughterboard_id}')
+                            else:
+                                if row[1] is not None and row[2] is not None:
+                                    benchtest_proc[row[0]] = dict([("benchtest_pass", row[4]),
+                                                                   ("benchtest_timestamp", [row[1].strftime("%Y-%m-%dT%H:%M:%SZ"), row[2].strftime("%Y-%m-%dT%H:%M:%SZ")]),
+                                                                   ("benchtest_serialnos", [row[5], row[6], row[7], row[8]] )])
+                                else:
+                                    print(f'  Skipping benchtest {row[0]} due to missing timestamp data')
+                    else:
+                        # Process all benchtests in regeneration mode
+                        # Check if specific daughterboard ID is provided
+                        if specific_daughterboard_id is not None:
+                            if specific_daughterboard_id in [row[5], row[6], row[7], row[8]]:
+                                if row[1] is not None and row[2] is not None:
+                                    benchtest_proc[row[0]] = dict([("benchtest_pass", row[4]),
+                                                                   ("benchtest_timestamp", [row[1].strftime("%Y-%m-%dT%H:%M:%SZ"), row[2].strftime("%Y-%m-%dT%H:%M:%SZ")]),
+                                                                   ("benchtest_serialnos", [row[5], row[6], row[7], row[8]] )])
+                                else:
+                                    print(f'  Skipping benchtest {row[0]} due to missing timestamp data')
+                            else:
+                                print(f'  Skipping benchtest {row[0]} as it does not contain daughterboard {specific_daughterboard_id}')
+                        else:
                             if row[1] is not None and row[2] is not None:
                                 benchtest_proc[row[0]] = dict([("benchtest_pass", row[4]),
                                                                ("benchtest_timestamp", [row[1].strftime("%Y-%m-%dT%H:%M:%SZ"), row[2].strftime("%Y-%m-%dT%H:%M:%SZ")]),
                                                                ("benchtest_serialnos", [row[5], row[6], row[7], row[8]] )])
                             else:
                                 print(f'  Skipping benchtest {row[0]} due to missing timestamp data')
+                elif row[4] == 2:
+                    # Check if specific daughterboard ID is provided
+                    if specific_daughterboard_id is not None:
+                        if specific_daughterboard_id in [row[5], row[6], row[7], row[8]]:
+                            if row[1] is not None and row[2] is not None:
+                                benchtest_proc[row[0]] = dict([("benchtest_pass", row[4]),
+                                                               ("benchtest_timestamp", [row[1].strftime("%Y-%m-%dT%H:%M:%SZ"), row[2].strftime("%Y-%m-%dT%H:%M:%SZ")]),
+                                                               ("benchtest_serialnos", [row[5], row[6], row[7], row[8]] )])
+                            else:
+                                print(f'  Skipping benchtest {row[0]} due to missing timestamp data')
+                        else:
+                            print(f'  Skipping benchtest {row[0]} as it does not contain daughterboard {specific_daughterboard_id}')
                     else:
-                        # Process all benchtests in regeneration mode
                         if row[1] is not None and row[2] is not None:
                             benchtest_proc[row[0]] = dict([("benchtest_pass", row[4]),
                                                            ("benchtest_timestamp", [row[1].strftime("%Y-%m-%dT%H:%M:%SZ"), row[2].strftime("%Y-%m-%dT%H:%M:%SZ")]),
                                                            ("benchtest_serialnos", [row[5], row[6], row[7], row[8]] )])
                         else:
                             print(f'  Skipping benchtest {row[0]} due to missing timestamp data')
-                elif row[4] == 2:
-                    if row[1] is not None and row[2] is not None:
-                        benchtest_proc[row[0]] = dict([("benchtest_pass", row[4]),
-                                                       ("benchtest_timestamp", [row[1].strftime("%Y-%m-%dT%H:%M:%SZ"), row[2].strftime("%Y-%m-%dT%H:%M:%SZ")]),
-                                                       ("benchtest_serialnos", [row[5], row[6], row[7], row[8]] )])
-                    else:
-                        print(f'  Skipping benchtest {row[0]} due to missing timestamp data')
 
         else:
             print("⚠ No data found in selected table.")
@@ -619,6 +703,12 @@ def DBQ_Mk6(regenerate_mode=None, specific_benchtest_ids=None):
             for MDi in range(0,4):
 
                 if benchtest_proc[benchtest_id]["benchtest_serialnos"][MDi] != None:
+                    # Skip if specific daughterboard ID is provided and doesn't match
+                    if specific_daughterboard_id is not None:
+                        if benchtest_proc[benchtest_id]["benchtest_serialnos"][MDi] != specific_daughterboard_id:
+                            print(f'    Skipping DaughterBoard {benchtest_proc[benchtest_id]["benchtest_serialnos"][MDi]} (not the specified daughterboard)')
+                            continue
+                    
                     print(f'\n    DaughterBoard Serial Number: {benchtest_proc[benchtest_id]["benchtest_serialnos"][MDi]}')
                     logfile.write(f'\n    DaughterBoard Serial Number: {benchtest_proc[benchtest_id]["benchtest_serialnos"][MDi]}\n')
                     statDict[benchtest_id][benchtest_proc[benchtest_id]["benchtest_serialnos"][MDi]] = {}
@@ -812,8 +902,42 @@ def DBQ_Mk6(regenerate_mode=None, specific_benchtest_ids=None):
             logfile.write(f'In benchtest with id: {btid}\n')
         
         if write_results_log:
-            resultsfile = open(results_path, "w")
-            csvfile = open(csv_path, "w")
+            # Check if we need to preserve existing data (when using -d)
+            if specific_daughterboard_id is not None and Path(results_path).exists():
+                # Read existing log file to preserve other daughterboards' data
+                with open(results_path, "r") as existing_log:
+                    existing_log_lines = existing_log.readlines()
+                resultsfile = open(results_path, "w")
+                # Write back existing content except for the specific daughterboard section
+                skip_section = False
+                for line in existing_log_lines:
+                    # Check if this line starts a daughterboard section
+                    if f'DaughterBoard with Serial No: {specific_daughterboard_id}' in line:
+                        skip_section = True
+                        continue
+                    # Check if we should stop skipping (next daughterboard section or end of file)
+                    if skip_section and line.startswith('DaughterBoard with Serial No:'):
+                        skip_section = False
+                    if not skip_section:
+                        resultsfile.write(line)
+            else:
+                resultsfile = open(results_path, "w")
+            
+            # Handle CSV file similarly
+            if specific_daughterboard_id is not None and Path(csv_path).exists():
+                # Read existing CSV to preserve other daughterboards' data
+                existing_csv_data = {}
+                with open(csv_path, "r") as existing_csv:
+                    csv_reader = csv.reader(existing_csv)
+                    header = next(csv_reader)
+                    for row in csv_reader:
+                        if row:
+                            measurement = row[0]
+                            existing_csv_data[measurement] = row[1:]
+                csvfile = open(csv_path, "w")
+            else:
+                csvfile = open(csv_path, "w")
+                existing_csv_data = None
             
             # Collect all measurement names for CSV header
             all_measurements = []
@@ -824,17 +948,24 @@ def DBQ_Mk6(regenerate_mode=None, specific_benchtest_ids=None):
             all_measurements.append("Board PassFail")
             
             # Write CSV header with DaughterBoard IDs and measurement names
-            db_serials = [str(DBSN) for DBSN in dbDict.keys()]
-            csv_header = ["Measurement"] + db_serials
+            # Use all daughterboard serial numbers from the benchtest, not just processed ones
+            all_db_serials = [str(sn) for sn in benchtest_proc[btid]["benchtest_serialnos"] if sn is not None]
+            csv_header = ["Measurement"] + all_db_serials
             csvfile.write(",".join(csv_header) + "\n")
             
             # Initialize dictionary to store results for CSV
             csv_results = {var: {} for var in all_measurements}
             for var in all_measurements:
-                for db_serial in db_serials:
+                for db_serial in all_db_serials:
                     csv_results[var][db_serial] = None
 
         for DBSN, varDict in dbDict.items():
+            # Skip if specific daughterboard ID is provided and doesn't match
+            if specific_daughterboard_id is not None:
+                if DBSN != specific_daughterboard_id:
+                    print(f'  Skipping DaughterBoard {DBSN} (not the specified daughterboard)')
+                    continue
+            
             print(f'\n  For DaughterBoard with Serial No: {DBSN}')
             if logfile:
                 logfile.write(f'  DaughterBoard with Serial No: {DBSN}\n')
@@ -982,7 +1113,7 @@ def DBQ_Mk6(regenerate_mode=None, specific_benchtest_ids=None):
                         logfile.write(f'    Variable {var} has {varDict[var]["nPoints"] - varDict[var]["nConsidered"]} points which correspond to spikes/drops and are therefore not considered for pass rate calculations.\n')
                         logfile.write(f'    Variable {var} has {varDict[var]["nPass"]} points within the tolerance boundaries.\n')
 
-                    if varDict[var]["fPass"] >= 0.99:
+                    if varDict[var]["fPass"] >= 0.98:
                         print(f'    Variable check passed! {var} has {varDict[var]["fPass"]*100}% of points within the tolerance boundaries.')
                         if logfile:
                             logfile.write(f'    Variable check passed! {var} has {varDict[var]["fPass"]*100}% of points within the tolerance boundaries.\n')
@@ -990,7 +1121,7 @@ def DBQ_Mk6(regenerate_mode=None, specific_benchtest_ids=None):
                             resultsfile.write(f'{var}: 1\n')
                         if csvfile:
                             csv_results[var][str(DBSN)] = 1
-                    elif varDict[var]["fPass"] < 0.99 and varDict[var]["fPass"] >= 0.0:
+                    elif varDict[var]["fPass"] < 0.98 and varDict[var]["fPass"] >= 0.0:
                         print(f'    Variable check failed! {var} has {(1-varDict[var]["fPass"])*100}% of points outside of tolerance boundaries.')
                         if logfile:
                             logfile.write(f'    Variable check failed! {var} has {(1-varDict[var]["fPass"])*100}% of points outside of tolerance boundaries.\n')
@@ -1094,7 +1225,28 @@ def DBQ_Mk6(regenerate_mode=None, specific_benchtest_ids=None):
         if csvfile:
             # Write CSV data rows
             for var in all_measurements:
-                row = [var] + [str(csv_results[var][db_serial]) if csv_results[var][db_serial] is not None else "" for db_serial in db_serials]
+                if specific_daughterboard_id is not None and existing_csv_data is not None:
+                    # Preserve existing data for other daughterboards, only update specific one
+                    if var in existing_csv_data:
+                        existing_row = existing_csv_data[var]
+                        # Rebuild row to match current all_db_serials structure
+                        row = [var]
+                        for db_serial in all_db_serials:
+                            if db_serial == str(specific_daughterboard_id):
+                                # Update the specific daughterboard's value
+                                row.append(str(csv_results[var][db_serial]) if csv_results[var][db_serial] is not None else "")
+                            elif len(existing_row) > all_db_serials.index(db_serial):
+                                # Preserve existing value if available
+                                row.append(existing_row[all_db_serials.index(db_serial)])
+                            else:
+                                # Fill with empty string if no existing data
+                                row.append("")
+                    else:
+                        # New measurement, write new row
+                        row = [var] + [str(csv_results[var][db_serial]) if csv_results[var][db_serial] is not None else "" for db_serial in all_db_serials]
+                else:
+                    # Normal write all data
+                    row = [var] + [str(csv_results[var][db_serial]) if csv_results[var][db_serial] is not None else "" for db_serial in all_db_serials]
                 csvfile.write(",".join(row) + "\n")
             csvfile.close()
 
@@ -1117,6 +1269,12 @@ def DBQ_Mk6(regenerate_mode=None, specific_benchtest_ids=None):
         for MDi in range(0,4):
 
             if benchtest_proc[benchtest_id]["benchtest_serialnos"][MDi] != None:
+                # Skip if specific daughterboard ID is provided and doesn't match
+                if specific_daughterboard_id is not None:
+                    if benchtest_proc[benchtest_id]["benchtest_serialnos"][MDi] != specific_daughterboard_id:
+                        print(f'  Skipping DaughterBoard {benchtest_proc[benchtest_id]["benchtest_serialnos"][MDi]} (not the specified daughterboard)')
+                        continue
+                
                 print(f'\n  DaughterBoard Serial Number: {benchtest_proc[benchtest_id]["benchtest_serialnos"][MDi]}')
                 dfDict[benchtest_id][benchtest_proc[benchtest_id]["benchtest_serialnos"][MDi]] = {}
                 print(f'  dfDict[{benchtest_id}][{benchtest_proc[benchtest_id]["benchtest_serialnos"][MDi]}]: {dfDict[benchtest_id][benchtest_proc[benchtest_id]["benchtest_serialnos"][MDi]]}')
@@ -1210,6 +1368,12 @@ def DBQ_Mk6(regenerate_mode=None, specific_benchtest_ids=None):
         for MDi in range(0,4):
 
             if benchtest_proc[benchtest_id]["benchtest_serialnos"][MDi] != None:
+                # Skip if specific daughterboard ID is provided and doesn't match
+                if specific_daughterboard_id is not None:
+                    if benchtest_proc[benchtest_id]["benchtest_serialnos"][MDi] != specific_daughterboard_id:
+                        print(f'  Skipping DaughterBoard {benchtest_proc[benchtest_id]["benchtest_serialnos"][MDi]} (not the specified daughterboard)')
+                        continue
+                
                 print(f'\n  DaughterBoard Serial Number: {benchtest_proc[benchtest_id]["benchtest_serialnos"][MDi]}')
                 plotDict[benchtest_id][benchtest_proc[benchtest_id]["benchtest_serialnos"][MDi]] = {}
                 print(f'  plotDict[{benchtest_id}][{benchtest_proc[benchtest_id]["benchtest_serialnos"][MDi]}]: {plotDict[benchtest_id][benchtest_proc[benchtest_id]["benchtest_serialnos"][MDi]]}')
@@ -1241,7 +1405,7 @@ def DBQ_Mk6(regenerate_mode=None, specific_benchtest_ids=None):
                             testtime = datetime.now()
                             print(f'          Post Define-plotDict Date/Time: {testtime.strftime("%y/%m/%d - %H:%M:%S")}')
 
-                            plotDict[benchtest_id][benchtest_proc[benchtest_id]["benchtest_serialnos"][MDi]][ivar].update_layout(title = "DBSNo: "+str(benchtest_proc[benchtest_id]["benchtest_serialnos"][MDi])+" - PPrGTH: "+ivar)
+                            plotDict[benchtest_id][benchtest_proc[benchtest_id]["benchtest_serialnos"][MDi]][ivar].update_layout(title = "DBSNo: "+str(benchtest_proc[benchtest_id]["benchtest_serialnos"][MDi])+" - PPrGTH: "+ivar+" (Gen -> "+datetime.now().strftime("%Y-%m-%d %H:%M:%S")+")")
 
                             testtime = datetime.now()
                             print(f'          Post Update Layout-plotDict Date/Time: {testtime.strftime("%y/%m/%d - %H:%M:%S")}')
@@ -1281,6 +1445,8 @@ parser.add_argument('-r', '--regenerate', type=str, choices=['benchtest_id_resul
                     help='Force regeneration: benchtest_id_results_log, benchtest_id_log, plots, or all')
 parser.add_argument('-b', '--benchtest_id', type=str,
                     help='Specific benchtest ID or range (e.g., "1" or "2-5") to regenerate (if not specified, processes all in regeneration mode)')
+parser.add_argument('-d', '--daughterboard_id', type=str,
+                    help='Specific daughterboard ID to analyze (if not specified, processes all daughterboards in the benchtest)')
 args = parser.parse_args()
 
 # Parse benchtest_id parameter
@@ -1301,6 +1467,15 @@ if args.benchtest_id:
         except ValueError:
             print(f'Error: Invalid benchtest ID "{args.benchtest_id}". Must be a number or range (e.g., "1" or "2-5")')
             exit(1)
+
+# Parse daughterboard_id parameter
+specific_daughterboard_id = None
+if args.daughterboard_id:
+    try:
+        specific_daughterboard_id = int(args.daughterboard_id)
+    except ValueError:
+        print(f'Error: Invalid daughterboard ID "{args.daughterboard_id}". Must be a number.')
+        exit(1)
 
 # Debug Code: Config Dictionary
 DEBUG_CONFIG = True
@@ -1339,4 +1514,4 @@ if DEBUG_SECRETS:
 
 
 # Execute main()
-DBQ_Mk6(regenerate_mode=args.regenerate, specific_benchtest_ids=specific_benchtest_ids)
+DBQ_Mk6(regenerate_mode=args.regenerate, specific_benchtest_ids=specific_benchtest_ids, specific_daughterboard_id=specific_daughterboard_id)

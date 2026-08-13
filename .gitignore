@@ -21,3 +21,4 @@ data_analyzer/*.svg
 data_analyzer/*.png
 data_analyzer/*.html
 data_analyzer/Scripting*
+data_analyzer/db-qual

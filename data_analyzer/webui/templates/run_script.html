@@ -1,0 +1,271 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DBQ Admin - Run Script</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            background: #f5f7fa;
+            min-height: 100vh;
+        }
+
+        .navbar {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            padding: 20px 40px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+        }
+
+        .navbar h1 {
+            color: white;
+            font-size: 24px;
+            font-weight: 600;
+        }
+
+        .nav-links {
+            display: flex;
+            gap: 20px;
+        }
+
+        .nav-links a {
+            color: white;
+            text-decoration: none;
+            font-size: 14px;
+            opacity: 0.9;
+            transition: opacity 0.2s;
+        }
+
+        .nav-links a:hover {
+            opacity: 1;
+        }
+
+        .container {
+            max-width: 800px;
+            margin: 40px auto;
+            padding: 0 20px;
+        }
+
+        .form-card {
+            background: white;
+            border-radius: 12px;
+            padding: 30px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+            margin-bottom: 30px;
+        }
+
+        .form-card h2 {
+            color: #333;
+            font-size: 24px;
+            margin-bottom: 25px;
+        }
+
+        .form-group {
+            margin-bottom: 25px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            color: #333;
+            font-weight: 500;
+            font-size: 14px;
+        }
+
+        .form-group select,
+        .form-group input[type="text"] {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #e1e5e9;
+            border-radius: 6px;
+            font-size: 14px;
+            transition: border-color 0.3s;
+        }
+
+        .form-group select:focus,
+        .form-group input:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        .form-group .help-text {
+            color: #666;
+            font-size: 12px;
+            margin-top: 5px;
+        }
+
+        .btn-submit {
+            width: 100%;
+            padding: 14px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            border-radius: 6px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+
+        .btn-submit:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+        }
+
+        .output-box {
+            background: #1e1e1e;
+            border: 1px solid #333;
+            border-radius: 6px;
+            padding: 15px;
+            margin-top: 20px;
+            color: #d4d4d4;
+            font-size: 13px;
+            font-family: 'Courier New', monospace;
+            white-space: pre-wrap;
+            max-height: 400px;
+            overflow-y: auto;
+            word-wrap: break-word;
+        }
+
+        .output-box.success {
+            border-color: #4caf50;
+        }
+
+        .output-box.error {
+            border-color: #f44336;
+        }
+
+        .output-box::-webkit-scrollbar {
+            width: 10px;
+        }
+
+        .output-box::-webkit-scrollbar-track {
+            background: #2d2d2d;
+            border-radius: 5px;
+        }
+
+        .output-box::-webkit-scrollbar-thumb {
+            background: #555;
+            border-radius: 5px;
+        }
+
+        .output-box::-webkit-scrollbar-thumb:hover {
+            background: #777;
+        }
+
+        .output-label {
+            color: #888;
+            font-size: 12px;
+            margin-bottom: 8px;
+            font-weight: 500;
+        }
+
+        .back-link {
+            display: inline-block;
+            margin-bottom: 20px;
+            color: #667eea;
+            text-decoration: none;
+            font-size: 14px;
+        }
+
+        .back-link:hover {
+            text-decoration: underline;
+        }
+    </style>
+</head>
+
+<body>
+    <nav class="navbar">
+        <h1>DBQ Admin Panel</h1>
+        <div class="nav-links">
+            <a href="{{ url_for('dashboard') }}">Dashboard</a>
+            <a href="{{ url_for('logout') }}">Logout</a>
+        </div>
+    </nav>
+
+    <div class="container">
+        <a href="{{ url_for('dashboard') }}" class="back-link">← Back to Dashboard</a>
+
+        <div class="form-card">
+            <h2>Run DBQ_Mk6 Script</h2>
+
+            <form method="POST" action="{{ url_for('run_script') }}">
+                <div class="form-group">
+                    <label for="regenerate_mode">Regeneration Mode</label>
+                    <select id="regenerate_mode" name="regenerate_mode">
+                        <option value="none">None (default processing)</option>
+                        <option value="all">Regenerate All</option>
+                        <option value="benchtest_id_log">Regenerate Benchtest ID Log</option>
+                        <option value="benchtest_id_results_log">Regenerate Results Log</option>
+                        <option value="plots">Regenerate Plots Only</option>
+                    </select>
+                    <p class="help-text">Select the regeneration mode for the script execution.</p>
+                </div>
+
+                <div class="form-group">
+                    <label for="specific_benchtest_ids">Specific Benchtest IDs (optional)</label>
+                    <input type="text" id="specific_benchtest_ids" name="specific_benchtest_ids"
+                        placeholder="e.g., 1,2,3">
+                    <p class="help-text">Comma-separated list of benchtest IDs to process. Leave empty for all.</p>
+                </div>
+
+                <div class="form-group">
+                    <label for="specific_daughterboard_id">Specific Daughterboard ID (optional)</label>
+                    <input type="text" id="specific_daughterboard_id" name="specific_daughterboard_id"
+                        placeholder="e.g., DB12345">
+                    <p class="help-text">Filter by specific daughterboard serial number. Leave empty for all.</p>
+                </div>
+
+                <button type="submit" class="btn-submit">Run Script</button>
+            </form>
+
+            <div class="output-label">Terminal Output</div>
+            <div class="output-box {% if message %}success{% elif error %}error{% endif %}" id="terminal-output">
+                {% if message %}
+                {{ message }}
+                {% elif error %}
+                {{ error }}
+                {% else %}
+                Waiting for script execution...
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Auto-scroll to bottom if user is already at bottom
+        const terminalOutput = document.getElementById('terminal-output');
+        let isUserAtBottom = true;
+
+        terminalOutput.addEventListener('scroll', function () {
+            const threshold = 50;
+            isUserAtBottom = (terminalOutput.scrollHeight - terminalOutput.scrollTop - terminalOutput.clientHeight) < threshold;
+        });
+
+        // Scroll to bottom on page load
+        window.addEventListener('load', function () {
+            terminalOutput.scrollTop = terminalOutput.scrollHeight;
+        });
+
+        // Auto-scroll when content changes if user is at bottom
+        const observer = new MutationObserver(function () {
+            if (isUserAtBottom) {
+                terminalOutput.scrollTop = terminalOutput.scrollHeight;
+            }
+        });
+
+        observer.observe(terminalOutput, { childList: true, subtree: true, characterData: true });
+    </script>
+</body>
+
+</html>

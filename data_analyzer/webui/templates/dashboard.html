@@ -1,0 +1,1778 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DBQ Admin - Dashboard</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            background: #f5f7fa;
+            min-height: 100vh;
+        }
+
+        .navbar {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            padding: 20px 40px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+        }
+
+        .navbar h1 {
+            color: white;
+            font-size: 24px;
+            font-weight: 600;
+        }
+
+        .nav-links {
+            display: flex;
+            gap: 20px;
+        }
+
+        .nav-links a {
+            color: white;
+            text-decoration: none;
+            font-size: 14px;
+            opacity: 0.9;
+            transition: opacity 0.2s;
+        }
+
+        .nav-links a:hover {
+            opacity: 1;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 10px auto;
+            padding: 0 20px;
+        }
+
+        .welcome-section {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border-radius: 12px;
+            padding: 15px;
+            margin-bottom: 15px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+        }
+
+        .welcome-section h2 {
+            color: white;
+            font-size: 28px;
+            margin: 0;
+        }
+
+        .welcome-section p {
+            color: rgba(255, 255, 255, 0.9);
+            font-size: 16px;
+            line-height: 1.6;
+        }
+
+        .welcome-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+        }
+
+        .logout-btn {
+            background: rgba(255, 255, 255, 0.2);
+            color: white;
+            padding: 8px 16px;
+            border-radius: 6px;
+            text-decoration: none;
+            font-size: 14px;
+            font-weight: 500;
+            transition: background 0.3s ease;
+        }
+
+        .logout-btn:hover {
+            background: rgba(255, 255, 255, 0.3);
+        }
+
+        .cards-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 25px;
+        }
+
+        .card {
+            background: white;
+            border-radius: 12px;
+            padding: 30px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+            transition: transform 0.2s, box-shadow 0.2s;
+            cursor: pointer;
+            text-decoration: none;
+            display: block;
+        }
+
+        .card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+        }
+
+        .card-icon {
+            width: 60px;
+            height: 60px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border-radius: 12px;
+            display: flex;
+            justify-content: center;
+            margin-bottom: 20px;
+            font-size: 28px;
+            color: white;
+        }
+
+        .card h3 {
+            color: #333;
+            font-size: 20px;
+            margin-bottom: 10px;
+        }
+
+        .card p {
+            color: #666;
+            font-size: 14px;
+            line-height: 1.6;
+        }
+
+        .info-section {
+            background: white;
+            border-radius: 12px;
+            padding: 30px;
+            margin-top: 30px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+        }
+
+        .info-section h3 {
+            color: #333;
+            font-size: 20px;
+            margin-bottom: 20px;
+        }
+
+        .info-item {
+            display: flex;
+            justify-content: space-between;
+            padding: 15px 0;
+            border-bottom: 1px solid #e1e5e9;
+        }
+
+        .info-item:last-child {
+            border-bottom: none;
+        }
+
+        .info-label {
+            color: #666;
+            font-size: 14px;
+        }
+
+        .info-value {
+            color: #333;
+            font-weight: 600;
+            font-size: 14px;
+        }
+
+        .brick-wall-section {
+            background: white;
+            border-radius: 12px;
+            padding: 15px;
+            margin-top: 15px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+        }
+
+        .brick-wall-section h3 {
+            color: #333;
+            font-size: 20px;
+            margin-bottom: 20px;
+        }
+
+        .brick-wall-container {
+            display: flex;
+            flex-direction: row;
+            gap: 6px;
+            padding: 5px;
+            background: #f8f9fa;
+            border-radius: 8px;
+            overflow-x: auto;
+        }
+
+        .batch-column {
+            display: flex;
+            flex-direction: column;
+            gap: 1px;
+            align-items: center;
+            min-width: 50px;
+        }
+
+        .batch-label {
+            font-weight: 600;
+            color: #666;
+            font-size: 12px;
+            text-align: center;
+            margin-bottom: 5px;
+        }
+
+        .brick {
+            width: 45px;
+            height: 10px;
+            border-radius: 3px;
+            cursor: pointer;
+            transition: transform 0.2s, box-shadow 0.2s;
+            position: relative;
+            flex-shrink: 0;
+        }
+
+        .brick:hover {
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+            z-index: 10;
+            animation: pulse 1s ease-in-out infinite !important;
+        }
+
+        @keyframes pulse {
+
+            0%,
+            100% {
+                transform: scale(1);
+            }
+
+            50% {
+                transform: scale(1.3);
+            }
+        }
+
+        .brick.burned {
+            animation: burn-border 2s ease-in-out infinite;
+        }
+
+        .brick.burned:hover {
+            animation: burn-border 2s ease-in-out infinite, pulse 1s ease-in-out infinite !important;
+        }
+
+        @keyframes burn-border {
+
+            0%,
+            100% {
+                border-color: #00CC96;
+            }
+
+            50% {
+                border-color: #ff9800;
+            }
+        }
+
+        .brick-emojis {
+            position: absolute;
+            top: 2px;
+            right: 2px;
+            display: flex;
+            gap: 2px;
+            pointer-events: none;
+        }
+
+        .brick-fire {
+            font-size: 10px;
+            line-height: 1;
+        }
+
+        .brick-sfp {
+            font-size: 10px;
+            line-height: 1;
+        }
+
+        .brick-not-burned {
+            font-size: 10px;
+            line-height: 1;
+        }
+
+        .tooltip {
+            position: absolute;
+            background: #333;
+            color: white;
+            padding: 10px;
+            border-radius: 6px;
+            font-size: 12px;
+            white-space: nowrap;
+            z-index: 1000;
+            pointer-events: none;
+            opacity: 0;
+            transition: opacity 0.3s ease-out, transform 0.3s ease-out;
+            transform: translateY(5px);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+        }
+
+        .tooltip.show {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        .tooltip-row {
+            margin: 2px 0;
+        }
+
+        .tooltip-label {
+            color: #aaa;
+            margin-right: 8px;
+        }
+
+        .loading {
+            text-align: center;
+            color: #666;
+            padding: 40px;
+        }
+
+        .error {
+            text-align: center;
+            color: #f44336;
+            padding: 40px;
+        }
+
+        .modal-overlay {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.5);
+            z-index: 1000;
+        }
+
+        .modal {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
+            z-index: 1001;
+            width: 1200px;
+            max-width: 98vw;
+            max-height: 90vh;
+            overflow-y: auto;
+            display: none;
+        }
+
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            padding-bottom: 15px;
+            border-bottom: 1px solid #e1e5e9;
+        }
+
+        .modal-header-actions {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .rerun-btn {
+            background: #0066cc;
+            color: white;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 500;
+            transition: background 0.3s ease;
+        }
+
+        .rerun-btn:hover {
+            background: #0052a3;
+        }
+
+        .terminal-modal {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: #1e1e1e;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+            z-index: 1002;
+            width: 800px;
+            max-width: 95vw;
+            max-height: 80vh;
+            min-height: 200px;
+            display: none;
+            opacity: 0;
+            animation: fade-in 0.3s ease-out forwards;
+            transition: min-height 0.5s ease-out, height 0.5s ease-out;
+        }
+
+        .terminal-modal.closing {
+            animation: fade-out 0.3s ease-out forwards;
+        }
+
+        .terminal-modal.expanded {
+            min-height: 400px;
+        }
+
+        .terminal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+            padding-bottom: 10px;
+            border-bottom: 1px solid #333;
+        }
+
+        .terminal-title {
+            color: #fff;
+            font-size: 16px;
+            font-weight: 600;
+        }
+
+        .terminal-command {
+            color: #888;
+            font-size: 12px;
+            font-family: 'Courier New', monospace;
+            margin-bottom: 10px;
+            padding: 8px;
+            background: #2a2a2a;
+            border-radius: 4px;
+            word-wrap: break-word;
+        }
+
+        .terminal-close {
+            background: none;
+            border: none;
+            color: #fff;
+            font-size: 24px;
+            cursor: pointer;
+            padding: 0;
+            width: 30px;
+            height: 30px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .terminal-close:hover {
+            color: #ccc;
+        }
+
+        .terminal-close:disabled {
+            color: #666;
+            cursor: not-allowed;
+        }
+
+        .terminal-content {
+            background: #0d0d0d;
+            border-radius: 6px;
+            padding: 15px;
+            overflow-y: auto;
+            max-height: 60vh;
+            min-height: 100px;
+            transition: min-height 0.5s ease-out;
+        }
+
+        .terminal-content.has-content {
+            min-height: 200px;
+        }
+
+        .terminal-output {
+            font-family: 'Courier New', monospace;
+            font-size: 13px;
+            color: #00ff00;
+            line-height: 1.4;
+            white-space: pre-wrap;
+            word-wrap: break-word;
+        }
+
+        .terminal-footer {
+            margin-top: 15px;
+            display: flex;
+            justify-content: flex-end;
+        }
+
+        .terminal-stop-btn {
+            background: #f44336;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 500;
+            transition: background 0.3s ease;
+        }
+
+        .terminal-stop-btn:hover {
+            background: #d32f2f;
+        }
+
+        .terminal-stop-btn:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+        }
+
+        .terminal-close-btn {
+            background: #0066cc;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 500;
+            transition: background 0.3s ease;
+        }
+
+        .terminal-close-btn:hover {
+            background: #0052a3;
+        }
+
+        .modal-title {
+            font-size: 20px;
+            font-weight: 600;
+            color: #333;
+        }
+
+        .modal-close {
+            background: none;
+            border: none;
+            font-size: 24px;
+            cursor: pointer;
+            color: #666;
+            padding: 5px 10px;
+        }
+
+        .modal-close:hover {
+            color: #333;
+        }
+
+        .modal-content {
+            font-size: 14px;
+            line-height: 1.6;
+            color: #333;
+            display: flex;
+            gap: 15px;
+            flex-wrap: nowrap;
+        }
+
+        .modal-section {
+            padding: 10px;
+            background: #f8f9fa;
+            border-radius: 6px;
+            margin-bottom: 8px;
+            flex: 1;
+            min-width: 250px;
+        }
+
+        .modal-section-title {
+            font-weight: 600;
+            color: #666;
+            margin-bottom: 10px;
+            font-size: 13px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .modal-row {
+            display: flex;
+            justify-content: space-between;
+            padding: 5px 0;
+            border-bottom: 1px solid #f0f0f0;
+        }
+
+        .modal-label {
+            color: #666;
+            font-weight: 500;
+        }
+
+        .modal-value {
+            color: #333;
+            font-weight: 600;
+        }
+
+        .modal-benchtest {
+            padding: 10px;
+            background: #f8f9fa;
+            border-radius: 6px;
+            margin-bottom: 8px;
+        }
+
+        .modal-benchtest-title {
+            font-weight: 600;
+            color: #333;
+            margin-bottom: 5px;
+        }
+
+        .modal-failed-test {
+            color: #f44336;
+            padding: 2px 0;
+        }
+
+        .modal-failed-tests {
+            margin-top: 8px;
+            padding-left: 15px;
+        }
+
+        .tabs {
+            display: flex;
+            border-bottom: 2px solid #e1e5e9;
+            margin-bottom: 20px;
+        }
+
+        .tab {
+            padding: 12px 24px;
+            cursor: pointer;
+            background: none;
+            border: none;
+            font-size: 14px;
+            font-weight: 500;
+            color: #666;
+            border-bottom: 2px solid transparent;
+            margin-bottom: -2px;
+            transition: all 0.3s ease;
+        }
+
+        .tab:hover {
+            color: #0066cc;
+            background: #f8f9fa;
+        }
+
+        .tab.active {
+            color: #0066cc;
+            border-bottom: 2px solid #0066cc;
+            font-weight: 600;
+        }
+
+        .tab-content {
+            display: none;
+            opacity: 0;
+            transform: translateY(10px);
+            transition: opacity 0.3s ease-out, transform 0.3s ease-out;
+        }
+
+        .tab-content.active {
+            display: block;
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        .search-bar {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 10px;
+            background: white;
+            border-radius: 8px;
+            margin-bottom: 5px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+        }
+
+        .search-field {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .search-field label {
+            font-size: 14px;
+            font-weight: 500;
+            color: #666;
+            white-space: nowrap;
+        }
+
+        .search-field input {
+            padding: 8px 12px;
+            border: 1px solid #ddd;
+            border-radius: 6px;
+            font-size: 14px;
+            width: 120px;
+            transition: border-color 0.3s ease;
+        }
+
+        .search-field input:focus {
+            outline: none;
+            border-color: #0066cc;
+        }
+
+        .show-btn {
+            background: #0066cc;
+            color: white;
+            border: none;
+            padding: 8px 20px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 500;
+            transition: background 0.3s ease;
+        }
+
+        .show-btn:hover {
+            background: #0052a3;
+        }
+
+        .brick-preview {
+            width: 120px;
+            height: 24px;
+            border-radius: 4px;
+            border: 1px solid rgba(0, 0, 0, 0.1);
+            background: #e0e0e0;
+            position: relative;
+        }
+
+        .brick-preview.burned {
+            animation: burn-border 2s ease-in-out infinite;
+        }
+
+        .brick-preview-emojis {
+            position: absolute;
+            top: 6px;
+            right: 6px;
+            display: flex;
+            gap: 6px;
+            pointer-events: none;
+        }
+
+        .brick-preview-fire {
+            font-size: 30px;
+            line-height: 1;
+        }
+
+        .brick-preview-sfp {
+            font-size: 30px;
+            line-height: 1;
+        }
+
+        .brick-preview-not-burned {
+            font-size: 30px;
+            line-height: 1;
+        }
+
+        .brick.highlighted {
+            animation: highlight-pulse 1s ease-in-out infinite;
+            z-index: 20;
+        }
+
+        .brick.clicked {
+            animation: click-pulse 0.6s ease-out;
+            z-index: 30;
+        }
+
+        @keyframes highlight-pulse {
+
+            0%,
+            100% {
+                transform: scale(1.5);
+                box-shadow: 0 0 0 0 rgba(255, 152, 0, 0.9);
+            }
+
+            50% {
+                transform: scale(1.8);
+                box-shadow: 0 0 0 12px rgba(255, 152, 0, 0);
+            }
+        }
+
+        @keyframes click-pulse {
+            0% {
+                transform: scale(1);
+                box-shadow: 0 0 0 0 rgba(255, 152, 0, 1);
+            }
+
+            50% {
+                transform: scale(2.5);
+                box-shadow: 0 0 0 20px rgba(255, 152, 0, 0.5);
+            }
+
+            100% {
+                transform: scale(1);
+                box-shadow: 0 0 0 0 rgba(255, 152, 0, 0);
+            }
+        }
+
+        .modal {
+            opacity: 0;
+            animation: fade-in 0.3s ease-out forwards;
+        }
+
+        .modal.closing {
+            animation: fade-out 0.3s ease-out forwards;
+        }
+
+        @keyframes fade-in {
+            from {
+                opacity: 0;
+                transform: translate(-50%, -50%) scale(0.95);
+            }
+
+            to {
+                opacity: 1;
+                transform: translate(-50%, -50%) scale(1);
+            }
+        }
+
+        @keyframes fade-out {
+            from {
+                opacity: 1;
+                transform: translate(-50%, -50%) scale(1);
+            }
+
+            to {
+                opacity: 0;
+                transform: translate(-50%, -50%) scale(0.95);
+            }
+        }
+
+        .container {
+            animation: page-fade-in 0.5s ease-out;
+        }
+
+        @keyframes page-fade-in {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .legend {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            padding: 8px;
+            background: white;
+            border-radius: 8px;
+            margin-top: 10px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+        }
+
+        .legend-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .legend-color {
+            width: 20px;
+            height: 20px;
+            border-radius: 4px;
+            border: 1px solid rgba(0, 0, 0, 0.1);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 12px;
+        }
+
+        .legend-label {
+            font-size: 14px;
+            color: #666;
+        }
+
+        .legend-border {
+            width: 20px;
+            height: 20px;
+            border-radius: 4px;
+            background: #e0e0e0;
+            border: 3px solid #ff9800;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <div class="welcome-section">
+            <div class="welcome-header">
+                <h2>TileQA Administration</h2>
+                <a href="{{ url_for('logout') }}" class="logout-btn">Logout</a>
+            </div>
+
+        </div>
+
+        <div class="tabs">
+            <button class="tab active" onclick="switchTab('brick-wall')">Production Brick Wall</button>
+            <button class="tab" onclick="switchTab('advanced-options')">Advanced Options</button>
+            <button class="tab" onclick="switchTab('session-info')">Session Information</button>
+        </div>
+
+        <div id="brick-wall" class="tab-content active">
+            <div class="search-bar">
+                <div class="search-field">
+                    <label for="board-id">Board ID:</label>
+                    <input type="text" id="board-id" placeholder="Enter board ID">
+                </div>
+                <div class="search-field">
+                    <label for="batch">Batch:</label>
+                    <input type="text" id="batch" placeholder="Enter batch">
+                </div>
+                <div class="search-field">
+                    <label for="position">Position:</label>
+                    <input type="text" id="position" placeholder="Enter position">
+                </div>
+                <div class="search-field">
+                    <div id="brick-preview" class="brick-preview"></div>
+                </div>
+                <button class="show-btn" id="show-btn">Show</button>
+            </div>
+            <div class="brick-wall-section">
+                <div class="brick-wall-container" id="brick-wall-container">
+                    <div class="loading">Loading brick wall data...</div>
+                </div>
+            </div>
+            <div class="legend">
+                <div class="legend-item">
+                    <div class="legend-color" style="background: #00CC96;"></div>
+                    <span class="legend-label">Passed (Post-Burn-In)</span>
+                </div>
+                <div class="legend-item">
+                    <div class="legend-color" style="background: #FF9800;"></div>
+                    <span class="legend-label">Passed (Pre-Burn-In Only)</span>
+                </div>
+                <div class="legend-item">
+                    <div class="legend-color" style="background: #EF553B;"></div>
+                    <span class="legend-label">Failed</span>
+                </div>
+                <div class="legend-item">
+                    <div class="legend-color" style="background: #FECB52;"></div>
+                    <span class="legend-label">No Test</span>
+                </div>
+                <div class="legend-item">
+                    <div class="legend-color" style="background: #90EE90;">&#128245;</div>
+                    <span class="legend-label">Missing SFP Data</span>
+                </div>
+                <div class="legend-item">
+                    <div class="legend-color" style="background: #e0e0e0;">&#128219;</div>
+                    <span class="legend-label">Not Burned In</span>
+                </div>
+            </div>
+        </div>
+
+        <div id="advanced-options" class="tab-content">
+            <div class="cards-grid">
+                <a href="{{ url_for('run_script') }}" class="card">
+                    <div class="card-icon">▶</div>
+                    <h3>Run DBQ Script</h3>
+                    <p>Execute the DBQ_Mk6 script with custom parameters including regeneration modes and specific
+                        benchtest
+                        IDs.</p>
+                </a>
+
+                <a href="{{ url_for('edit_vars') }}" class="card">
+                    <div class="card-icon">⚙</div>
+                    <h3>Benchtest Thresholds</h3>
+                    <p>View and modify vars.yaml parameters including thresholds, limits, and configuration values for
+                        data
+                        analysis.
+                    </p>
+                </a>
+            </div>
+        </div>
+
+        <div id="session-info" class="tab-content">
+            <div class="info-section">
+                <h3>Session Information</h3>
+                <div class="info-item">
+                    <span class="info-label">Database</span>
+                    <span class="info-value">{{ session.get('db_name', 'N/A') }}</span>
+                </div>
+                <div class="info-item">
+                    <span class="info-label">User</span>
+                    <span class="info-value">{{ session.get('db_user', 'N/A') }}</span>
+                </div>
+                <div class="info-item">
+                    <span class="info-label">Status</span>
+                    <span class="info-value">Connected</span>
+                </div>
+            </div>
+        </div>
+
+        <div class="tooltip" id="tooltip"></div>
+
+        <div class="modal-overlay" id="modal-overlay"></div>
+        <div class="modal" id="modal">
+            <div class="modal-header">
+                <div class="modal-title" id="modal-title">Board Details</div>
+                <div class="modal-header-actions">
+                    <button class="rerun-btn" id="rerun-btn" onclick="rerunBenchtest()">Rerun Analysis</button>
+                    <button class="modal-close" id="modal-close">&times;</button>
+                </div>
+            </div>
+            <div class="modal-content" id="modal-content"></div>
+        </div>
+
+        <div class="modal-overlay" id="terminal-overlay"></div>
+        <div class="terminal-modal" id="terminal-modal">
+            <div class="terminal-header">
+                <div class="terminal-title" id="terminal-title">Terminal Output</div>
+                <button class="terminal-close" id="terminal-close">&times;</button>
+            </div>
+            <div class="terminal-command" id="terminal-command"></div>
+            <div class="terminal-content" id="terminal-content">
+                <div class="terminal-output" id="terminal-output"></div>
+            </div>
+            <div class="terminal-footer">
+                <button class="terminal-stop-btn" id="terminal-action-btn">Stop</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function switchTab(tabId) {
+            // Hide all tab contents with fade-out
+            const tabContents = document.querySelectorAll('.tab-content');
+            tabContents.forEach(content => {
+                if (content.classList.contains('active')) {
+                    content.style.opacity = '0';
+                    content.style.transform = 'translateY(10px)';
+                    setTimeout(() => {
+                        content.classList.remove('active');
+                        content.style.display = 'none';
+                    }, 300);
+                } else {
+                    content.classList.remove('active');
+                    content.style.display = 'none';
+                }
+            });
+
+            // Remove active class from all tabs
+            const tabs = document.querySelectorAll('.tab');
+            tabs.forEach(tab => {
+                tab.classList.remove('active');
+            });
+
+            // Add active class to clicked tab
+            event.target.classList.add('active');
+
+            // Show selected tab content with fade-in
+            const selectedContent = document.getElementById(tabId);
+            selectedContent.style.display = 'block';
+
+            // Trigger reflow to ensure display:block is applied before opacity transition
+            selectedContent.offsetHeight;
+
+            selectedContent.classList.add('active');
+            selectedContent.style.opacity = '1';
+            selectedContent.style.transform = 'translateY(0)';
+
+            // Load brick wall data if switching to brick-wall tab
+            if (tabId === 'brick-wall') {
+                loadBrickWall();
+            }
+        }
+
+        async function loadBrickWall() {
+            const container = document.getElementById('brick-wall-container');
+            const tooltip = document.getElementById('tooltip');
+
+            try {
+                const response = await fetch('/api/brick_wall_data');
+                const data = await response.json();
+
+                if (data.error) {
+                    container.innerHTML = `<div class="error">Error: ${data.error}</div>`;
+                    return;
+                }
+
+                container.innerHTML = '';
+
+                // Show 16 batches total (0-15)
+                const totalBatches = 15;
+
+                for (let batchNum = 0; batchNum <= totalBatches; batchNum++) {
+                    const batchColumn = document.createElement('div');
+                    batchColumn.className = 'batch-column';
+
+                    const batchLabel = document.createElement('div');
+                    batchLabel.className = 'batch-label';
+                    batchLabel.textContent = batchNum;
+                    batchColumn.appendChild(batchLabel);
+
+                    const boards = data.boards_by_batch[batchNum] || [];
+
+                    if (boards.length === 0) {
+                        // Empty batch - add placeholder
+                        const emptyBrick = document.createElement('div');
+                        emptyBrick.className = 'brick';
+                        emptyBrick.style.background = '#e0e0e0';
+                        emptyBrick.style.opacity = '0.3';
+                        batchColumn.appendChild(emptyBrick);
+                    } else {
+                        boards.forEach(board => {
+                            const brick = document.createElement('div');
+                            brick.className = 'brick';
+                            brick.dataset.serial = board.serial_no;
+
+                            // Determine color based on status (matching production overview plot logic)
+                            const status = board.db_status;
+                            const e_test = board.e_test;
+                            const p_test = board.p_test;
+                            const has_benchtest = board.has_benchtest;
+                            const has_sfp_data = board.a0 && board.a1 && board.b0 && board.b1;
+                            const has_post_burnin_test = board.has_post_burnin_test;
+
+                            if ((status === 0 || e_test === 0 || p_test === 0) && has_benchtest) {
+                                // Red for fail with benchtest (highest priority)
+                                brick.style.background = '#EF553B';
+                            } else if (status === 0 && !has_benchtest) {
+                                // Yellow for db_status=0 with no benchtest (No Test)
+                                brick.style.background = '#FECB52';
+                            } else if (status === null || e_test === null || p_test === null) {
+                                // Yellow for NULL (No Test)
+                                brick.style.background = '#FECB52';
+                            } else if (!has_sfp_data) {
+                                // Light green for missing SFP data
+                                brick.style.background = '#90EE90';
+                            } else if (status === 1 && e_test === 1 && p_test === 1 && !has_post_burnin_test) {
+                                // Orange for pre-burn-in passed but no post-burn-in test
+                                brick.style.background = '#FF9800';
+                            } else if (status === 1 && e_test === 1 && p_test === 1 && has_post_burnin_test) {
+                                // Green for all pass AND post-burn-in test passed
+                                brick.style.background = '#00CC96';
+                            } else {
+                                // Red for any other fail
+                                brick.style.background = '#EF553B';
+                            }
+
+                            // Add border style and emojis based on burn-in status and SFP data
+                            const emojisContainer = document.createElement('div');
+                            emojisContainer.className = 'brick-emojis';
+
+                            // Add optical emoji for missing SFP data (leftmost)
+                            if (!has_sfp_data) {
+                                const sfpEmoji = document.createElement('span');
+                                sfpEmoji.className = 'brick-sfp';
+                                sfpEmoji.textContent = '\uD83D\uDCF5';
+                                emojisContainer.appendChild(sfpEmoji);
+                            }
+
+                            if (board.burn_in_stop) {
+                                // Burned in - add animated border only (no emoji)
+                                brick.classList.add('burned');
+                            } else {
+                                // Not burned in - add 📛 emoji (rightmost)
+                                const notBurnedEmoji = document.createElement('span');
+                                notBurnedEmoji.className = 'brick-not-burned';
+                                notBurnedEmoji.innerHTML = '&#128219;';
+                                emojisContainer.appendChild(notBurnedEmoji);
+                                brick.style.border = '1px solid rgba(0,0,0,0.1)';
+                            }
+
+                            // Only append emojis container if it has content
+                            if (emojisContainer.children.length > 0) {
+                                brick.appendChild(emojisContainer);
+                            }
+
+                            // Store full board data for modal
+                            brick.boardData = board;
+
+                            // Hover events
+                            brick.addEventListener('mouseenter', (e) => {
+                                // Remove highlight from all bricks when hovering
+                                document.querySelectorAll('.brick.highlighted').forEach(b => {
+                                    b.classList.remove('highlighted');
+                                });
+
+                                const statusText = board.db_status === 1 ? 'Passed' : (board.db_status === 0 ? 'Failed' : 'Unknown');
+                                const burnedText = board.burn_in === 1 ? 'Yes' : 'No';
+                                const hasSfpData = board.a0 && board.a1 && board.b0 && board.b1;
+                                const sfpText = hasSfpData ? 'Yes' : 'No';
+                                const eTestText = board.e_test === 1 ? 'Passed' : (board.e_test === 0 ? 'Failed' : 'Unknown');
+                                const pTestText = board.p_test === 1 ? 'Passed' : (board.p_test === 0 ? 'Failed' : 'Unknown');
+
+                                tooltip.innerHTML = `
+                                    <div class="tooltip-row"><span class="tooltip-label">Serial:</span>${board.serial_no}</div>
+                                    <div class="tooltip-row"><span class="tooltip-label">Tag:</span>${board.tag}</div>
+                                    <div class="tooltip-row"><span class="tooltip-label">Batch:</span>${board.batch}</div>
+                                    <div class="tooltip-row"><span class="tooltip-label">Position:</span>${board.position}</div>
+                                    <div class="tooltip-row"><span class="tooltip-label">Status:</span>${statusText}</div>
+                                    <div class="tooltip-row"><span class="tooltip-label">E-Test:</span>${eTestText}</div>
+                                    <div class="tooltip-row"><span class="tooltip-label">P-Test:</span>${pTestText}</div>
+                                    <div class="tooltip-row"><span class="tooltip-label">Burned:</span>${burnedText}</div>
+                                    <div class="tooltip-row"><span class="tooltip-label">SFP Data:</span>${sfpText}</div>
+                                `;
+
+                                tooltip.style.left = e.pageX + 10 + 'px';
+                                tooltip.style.top = e.pageY + 10 + 'px';
+                                tooltip.classList.add('show');
+
+                                // Update search bar textboxes
+                                document.getElementById('board-id').value = board.serial_no;
+                                document.getElementById('batch').value = board.batch;
+                                document.getElementById('position').value = board.position;
+
+                                // Update brick preview
+                                updateBrickPreviewFromBrick(brick);
+                            });
+
+                            brick.addEventListener('mouseleave', () => {
+                                tooltip.classList.remove('show');
+                            });
+
+                            brick.addEventListener('mousemove', (e) => {
+                                tooltip.style.left = e.pageX + 10 + 'px';
+                                tooltip.style.top = e.pageY + 10 + 'px';
+                            });
+
+                            // Click event for modal
+                            brick.addEventListener('click', () => {
+                                // Add click animation
+                                brick.classList.add('clicked');
+                                // Remove animation class after it completes
+                                setTimeout(() => {
+                                    brick.classList.remove('clicked');
+                                }, 600);
+                                showModal(board);
+                            });
+
+                            batchColumn.appendChild(brick);
+                        });
+                    }
+
+                    container.appendChild(batchColumn);
+                }
+
+            } catch (error) {
+                container.innerHTML = `<div class="error">Error loading brick wall: ${error.message}</div>`;
+            }
+        }
+
+        // Load brick wall on page load
+        document.addEventListener('DOMContentLoaded', loadBrickWall);
+
+        // Modal functionality
+        const modal = document.getElementById('modal');
+        const modalOverlay = document.getElementById('modal-overlay');
+        const modalTitle = document.getElementById('modal-title');
+        const modalContent = document.getElementById('modal-content');
+        const modalClose = document.getElementById('modal-close');
+
+        let currentBoardSerial = null;
+
+        function showModal(board) {
+            currentBoardSerial = board.serial_no;
+            modalTitle.textContent = `Board ${board.serial_no}`;
+
+            let html = '';
+
+            // Basic Information (including burn-in)
+            html += '<div class="modal-section">';
+            html += '<div class="modal-section-title">Basic Information</div>';
+            html += '<div class="modal-row"><span class="modal-label">Serial No:</span><span class="modal-value">' + board.serial_no + '</span></div>';
+            html += '<div class="modal-row"><span class="modal-label">Tag:</span><span class="modal-value">' + board.tag + '</span></div>';
+            html += '<div class="modal-row"><span class="modal-label">Batch:</span><span class="modal-value">' + board.batch + '</span></div>';
+            html += '<div class="modal-row"><span class="modal-label">Position:</span><span class="modal-value">' + board.position + '</span></div>';
+
+            const statusText = board.db_status === 1 ? 'Passed' : (board.db_status === 0 ? 'Failed' : 'Unknown');
+            const statusColor = board.db_status === 1 ? '#4caf50' : (board.db_status === 0 ? '#f44336' : '#9e9e9e');
+            html += '<div class="modal-row"><span class="modal-label">Status:</span><span class="modal-value" style="color: ' + statusColor + '">' + statusText + '</span></div>';
+
+            const eTestText = board.e_test === 1 ? 'Passed' : (board.e_test === 0 ? 'Failed' : 'Unknown');
+            const eTestColor = board.e_test === 1 ? '#4caf50' : (board.e_test === 0 ? '#f44336' : '#9e9e9e');
+            html += '<div class="modal-row"><span class="modal-label">E-Test:</span><span class="modal-value" style="color: ' + eTestColor + '">' + eTestText + '</span></div>';
+
+            const pTestText = board.p_test === 1 ? 'Passed' : (board.p_test === 0 ? 'Failed' : 'Unknown');
+            const pTestColor = board.p_test === 1 ? '#4caf50' : (board.p_test === 0 ? '#f44336' : '#9e9e9e');
+            html += '<div class="modal-row"><span class="modal-label">P-Test:</span><span class="modal-value" style="color: ' + pTestColor + '">' + pTestText + '</span></div>';
+
+            const burnedText = board.burn_in === 1 ? 'Yes' : 'No';
+            const burnedColor = board.burn_in === 1 ? '#4caf50' : '#f44336';
+            html += '<div class="modal-row"><span class="modal-label">Burned:</span><span class="modal-value" style="color: ' + burnedColor + '">' + burnedText + '</span></div>';
+
+            const burnInStart = board.burn_in_start || 'N/A';
+            const burnInStartColor = burnInStart === 'N/A' ? '#f44336' : '#666';
+            html += '<div class="modal-row"><span class="modal-label">Burn-in Start:</span><span class="modal-value" style="color: ' + burnInStartColor + '">' + burnInStart + '</span></div>';
+
+            const burnInStop = board.burn_in_stop || 'N/A';
+            const burnInStopColor = burnInStop === 'N/A' ? '#f44336' : '#666';
+            html += '<div class="modal-row"><span class="modal-label">Burn-in Stop:</span><span class="modal-value" style="color: ' + burnInStopColor + '">' + burnInStop + '</span></div>';
+            html += '</div>';
+
+            // Component Lots (including SFP Information)
+            html += '<div class="modal-section">';
+            html += '<div class="modal-section-title">Component Lots</div>';
+            html += '<div class="modal-row"><span class="modal-label">KIN Lot:</span><span class="modal-value">' + (board.kin_lot || 'N/A') + '</span></div>';
+            html += '<div class="modal-row"><span class="modal-label">PRO Lot:</span><span class="modal-value">' + (board.pro_lot || 'N/A') + '</span></div>';
+            html += '<div class="modal-row"><span class="modal-label">GBT Lot:</span><span class="modal-value">' + (board.gbt_lot || 'N/A') + '</span></div>';
+            html += '<div class="modal-row"><span class="modal-label">INA Lot:</span><span class="modal-value">' + (board.ina_lot || 'N/A') + '</span></div>';
+            html += '<div class="modal-row"><span class="modal-label">LTM Lot:</span><span class="modal-value">' + (board.ltm_lot || 'N/A') + '</span></div>';
+            html += '<div class="modal-row"><span class="modal-label">MOS Lot:</span><span class="modal-value">' + (board.mos_lot || 'N/A') + '</span></div>';
+            html += '<div class="modal-row"><span class="modal-label">OP4 Lot:</span><span class="modal-value">' + (board.op4_lot || 'N/A') + '</span></div>';
+            html += '<div class="modal-row"><span class="modal-label">OK4 Lot:</span><span class="modal-value">' + (board.ok4_lot || 'N/A') + '</span></div>';
+            html += '<div class="modal-row"><span class="modal-label">OK1 Lot:</span><span class="modal-value">' + (board.ok1_lot || 'N/A') + '</span></div>';
+            html += '<div class="modal-row"><span class="modal-label">MEM Lot:</span><span class="modal-value">' + (board.mem_lot || 'N/A') + '</span></div>';
+
+            const sfpLot = board.sfp_lot || 'N/A';
+            const sfpLotColor = sfpLot === 'N/A' ? '#f44336' : '#666';
+            html += '<div class="modal-row"><span class="modal-label">SFP Lot:</span><span class="modal-value" style="color: ' + sfpLotColor + '">' + sfpLot + '</span></div>';
+
+            const sfpA0 = board.a0 || 'N/A';
+            const sfpA0Color = sfpA0 === 'N/A' ? '#f44336' : '#666';
+            html += '<div class="modal-row"><span class="modal-label">SFP A0:</span><span class="modal-value" style="color: ' + sfpA0Color + '">' + sfpA0 + '</span></div>';
+
+            const sfpB0 = board.b0 || 'N/A';
+            const sfpB0Color = sfpB0 === 'N/A' ? '#f44336' : '#666';
+            html += '<div class="modal-row"><span class="modal-label">SFP B0:</span><span class="modal-value" style="color: ' + sfpB0Color + '">' + sfpB0 + '</span></div>';
+
+            const sfpA1 = board.a1 || 'N/A';
+            const sfpA1Color = sfpA1 === 'N/A' ? '#f44336' : '#666';
+            html += '<div class="modal-row"><span class="modal-label">SFP A1:</span><span class="modal-value" style="color: ' + sfpA1Color + '">' + sfpA1 + '</span></div>';
+
+            const sfpB1 = board.b1 || 'N/A';
+            const sfpB1Color = sfpB1 === 'N/A' ? '#f44336' : '#666';
+            html += '<div class="modal-row"><span class="modal-label">SFP B1:</span><span class="modal-value" style="color: ' + sfpB1Color + '">' + sfpB1 + '</span></div>';
+            html += '</div>';
+
+            // Benchtest Information
+            if (board.benchtests && board.benchtests.length > 0) {
+                html += '<div class="modal-section">';
+                html += '<div class="modal-section-title">Benchtest Information</div>';
+
+                board.benchtests.forEach(bt => {
+                    html += '<div class="modal-benchtest">';
+
+                    // Create hyperlink to benchtest folder with title format "Benchtest XX MD YY"
+                    const benchtestUrl = 'https://piro-atlas-lab.fysik.su.se/drive/benchtests/benchtest_id_' + bt.benchtest_id + '/DB_' + board.serial_no + '/';
+                    html += '<div class="modal-benchtest-title"><a href="' + benchtestUrl + '" target="_blank" style="color: #0066cc; text-decoration: none;">Benchtest ' + bt.benchtest_id + ' ' + bt.benchtest_slot + '</a></div>';
+
+                    html += '<div class="modal-row"><span class="modal-label">Test OP:</span><span class="modal-value">' + (bt.test_op || 'N/A') + '</span></div>';
+
+                    if (bt.test_stop) {
+                        const testDate = bt.test_stop.split(' ')[0];
+                        html += '<div class="modal-row"><span class="modal-label">Test Date:</span><span class="modal-value">' + testDate + '</span></div>';
+                    }
+
+                    // Determine if test was burned based on test datetime vs burn-in stop
+                    let burnedStatus = 'N/A';
+                    if (bt.test_stop && board.burn_in_stop) {
+                        const testDate = new Date(bt.test_stop);
+                        const burnInStopDate = new Date(board.burn_in_stop);
+                        burnedStatus = testDate > burnInStopDate ? 'burned' : 'not burned';
+                    } else if (board.burn_in_stop) {
+                        burnedStatus = 'not burned';
+                    }
+
+                    if (burnedStatus !== 'N/A') {
+                        const burnedColor = burnedStatus === 'burned' ? '#4caf50' : '#f44336';
+                        html += '<div class="modal-row"><span class="modal-label">Burned:</span><span class="modal-value" style="color: ' + burnedColor + '">' + burnedStatus + '</span></div>';
+                    }
+
+                    const testPassText = bt.test_pass === 1 ? 'Passed' : (bt.test_pass === 0 ? 'Failed' : (bt.test_pass === -1 ? 'Ignored' : 'Unknown'));
+                    const testPassColor = bt.test_pass === 1 ? '#4caf50' : (bt.test_pass === 0 ? '#f44336' : (bt.test_pass === -1 ? '#ff9800' : '#9e9e9e'));
+                    html += '<div class="modal-row"><span class="modal-label">Test Pass:</span><span class="modal-value" style="color: ' + testPassColor + '">' + testPassText + '</span></div>';
+
+                    // Display failed tests if available
+                    if (bt.failed_tests && bt.failed_tests.length > 0) {
+                        html += '<div class="modal-failed-tests">';
+                        bt.failed_tests.forEach(failedTest => {
+                            // Create hyperlink to the specific test plot
+                            const testPlotUrl = 'https://piro-atlas-lab.fysik.su.se/drive/benchtests/benchtest_id_' + bt.benchtest_id + '/DB_' + board.serial_no + '/DBSNo_' + board.serial_no + '_PPrGTH_' + failedTest + '.html';
+                            html += '<div class="modal-failed-test"><a href="' + testPlotUrl + '" target="_blank" style="color: #f44336; text-decoration: none;">- ' + failedTest + '</a></div>';
+                        });
+                        html += '</div>';
+                    }
+
+                    html += '</div>';
+                });
+
+                html += '</div>';
+            }
+
+            modalContent.innerHTML = html;
+            modal.style.display = 'block';
+            modalOverlay.style.display = 'block';
+        }
+
+        function closeModal() {
+            modal.classList.add('closing');
+            setTimeout(() => {
+                modal.style.display = 'none';
+                modalOverlay.style.display = 'none';
+                modal.classList.remove('closing');
+            }, 300);
+        }
+
+        modalClose.addEventListener('click', closeModal);
+        modalOverlay.addEventListener('click', closeModal);
+
+        // Prevent modal from closing when clicking inside the modal content
+        modal.addEventListener('click', (e) => {
+            e.stopPropagation();
+        });
+
+        // Close modal on Escape key
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape' && modal.style.display === 'block') {
+                closeModal();
+            }
+            if (e.key === 'Escape' && terminalModal.style.display === 'block') {
+                closeTerminalModal();
+            }
+        });
+
+        // Terminal modal functionality
+        const terminalModal = document.getElementById('terminal-modal');
+        const terminalOverlay = document.getElementById('terminal-overlay');
+        const terminalTitle = document.getElementById('terminal-title');
+        const terminalCommand = document.getElementById('terminal-command');
+        const terminalContent = document.getElementById('terminal-content');
+        const terminalOutput = document.getElementById('terminal-output');
+        const terminalClose = document.getElementById('terminal-close');
+        const terminalActionBtn = document.getElementById('terminal-action-btn');
+
+        let isScriptRunning = false;
+        let abortController = null;
+
+        function openTerminalModal() {
+            terminalModal.style.display = 'block';
+            terminalOverlay.style.display = 'block';
+            terminalClose.disabled = true;
+        }
+
+        function closeTerminalModal() {
+            if (isScriptRunning) {
+                return; // Prevent closing while script is running
+            }
+            terminalModal.classList.add('closing');
+            setTimeout(() => {
+                terminalModal.style.display = 'none';
+                terminalOverlay.style.display = 'none';
+                terminalModal.classList.remove('closing');
+                terminalModal.classList.remove('expanded');
+                terminalContent.classList.remove('has-content');
+                terminalOutput.innerHTML = '';
+            }, 300);
+        }
+
+        terminalClose.addEventListener('click', closeTerminalModal);
+        terminalOverlay.addEventListener('click', () => {
+            if (!isScriptRunning) {
+                closeTerminalModal();
+            }
+        });
+
+        terminalActionBtn.addEventListener('click', () => {
+            if (isScriptRunning) {
+                // Stop the script
+                if (abortController) {
+                    abortController.abort();
+                }
+                terminalOutput.innerHTML += '\n\nScript stopped by user.\n';
+                isScriptRunning = false;
+                terminalActionBtn.textContent = 'Close';
+                terminalActionBtn.classList.remove('terminal-stop-btn');
+                terminalActionBtn.classList.add('terminal-close-btn');
+            } else {
+                // Close the modal and reload data
+                closeTerminalModal();
+                if (currentBoardSerial) {
+                    // Reload brick wall data and reopen the board modal
+                    loadBrickWall().then(() => {
+                        // Find the board in the updated data and reopen its modal
+                        const allBricks = document.querySelectorAll('.brick');
+                        allBricks.forEach(brick => {
+                            if (brick.dataset.serial == currentBoardSerial) {
+                                brick.click();
+                            }
+                        });
+                    });
+                }
+            }
+        });
+
+        async function rerunBenchtest() {
+            if (!currentBoardSerial) {
+                alert('No board selected');
+                return;
+            }
+
+            const command = `python3 DBQ_Mk6.py -r all -d ${currentBoardSerial}`;
+            terminalTitle.textContent = `Rerunning Analysis for Board ${currentBoardSerial}`;
+            terminalCommand.textContent = `$ ${command}`;
+            terminalOutput.innerHTML = 'Starting analysis...\n';
+
+            // Reset button state
+            terminalActionBtn.textContent = 'Stop';
+            terminalActionBtn.classList.remove('terminal-close-btn');
+            terminalActionBtn.classList.add('terminal-stop-btn');
+
+            isScriptRunning = true;
+            abortController = new AbortController();
+            openTerminalModal();
+
+            try {
+                const response = await fetch('/api/rerun_analysis', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ serial_no: currentBoardSerial }),
+                    signal: abortController.signal
+                });
+
+                if (response.ok) {
+                    const reader = response.body.getReader();
+                    const decoder = new TextDecoder();
+
+                    // Set initial height for animation
+                    terminalContent.style.height = 'auto';
+                    terminalContent.style.maxHeight = '60vh';
+
+                    while (true) {
+                        const { done, value } = await reader.read();
+                        if (done) break;
+
+                        const text = decoder.decode(value);
+                        terminalOutput.innerHTML += text;
+
+                        // Add has-content class on first text to trigger animation
+                        if (!terminalContent.classList.contains('has-content')) {
+                            terminalContent.classList.add('has-content');
+                        }
+
+                        // Add expanded class to modal for smooth resize
+                        if (!terminalModal.classList.contains('expanded')) {
+                            terminalModal.classList.add('expanded');
+                        }
+
+                        terminalContent.scrollTop = terminalContent.scrollHeight;
+                    }
+
+                    terminalOutput.innerHTML += '\n\nAnalysis completed successfully!';
+                } else {
+                    terminalOutput.innerHTML += `\n\nError: ${response.statusText}`;
+                }
+            } catch (error) {
+                if (error.name === 'AbortError') {
+                    terminalOutput.innerHTML += '\n\nScript aborted.';
+                } else {
+                    terminalOutput.innerHTML += `\n\nError: ${error.message}`;
+                }
+            } finally {
+                isScriptRunning = false;
+                abortController = null;
+                terminalActionBtn.textContent = 'Close';
+                terminalActionBtn.classList.remove('terminal-stop-btn');
+                terminalActionBtn.classList.add('terminal-close-btn');
+                terminalClose.disabled = false;
+            }
+        }
+
+        // Show button functionality
+        document.getElementById('show-btn').addEventListener('click', () => {
+            const boardId = document.getElementById('board-id').value.trim();
+            const batch = document.getElementById('batch').value.trim();
+            const position = document.getElementById('position').value.trim();
+
+            let targetBrick = null;
+
+            // Search by board ID first
+            if (boardId) {
+                const allBricks = document.querySelectorAll('.brick');
+                allBricks.forEach(brick => {
+                    if (brick.dataset.serial == boardId) {
+                        targetBrick = brick;
+                    }
+                });
+            }
+
+            // If not found by board ID, search by batch and position
+            if (!targetBrick && batch && position) {
+                const allBricks = document.querySelectorAll('.brick');
+                allBricks.forEach(brick => {
+                    if (brick.boardData && brick.boardData.batch == batch && brick.boardData.position == position) {
+                        targetBrick = brick;
+                    }
+                });
+            }
+
+            if (targetBrick) {
+                targetBrick.click();
+            } else {
+                alert('Board not found. Please check the entered values.');
+            }
+        });
+
+        // Auto-update board ID when batch or position changes
+        document.getElementById('batch').addEventListener('input', () => {
+            const batch = document.getElementById('batch').value.trim();
+            const position = document.getElementById('position').value.trim();
+
+            if (batch && position) {
+                const allBricks = document.querySelectorAll('.brick');
+                allBricks.forEach(brick => {
+                    if (brick.boardData && brick.boardData.batch == batch && brick.boardData.position == position) {
+                        document.getElementById('board-id').value = brick.boardData.serial_no;
+                    }
+                });
+            }
+            updateBrickPreview();
+        });
+
+        document.getElementById('position').addEventListener('input', () => {
+            const batch = document.getElementById('batch').value.trim();
+            const position = document.getElementById('position').value.trim();
+
+            if (batch && position) {
+                const allBricks = document.querySelectorAll('.brick');
+                allBricks.forEach(brick => {
+                    if (brick.boardData && brick.boardData.batch == batch && brick.boardData.position == position) {
+                        document.getElementById('board-id').value = brick.boardData.serial_no;
+                    }
+                });
+            }
+            updateBrickPreview();
+        });
+
+        // Auto-update batch and position when board ID changes
+        document.getElementById('board-id').addEventListener('input', () => {
+            const boardId = document.getElementById('board-id').value.trim();
+
+            if (boardId) {
+                const allBricks = document.querySelectorAll('.brick');
+                allBricks.forEach(brick => {
+                    if (brick.dataset.serial == boardId && brick.boardData) {
+                        document.getElementById('batch').value = brick.boardData.batch;
+                        document.getElementById('position').value = brick.boardData.position;
+                    }
+                });
+            }
+            updateBrickPreview();
+        });
+
+        // Update brick preview based on current search values
+        function updateBrickPreview() {
+            const boardId = document.getElementById('board-id').value.trim();
+            const batch = document.getElementById('batch').value.trim();
+            const position = document.getElementById('position').value.trim();
+            const preview = document.getElementById('brick-preview');
+
+            let targetBrick = null;
+
+            // Search by board ID first
+            if (boardId) {
+                const allBricks = document.querySelectorAll('.brick');
+                allBricks.forEach(brick => {
+                    if (brick.dataset.serial == boardId) {
+                        targetBrick = brick;
+                    }
+                });
+            }
+
+            // If not found by board ID, search by batch and position
+            if (!targetBrick && batch && position) {
+                const allBricks = document.querySelectorAll('.brick');
+                allBricks.forEach(brick => {
+                    if (brick.boardData && brick.boardData.batch == batch && brick.boardData.position == position) {
+                        targetBrick = brick;
+                    }
+                });
+            }
+
+            if (targetBrick) {
+                updateBrickPreviewFromBrick(targetBrick);
+            } else {
+                // Reset preview to default
+                preview.style.background = '#e0e0e0';
+                preview.style.border = '1px solid rgba(0, 0, 0, 0.1)';
+                preview.classList.remove('burned');
+                preview.innerHTML = '';
+            }
+
+            // Highlight matching brick in wall
+            highlightMatchingBrick();
+        }
+
+        // Update brick preview from a specific brick element
+        function updateBrickPreviewFromBrick(brick) {
+            const preview = document.getElementById('brick-preview');
+
+            // Copy styling from target brick to preview
+            preview.style.background = brick.style.background;
+            preview.style.border = brick.style.border;
+
+            // Handle burned class
+            if (brick.classList.contains('burned')) {
+                preview.classList.add('burned');
+            } else {
+                preview.classList.remove('burned');
+            }
+
+            // Copy emojis
+            const emojisContainer = brick.querySelector('.brick-emojis');
+            preview.innerHTML = '';
+            if (emojisContainer) {
+                const previewEmojis = document.createElement('div');
+                previewEmojis.className = 'brick-preview-emojis';
+
+                emojisContainer.querySelectorAll('span').forEach(emojiSpan => {
+                    const previewEmoji = document.createElement('span');
+                    if (emojiSpan.classList.contains('brick-sfp')) {
+                        previewEmoji.className = 'brick-preview-sfp';
+                    } else if (emojiSpan.classList.contains('brick-not-burned')) {
+                        previewEmoji.className = 'brick-preview-not-burned';
+                    }
+                    previewEmoji.innerHTML = emojiSpan.innerHTML;
+                    previewEmojis.appendChild(previewEmoji);
+                });
+
+                if (previewEmojis.children.length > 0) {
+                    preview.appendChild(previewEmojis);
+                }
+            }
+        }
+
+        // Highlight matching brick in the wall based on search values
+        function highlightMatchingBrick() {
+            const boardId = document.getElementById('board-id').value.trim();
+            const batch = document.getElementById('batch').value.trim();
+            const position = document.getElementById('position').value.trim();
+
+            // Remove highlight from all bricks
+            document.querySelectorAll('.brick').forEach(brick => {
+                brick.classList.remove('highlighted');
+            });
+
+            let targetBrick = null;
+
+            // Search by board ID first
+            if (boardId) {
+                const allBricks = document.querySelectorAll('.brick');
+                allBricks.forEach(brick => {
+                    if (brick.dataset.serial == boardId) {
+                        targetBrick = brick;
+                    }
+                });
+            }
+
+            // If not found by board ID, search by batch and position
+            if (!targetBrick && batch && position) {
+                const allBricks = document.querySelectorAll('.brick');
+                allBricks.forEach(brick => {
+                    if (brick.boardData && brick.boardData.batch == batch && brick.boardData.position == position) {
+                        targetBrick = brick;
+                    }
+                });
+            }
+
+            // Add highlight to matching brick
+            if (targetBrick) {
+                targetBrick.classList.add('highlighted');
+            }
+        }
+
+        // Load brick wall on page load
+        document.addEventListener('DOMContentLoaded', loadBrickWall);
+    </script>
+</body>
+
+</html>

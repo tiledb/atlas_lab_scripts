@@ -12,5 +12,5 @@ END=$2
 
 for ((x=START; x<=END; x++)); do
     echo "Running with -b $x"
-    python DBQ_Mk6.py -r "benchtest_id_results_log" -b "$x"
+    python DBQ_Mk6.py -r "all" -b "$x"
 done

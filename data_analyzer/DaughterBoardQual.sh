@@ -23,6 +23,10 @@ if [[ "${curproc}" -gt 0 ]]; then
     curproctest=$(mysql --login-path=tiledb tiledb -t -e "SELECT * from benchtest WHERE id = ${curproc}")
     echo "${curproctest}"
     #echo -e "Benchtest ID = ${curproc}\n"
+
+    echo -e "Generating Production Plots!\n"
+    python3 production_plots_v1.py
+
     deactivate
     exit 0
 fi
@@ -44,6 +48,9 @@ if [[ "${unproc}" -gt 0 ]]; then
 
     #if [[ -z "${unproctestcomp}" ]]; then
     if [[ "${unproctestcomp}" == "NULL" ]]; then
+	echo -e "Generating Production Plots!\n"
+	python3 production_plots_v1.py
+
 	echo "Unprocessed benchtest is still running (stop_time has returned 'NULL'). Exiting..."
 	deactivate
 	exit 0
@@ -64,8 +71,9 @@ if [[ "${unproc}" -gt 0 ]]; then
     proctest=$(mysql --login-path=tiledb tiledb -t -e "SELECT * from benchtest")
     echo -e "${proctest}\n"
 
-    # echo -e "Generating Production Plots!\n"
-    # python3 production_plots.py
+    echo -e "Generating Production Plots!\n"
+    python3 production_plots_v1.py
+
     deactivate
     exit
 fi

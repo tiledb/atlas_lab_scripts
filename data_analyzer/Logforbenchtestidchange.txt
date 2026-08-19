@@ -1,0 +1,1000 @@
+ 1000  ls -l
+ 1001  emacs DBQLog.log 
+ 1002  emacs DBQ.log 
+ 1003  emacs DBQLogs/DBQ_20260723.log 
+ 1004  emacs /etc/systemd/system/DaughterBoardQual.timer
+ 1005  emacs /etc/systemd/system/DaughterBoardLog.timer
+ 1006  mysql --login-path=tiledb tiledb -t -e "SELECT * FROM benchtest"
+ 1007  mysql --login-path=tiledb tiledb -t -e "SELECT * FROM daughterboard"
+ 1008  mysql --login-path=tiledb tiledb -t -e "SELECT * FROM daughterboard" > daughterboards.txt
+ 1009  emacs daughterboards.txt 
+ 1010  mysql --login-path=tiledb tiledb -t -e "SELECT * FROM benchtest"
+ 1011  mysql --login-path=tiledb tiledb -t -e "SELECT * FROM daughterboard"
+ 1012  mysql --login-path=tiledb tiledb -t -e "UPDATE daughterboard SET burn_in_start = '2026-07-17 12:00:26' WHERE serial_no IN (1102001, 1102002, 1102003, 1102004, 1102005, 1102006, 1102008, 1102009)"
+ 1013  mysql --login-path=tiledb tiledb -t -e "SELECT * FROM daughterboard"
+ 1014  mysql --login-path=tiledb tiledb -t -e "UPDATE daughterboard SET burn_in_stop = '2026-07-22 13:31:02' WHERE serial_no IN (1102001, 1102002, 1102003, 1102004, 1102005, 1102006, 1102008, 1102009)"
+ 1015  mysql --login-path=tiledb tiledb -t -e "SELECT * FROM daughterboard"
+ 1016  mysql --login-path=tiledb tiledb -t -e "UPDATE daughterboard SET burn_in_start = '2026-07-17 12:00:26' WHERE serial_no IN (1102010, 1102011, 1102012, 1102013)"
+ 1017  mysql --login-path=tiledb tiledb -t -e "UPDATE daughterboard SET burn_in_stop = '2026-07-22 13:31:02' WHERE serial_no IN (1102010, 1102011, 1102012, 1102013)"
+ 1018  mysql --login-path=tiledb tiledb -t -e "SELECT * FROM daughterboard"
+ 1019  mysql --login-path=tiledb tiledb -t -e "UPDATE daughterboard SET burn_in_start = '2026-07-17 12:00:26' WHERE serial_no IN (1102024)"
+ 1020  mysql --login-path=tiledb tiledb -t -e "UPDATE daughterboard SET burn_in_stop = '2026-07-22 13:31:02' WHERE serial_no IN (1102024)"
+ 1021  mysql --login-path=tiledb tiledb -t -e "SELECT * FROM daughterboard"
+ 1022  mysql --login-path=tiledb tiledb -t -e "UPDATE daughterboard SET burn_in_start = '2026-07-17 12:00:26' WHERE serial_no IN (1102030, 1102033, 1102034, 1102036, 1102037, 1102038)"
+ 1023  mysql --login-path=tiledb tiledb -t -e "UPDATE daughterboard SET burn_in_stop = '2026-07-22 13:31:02' WHERE serial_no IN (1102030, 1102033, 1102034, 1102036, 1102037, 1102038)"
+ 1024  mysql --login-path=tiledb tiledb -t -e "SELECT * FROM daughterboard"
+ 1025  mysql --login-path=tiledb tiledb -t -e "UPDATE daughterboard SET burn_in_start = '2026-07-17 12:00:26' WHERE serial_no IN (1102041, 1102042, 1102044)"
+ 1026  mysql --login-path=tiledb tiledb -t -e "UPDATE daughterboard SET burn_in_stop = '2026-07-22 13:31:02' WHERE serial_no IN (1102041, 1102042, 1102044)"
+ 1027  mysql --login-path=tiledb tiledb -t -e "SELECT * FROM daughterboard"
+ 1028  mysql --login-path=tiledb tiledb -t -e "UPDATE daughterboard SET burn_in_start = '2026-07-17 12:00:26' WHERE serial_no IN (1102061, 1102062, 1102063, 1102064, 1102065, 1102067, 1102068)"
+ 1029  mysql --login-path=tiledb tiledb -t -e "UPDATE daughterboard SET burn_in_stop = '2026-07-22 13:31:02' WHERE serial_no IN (1102061, 1102062, 1102063, 1102064, 1102065, 1102067, 1102068)"
+ 1030  mysql --login-path=tiledb tiledb -t -e "SELECT * FROM daughterboard"
+ 1031  mysql --login-path=tiledb tiledb -t -e "UPDATE daughterboard SET burn_in_start = '2026-07-17 12:00:26' WHERE serial_no IN (1102070, 1102071, 1102072, 1102073, 1102074, 1102075, 1102076, 1102078, 1102079)"
+ 1032  mysql --login-path=tiledb tiledb -t -e "UPDATE daughterboard SET burn_in_stop = '2026-07-22 13:31:02' WHERE serial_no IN (1102070, 1102071, 1102072, 1102073, 1102074, 1102075, 1102076, 1102078, 1102079)"
+ 1033  mysql --login-path=tiledb tiledb -t -e "SELECT * FROM daughterboard"
+ 1034  mysql --login-path=tiledb tiledb -t -e "UPDATE daughterboard SET burn_in_start = '2026-07-17 12:00:26' WHERE serial_no IN (1102080)"
+ 1035  mysql --login-path=tiledb tiledb -t -e "UPDATE daughterboard SET burn_in_stop = '2026-07-22 13:31:02' WHERE serial_no IN (1102080)"
+ 1036  mysql --login-path=tiledb tiledb -t -e "SELECT * FROM daughterboard"
+ 1037  ls -lt
+ 1038  mysql --login-path=tiledb tiledb -t -e "SELECT * FROM daughterboard"
+ 1039  mysql --login-path=tiledb tiledb -t -e "SELECT * FROM benchtst"
+ 1040  mysql --login-path=tiledb tiledb -t -e "SELECT * FROM benchtest"
+ 1041  mysql --login-path=tiledb tiledb -t -e "SELECT * FROM daughterboard"
+ 1042  logout
+ 1043  ls -l
+ 1044  mysql --login-path=tiledb tiledb -t -e "SELECT * FROM benchtest"
+ 1045  mysql --login-path=tiledb tiledb -t -e "SELECT * FROM daughterboard"
+ 1046  cd atlas_lab_scripts/data_analyzer/
+ 1047  ssssss -l
+ 1048  ls -l
+ 1049  emacs DBQ.log 
+ 1050  mysql --login-path=tiledb tiledb -t -e "SELECT * FROM daughterboard"
+ 1051  set +o ignoreeof
+ 1052  set -o interactive-comments
+ 1053  set +o keyword
+ 1054  set -o monitor
+ 1055  set +o noclobber
+ 1056  set +o noexec
+ 1057  set +o noglob
+ 1058  set +o nolog
+ 1059  set +o notify
+ 1060  set +o onecmd
+ 1061  set +o physical
+ 1062  set +o posix
+ 1063  set +o privileged
+ 1064  set +o verbose
+ 1065  set +o xtrace
+ 1066  set +o ignoreeof
+ 1067  set -o interactive-comments
+ 1068  set +o keyword
+ 1069  set -o monitor
+ 1070  set +o noclobber
+ 1071  set +o noexec
+ 1072  set +o noglob
+ 1073  set +o nolog
+ 1074  set +o notify
+ 1075  set +o onecmd
+ 1076  set +o physical
+ 1077  set +o posix
+ 1078  set +o privileged
+ 1079  set +o verbose
+ 1080  set +o xtrace
+ 1081  cd /root/atlas_lab_scripts/data_analyzer
+ 1082  python DBQ_Mk6.py -r "all" -b "3-10"
+ 1083  python3 DBQ_Mk6.py -r "all" -b "3-10"
+ 1084  cd /var/www/html/drive/benchtests
+ 1085  ls -la /var/www/html/drive/benchtests/
+ 1086  ls -la /var/www/html/drive/benchtests/benchtest_id_9/
+ 1087  ls -la /var/www/html/drive/benchtests/benchtest_id_9/DB_1100001/
+ 1088  ls -la /var/www/html/drive/benchtests/benchtest_id_10/
+ 1089  ls -la /var/www/html/drive/benchtests/benchtest_id_10/DB_1100001/
+ 1090  cd /root/atlas_lab_scripts/data_analyzer
+ 1091  python DBQ_Mk6.py -r "benchtest_id_results_log" -b "143"
+ 1092  python3 DBQ_Mk6.py -r "benchtest_id_results_log" -b "143"
+ 1093  ls -l
+ 1094  cd atlas_lab_scripts/data_analyzer/
+ 1095  ls -l
+ 1096  mysql --login-path=tiledb tiledb -t -e "SELECT * FROM daughterboard"
+ 1097  mysql --login-path=tiledb tiledb -t -e "SELECT *serial_no  FROM daughterboard"
+ 1098  mysql --login-path=tiledb tiledb -t -e "SELECT serial_no FROM daughterboard WHERE burn_in_start = '2026-07-17 12:00:26'"
+ 1099  mysql --login-path=tiledb tiledb -t -e "SELECT serial_no, burn_in FROM daughterboard WHERE burn_in_start = '2026-07-17 12:00:26'"
+ 1100  mysql --login-path=tiledb tiledb -t -e "UPDATE daughterboard SET burn_in = '1' WHERE burn_in_start = '2026-07-17 12:00:26'"
+ 1101  mysql --login-path=tiledb tiledb -t -e "SELECT serial_no, burn_in FROM daughterboard WHERE burn_in_start = '2026-07-17 12:00:26'"
+ 1102  mysql --login-path=tiledb tiledb -t -e "SELECT *serial_no  FROM daughterboard"
+ 1103  mysql --login-path=tiledb tiledb -t -e "SELECT *  FROM daughterboard"
+ 1104  mysql --login-path=tiledb tiledb -t -e "UPDATE daughterboard SET burn_in_start = '2026-07-22 13:55:57' WHERE serial_no IN (1102007, 1102014, 1102015, 1102016, 1102017)"
+ 1105  mysql --login-path=tiledb tiledb -t -e "UPDATE daughterboard SET burn_in_stop = '2026-07-27 13:37:09' WHERE serial_no IN (1102007, 1102014, 1102015, 1102016, 1102017)"
+ 1106  mysql --login-path=tiledb tiledb -t -e "SELECT *  FROM daughterboard"
+ 1107  mysql --login-path=tiledb tiledb -t -e "UPDATE daughterboard SET burn_in_start = '2026-07-22 13:55:57' WHERE serial_no IN (1102018, 1102019, 1102020, 1102021, 1102022, 1102023)"
+ 1108  mysql --login-path=tiledb tiledb -t -e "UPDATE daughterboard SET burn_in_stop = '2026-07-27 13:37:09' WHERE serial_no IN (1102018, 1102019, 1102020, 1102021, 1102022, 1102023)"
+ 1109  mysql --login-path=tiledb tiledb -t -e "SELECT *  FROM daughterboard"
+ 1110  mysql --login-path=tiledb tiledb -t -e "UPDATE daughterboard SET burn_in_start = '2026-07-22 13:55:57' WHERE serial_no IN (1102025, 1102026, 1102027)"
+ 1111  mysql --login-path=tiledb tiledb -t -e "UPDATE daughterboard SET burn_in_stop = '2026-07-27 13:37:09' WHERE serial_no IN (1102025, 1102026, 1102027)"
+ 1112  mysql --login-path=tiledb tiledb -t -e "SELECT *  FROM daughterboard"
+ 1113  mysql --login-path=tiledb tiledb -t -e "UPDATE daughterboard SET burn_in_start = '2026-07-22 13:55:57' WHERE serial_no IN (1102028, 1102029)"
+ 1114  mysql --login-path=tiledb tiledb -t -e "UPDATE daughterboard SET burn_in_stop = '2026-07-27 13:37:09' WHERE serial_no IN (1102028, 1102029)"
+ 1115  mysql --login-path=tiledb tiledb -t -e "SELECT *  FROM daughterboard"
+ 1116  mysql --login-path=tiledb tiledb -t -e "UPDATE daughterboard SET burn_in_start = '2026-07-22 13:55:57' WHERE serial_no = '1102031'"
+ 1117  mysql --login-path=tiledb tiledb -t -e "UPDATE daughterboard SET burn_in_stop = '2026-07-27 13:37:09' WHERE serial_no = '1102031'"
+ 1118  mysql --login-path=tiledb tiledb -t -e "UPDATE daughterboard SET burn_in_start = '2026-07-22 13:55:57' WHERE serial_no = '1102035'"
+ 1119  mysql --login-path=tiledb tiledb -t -e "UPDATE daughterboard SET burn_in_stop = '2026-07-27 13:37:09' WHERE serial_no = '1102035'"
+ 1120  mysql --login-path=tiledb tiledb -t -e "UPDATE daughterboard SET burn_in_start = '2026-07-22 13:55:57' WHERE serial_no = '1102039'"
+ 1121  mysql --login-path=tiledb tiledb -t -e "UPDATE daughterboard SET burn_in_stop = '2026-07-27 13:37:09' WHERE serial_no = '1102039'"
+ 1122  mysql --login-path=tiledb tiledb -t -e "SELECT *  FROM daughterboard"
+ 1123  mysql --login-path=tiledb tiledb -t -e "UPDATE daughterboard SET burn_in_start = '2026-07-22 13:55:57' WHERE serial_no = '1102040'"
+ 1124  mysql --login-path=tiledb tiledb -t -e "UPDATE daughterboard SET burn_in_stop = '2026-07-27 13:37:09' WHERE serial_no = '1102040'"
+ 1125  mysql --login-path=tiledb tiledb -t -e "SELECT *  FROM daughterboard"
+ 1126  mysql --login-path=tiledb tiledb -t -e "UPDATE daughterboard SET burn_in_start = '2026-07-22 13:55:57' WHERE serial_no IN (1102043, 1102045, 1102046, 1102047, 1102048, 1102049)"
+ 1127  mysql --login-path=tiledb tiledb -t -e "SELECT *  FROM daughterboard"
+ 1128  mysql --login-path=tiledb tiledb -t -e "UPDATE daughterboard SET burn_in_stop = '2026-07-27 13:37:09' WHERE serial_no IN (1102043, 1102045, 1102046, 1102047, 1102048, 1102049)"
+ 1129  mysql --login-path=tiledb tiledb -t -e "SELECT *  FROM daughterboard"
+ 1130  mysql --login-path=tiledb tiledb -t -e "UPDATE daughterboard SET burn_in_start = '2026-07-22 13:55:57' WHERE serial_no IN (1102050, 1102051, 1102052, 1102053, 1102054, 1102055, 1102056, 1102057, 1102058, 1102059)"
+ 1131  mysql --login-path=tiledb tiledb -t -e "UPDATE daughterboard SET burn_in_stop = '2026-07-27 13:37:09' WHERE serial_no IN (1102050, 1102051, 1102052, 1102053, 1102054, 1102055, 1102056, 1102057, 1102058, 1102059)"
+ 1132  mysql --login-path=tiledb tiledb -t -e "SELECT *  FROM daughterboard"
+ 1133  mysql --login-path=tiledb tiledb -t -e "UPDATE daughterboard SET burn_in_start = '2026-07-22 13:55:57' WHERE serial_no IN (1102060, 1102066, 1102077)"
+ 1134  mysql --login-path=tiledb tiledb -t -e "UPDATE daughterboard SET burn_in_stop = '2026-07-27 13:37:09' WHERE serial_no IN (1102060, 1102066, 1102077)"
+ 1135  mysql --login-path=tiledb tiledb -t -e "SELECT *  FROM daughterboard"
+ 1136  mysql --login-path=tiledb tiledb -t -e "UPDATE daughterboard SET burn_in = '1' WHERE burn_in_start = '2026-07-22 13:55:57'"
+ 1137  mysql --login-path=tiledb tiledb -t -e "SELECT *  FROM daughterboard"
+ 1138  mysql --login-path=tiledb tiledb -t -e "SELECT *  FROM benchtest" > benchtest.txt
+ 1139  emacs benchtest.txt 
+ 1140  mysql --login-path=tiledb tiledb -t -e "UPDATE daughterboard SET kintex_a_id = '40020001017166292CB14305' WHERE serial_no = '1102010'"
+ 1141  mysql --login-path=tiledb tiledb -t -e "SELECT * from daughterboard WHERE kintex_a_id = '40020001017166292CB14305'"
+ 1142  mysql --login-path=tiledb tiledb -t -e "SELECT *  FROM daughterboard"
+ 1143  emacs benchtest.txt 
+ 1144  mysql --login-path=tiledb tiledb -t -e "SELECT *  FROM daughterboard WHERE db_status = '0'"
+ 1145  emacs benchtest.txt 
+ 1146  emacs DaughterBoardQual.sh
+ 1147  emacs emacs DBQ_Mk5.py
+ 1148  emacs DBQ_Mk5.py
+ 1149  emacs benchtest.txt 
+ 1150  mysql --login-path=tiledb tiledb -t -e "SELECT *  FROM daughterboard WHERE db_status = '0'"
+ 1151  emacs benchtest.txt 
+ 1152  mysql --login-path=tiledb tiledb -t -e "SELECT *  FROM benchtest" > benchtest.txt
+ 1153  emacs benchtest.txt 
+ 1154  mysql --login-path=tiledb tiledb -t -e "SELECT *  FROM daughterboard WHERE db_status = '0'"
+ 1155  mysql --login-path=tiledb tiledb -t -e "SELECT *  FROM daughterboard"
+ 1156  set +o ignoreeof
+ 1157  set -o interactive-comments
+ 1158  set +o keyword
+ 1159  set -o monitor
+ 1160  set +o noclobber
+ 1161  set +o noexec
+ 1162  set +o noglob
+ 1163  set +o nolog
+ 1164  set +o notify
+ 1165  set +o onecmd
+ 1166  set +o physical
+ 1167  set +o posix
+ 1168  set +o privileged
+ 1169  set +o verbose
+ 1170  set +o xtrace
+ 1171  source git-filter-lsf-repo.sh 
+ 1172  ls -l
+ 1173  cd atlas_lab_scripts/data_analyzer/
+ 1174  ls -l
+ 1175  mysql --login-path=tiledb tiledb -t -e "SELECT * FROM benchtest"
+ 1176  mysql --login-path=tiledb tiledb -t -e "SELECT * FROM daughterboard WHERE db_status = 0"
+ 1177  mysql --login-path=tiledb tiledb -t -e "SELECT * FROM benchtest"
+ 1178  logout
+ 1179  source data_analyzer/myenv/bin/activate
+ 1180  top
+ 1181  ls
+ 1182  cd data_analyzer/
+ 1183  ls
+ 1184  source benchtest_cmd_helper.sh 14 143
+ 1185  set +o ignoreeof
+ 1186  set -o interactive-comments
+ 1187  set +o keyword
+ 1188  set -o monitor
+ 1189  set +o noclobber
+ 1190  set +o noexec
+ 1191  set +o noglob
+ 1192  set +o nolog
+ 1193  set +o notify
+ 1194  set +o onecmd
+ 1195  set +o physical
+ 1196  set +o posix
+ 1197  set +o privileged
+ 1198  set +o verbose
+ 1199  set +o xtrace
+ 1200  cd atlas_lab_scripts/data_analyzer/
+ 1201  ls -l
+ 1202  mysql --login-path=tiledb tiledb -t -e "SELECT * FROM daughterboard"
+ 1203  mysql --login-path=tiledb tiledb -t -e "SELECT * FROM benchtest"
+ 1204  source data_analyzer/myenv/bin/activate
+ 1205  cd data_analyzer/
+ 1206  ls
+ 1207  python production_plots_v1.py 
+ 1208  ls /var/www/html/drive/benchtests/
+ 1209  ls /var/www/html/drive/benchtests/benchtest_id_1
+ 1210  python production_plots_v1.py 
+ 1211  cp DBQ_Mk6.py DBQ_Mk6_backup.py
+ 1212  python DBQ_Mk6.py -r "benchtest_id_results_log" -b "1-6"
+ 1213  python DBQ_Mk6.py -r "benchtest_id_results_log" -b "2"
+ 1214  python DBQ_Mk6.py -r "benchtest_id_results_log" -b "6-149"
+ 1215  ls -l
+ 1216  cd atlas_lab_scripts/data_analyzer/
+ 1217  ls -l
+ 1218  ls -lt
+ 1219  emacs /etc/systemd/system/DaughterBoardQual.timer
+ 1220  emacs DaughterBoardQual.service 
+ 1221  ls
+ 1222  emacs DaughterBoardQual.sh
+ 1223  diff DBQ_Mk5.py db-qual/DBQ_Mk5.py 
+ 1224  mysql --login-path=tiledb tiledb -t -e "SELECT * FROM daughterboard"
+ 1225  mysql --login-path=tiledb tiledb -t -e "SELECT * FROM benchtest"
+ 1226  mysql --login-path=tiledb tiledb -t -e "SELECT * FROM daughterboard"
+ 1227  mysql --login-path=tiledb tiledb -t -e "SELECT * FROM daughterboard WHERE a0 = 'NULL'"
+ 1228  mysql --login-path=tiledb tiledb -t -e "SELECT * FROM daughterboard WHERE a0 = ''"
+ 1229  mysql --login-path=tiledb tiledb -t -e "SELECT * FROM daughterboard WHERE a0 = NULL"
+ 1230  mysql --login-path=tiledb tiledb -t -e "SELECT * FROM daughterboard WHERE a0 IS NULL"
+ 1231  emcas DBQ_Mk6.py 
+ 1232  emacs DBQ_Mk6.py 
+ 1233  mysql --login-path=tiledb tiledb -t -e "SELECT * FROM benchtest"
+ 1234  ls -l
+ 1235  cd DBQLogs/
+ 1236  ls -l
+ 1237  ls -lt
+ 1238  ls -l
+ 1239  cd ..
+ 1240  ls -l
+ 1241  mysql --login-path=tiledb tiledb -t -e "SELECT * FROM daughteboard"
+ 1242  mysql --login-path=tiledb tiledb -t -e "SELECT * FROM daughterboard"
+ 1243  hist > hist.txt
+ 1244  set +o ignoreeof
+ 1245  set -o interactive-comments
+ 1246  set +o keyword
+ 1247  set -o monitor
+ 1248  set +o noclobber
+ 1249  set +o noexec
+ 1250  set +o noglob
+ 1251  set +o nolog
+ 1252  set +o notify
+ 1253  set +o onecmd
+ 1254  set +o physical
+ 1255  set +o posix
+ 1256  set +o privileged
+ 1257  set +o verbose
+ 1258  set +o xtrace
+ 1259  cd data_analyzer/
+ 1260  ls *.sh
+ 1261  source myenv/
+ 1262  source myenv/bin/activate
+ 1263  ls
+ 1264  source benchtest_cmd_helper.sh 
+ 1265  ls
+ 1266  lsblk 
+ 1267  cd /var/www/html/
+ 1268  ls
+ 1269  cd drive/
+ 1270  ls
+ 1271  df -h .
+ 1272  du -hd 1 | sort -h
+ 1273  cd haos/
+ 1274  ls
+ 1275  ls -a
+ 1276  ls 
+ 1277  ls -h
+ 1278  ls --help
+ 1279  ls -s
+ 1280  du -hd 1 | sort -h
+ 1281  cd ..
+ 1282  cd drive/
+ 1283  du -hd 1 | sort -h
+ 1284  df -h .
+ 1285  exit
+ 1286  cd atlas_lab_scripts/data_analyzer/
+ 1287  ls -l
+ 1288  mysql --login-path=tiledb tiledb -t -e "SELECT * FROM daughterboard"
+ 1289  emacs benchtest.txt 
+ 1290  emacs DBQ_Mk5.py
+ 1291  emacs DBQLogs/DBQ_20260724.log 
+ 1292  exit
+ 1293  mysql --login-path=tiledb tiledb -t -e "SELECT * FROM daughterboard"
+ 1294  mysql --login-path=tiledb tiledb -t -e "SELECT * FROM benchtest"
+ 1295  systemctl stop DaughterBoardQual.timer 
+ 1296  systemctl list-timers --all
+ 1297  mysql --login-path=tiledb tiledb -t -e "SELECT * FROM benchtest"
+ 1298  emacs DBQ.log
+ 1299  ls -lt
+ 1300  cd atlas_lab_scripts/data_analyzer/
+ 1301  ls -lt
+ 1302  emacs DBQ.log
+ 1303  ls -l
+ 1304  mysql --login-path=tiledb tiledb -t -e "INSERT INTO benchtest VALUES ('2026-07-30 23:00:00', '2026-07-31 08:00:00', 'DD', '1', )"
+ 1305  ls -l
+ 1306  mysql --login-path=tiledb tiledb -t -e "SELECT * FROM benchtest"
+ 1307  mysql --login-path=tiledb tiledb -t -e "SELECT * FROM daughterboard WHERE kinte_a_id = '40020001017166292D316185'"
+ 1308  mysql --login-path=tiledb tiledb -t -e "SELECT * FROM daughterboard WHERE kintex_a_id = '40020001017166292D316185'"
+ 1309  mysql --login-path=tiledb tiledb -t -e "SELECT * FROM daughterboard"
+ 1310  mysql --login-path=tiledb tiledb -t -e "SELECT * FROM daughterboard WHERE kintex_a_id = '40020001017166292C212605'"
+ 1311  mysql --login-path=tiledb tiledb -t -e "SELECT * FROM daughterboard WHERE kintex_a_id = '40020001017166292D318245'"
+ 1312  mysql --login-path=tiledb tiledb -t -e "SELECT * FROM daughterboard WHERE kintex_a_id = '40020001017166292CA1C445'"
+ 1313  mysql --login-path=tiledb tiledb -t -e "INSERT INTO benchtest VALUES ('2026-07-30 23:00:00', '2026-07-31 08:00:00', 'DD', '1', '1102047', '1102058', '1102049', '1102055')"
+ 1314  mysql --login-path=tiledb tiledb -t -e "SELECT * FROM benchtest"
+ 1315  mysql --login-path=tiledb tiledb -t -e "SELECT * FROM daughterboard WHERE kintex_a_id = '40020001017166292CA1C445'"
+ 1316  mysql --login-path=tiledb tiledb -t -e "INSERT INTO benchtest VALUES ('2026-07-30 23:00:00', '2026-07-31 08:00:00', 'DD', '1', '1102047', '1102058', '1102049', '1102055')"
+ 1317  mysql --login-path=tiledb tiledb -t -e "INSERT INTO benchtest VALUES ('900', '2026-07-30 23:00:00', '2026-07-31 08:00:00', 'DD', '1', '1102047', '1102058', '1102049', '1102055')"
+ 1318  mysql --login-path=tiledb tiledb -t -e "SELECT * FROM benchtest"
+ 1319  mysql --login-path=tiledb tiledb -t -e "UPDATE benchtest SET id = 901 WHERE id = 900"
+ 1320  mysql --login-path=tiledb tiledb -t -e "SELECT * FROM benchtest"
+ 1321  mysql --login-path=tiledb tiledb -t -e "INSERT INTO benchtest VALUES ('902', '2026-07-31 09:34:00', '2026-07-31 14:00:00', 'CC', '1', '1102066', '1102077', '1102060', '1102059')"
+ 1322  mysql --login-path=tiledb tiledb -t -e "SELECT * FROM benchtest"
+ 1323  history
+ 1324  mysql --login-path=tiledb tiledb -t -e "SELECT * FROM daughterboard"
+ 1325  mysql --login-path=tiledb tiledb -t -e "SELECT * FROM benchtest" > benchtest.txt 
+ 1326  emacs bench
+ 1327  ls -l 
+ 1328  emacs benchtetst.txt
+ 1329  emacs benchtest.txt
+ 1330  emacs vars.yaml
+ 1331  emacs benchtest.txt
+ 1332  mysql --login-path=tiledb tiledb -t -e "SELECT * FROM daughterboard"
+ 1333  emacs benchtest.txt
+ 1334  mysql --login-path=tiledb tiledb -t -e "SELECT * FROM benchtest"
+ 1335  mysql --login-path=tiledb tiledb -t -e "UPDATE benchtest SET test_pass = '1' WHERE id = '144'"
+ 1336  mysql --login-path=tiledb tiledb -t -e "UPDATE benchtest SET test_pass = '1' WHERE id = '146'"
+ 1337  mysql --login-path=tiledb tiledb -t -e "SELECT * FROM benchtest"
+ 1338  mysql --login-path=tiledb tiledb -t -e "UPDATE benchtest SET test_pass = '2' WHERE id = '902'"
+ 1339  mysql --login-path=tiledb tiledb -t -e "SELECT * FROM benchtest"
+ 1340  source myenv/bin/activate'
+ 1341  source myenv/bin/activate
+ 1342  python3 DBQ_Mk5.py 
+ 1343  mysql --login-path=tiledb tiledb -t -e "SELECT * FROM benchtest" > benchtest.txt
+ 1344  emacs benchtest.txt 
+ 1345  mysql --login-path=tiledb tiledb -t -e "SELECT * FROM benchtest"
+ 1346  mysql --login-path=tiledb tiledb -t -e "UPDATE benchtest SET test_pass = '3' WHERE id = '902'"
+ 1347  mysql --login-path=tiledb tiledb -t -e "UPDATE benchtest SET test_pass = '2' WHERE id = '901'"
+ 1348  python3 DBQ_Mk5.py 
+ 1349  mysql --login-path=tiledb tiledb -t -e "SELECT * FROM benchtest"
+ 1350  emacs benchtest.txt 
+ 1351  mysql --login-path=tiledb tiledb -t -e "SELECT * FROM daughterboard"
+ 1352  emacs benchtest.txt 
+ 1353  emacs vars.yaml
+ 1354  mysql --login-path=tiledb tiledb -t -e "SELECT * FROM benchtest"
+ 1355  python3 DBQ_Mk5.py 
+ 1356  mysql --login-path=tiledb tiledb -t -e "SELECT * FROM benchtest"
+ 1357  mysql --login-path=tiledb tiledb -t -e "UPDATE benchtest SET id = '152' WHERE id = '150'"
+ 1358  mysql --login-path=tiledb tiledb -t -e "SELECT * FROM benchtest"
+ 1359  mysql --login-path=tiledb tiledb -t -e "UPDATE benchtest SET id = '150' WHERE id = '901'"
+ 1360  mysql --login-path=tiledb tiledb -t -e "SELECT * FROM benchtest"
+ 1361  mysql --login-path=tiledb tiledb -t -e "UPDATE benchtest SET id = '151' WHERE id = '902'"
+ 1362  mysql --login-path=tiledb tiledb -t -e "SELECT * FROM benchtest"
+ 1363  mysql --login-path=tiledb tiledb -t -e "UPDATE benchtest SET test_pass = '1' WHERE id = '150'"
+ 1364  mysql --login-path=tiledb tiledb -t -e "UPDATE benchtest SET test_pass = '1' WHERE id = '151'"
+ 1365  mysql --login-path=tiledb tiledb -t -e "UPDATE benchtest SET test_pass = '1' WHERE id = '152'"
+ 1366  mysql --login-path=tiledb tiledb -t -e "SELECT * FROM benchtest"
+ 1367  mysql --login-path=tiledb tiledb -t -e "UPDATE benchtest SET test_pass = '2' WHERE id = '152'"
+ 1368  python3 DBQ_Mk5.py 
+ 1369  mysql --login-path=tiledb tiledb -t -e "SELECT * FROM daughterboard"
+ 1370  emacs DBQ_Mk5
+ 1371  emacs DBQ_Mk5.py
+ 1372  systemctl list-timres --all
+ 1373  systemctl list-timers --all
+ 1374  emacs DBQ.log 
+ 1375  mysql --login-path=tiledb tiledb -t -e "SELECT * FROM benchtest"
+ 1376  mysql --login-path=tiledb tiledb -t -e "UPDATE benchtest SET test_pass = '1' WHERE id = '152'"
+ 1377  mysql --login-path=tiledb tiledb -t -e "SELECT * FROM benchtest"
+ 1378  systemctl start DaughterBoardQual.timer 
+ 1379  mysql --login-path=tiledb tiledb -t -e "SELECT * FROM benchtest"
+ 1380  ls -l
+ 1381  systemctl list-timers --all
+ 1382  ls -l
+ 1383  ls -l DBQLog
+ 1384  ls -l DBQLogs/
+ 1385  systemctl start DaughterBoardLog.timer
+ 1386  systemctl list-timers --all
+ 1387  mysql --login-path=tiledb tiledb -t -e "SELECT * FROM benchtest"
+ 1388  mysql --login-path=tiledb tiledb -t -e "SELECT * FROM daughterboard"
+ 1389  mysql --login-path=tiledb tiledb -t -e "SELECT * FROM benchtest"
+ 1390  mysql --login-path=tiledb tiledb -t -e "SELECT * FROM daughterboard"
+ 1391  mysql --login-path=tiledb tiledb -t -e "SELECT * FROM daughterboard WHERE burn_in_start = '2026-07-17 12:00:26'"
+ 1392  mysql --login-path=tiledb tiledb -t -e "SELECT * FROM daughterboard WHERE burn_in_stop = '2026-07-31 19:47:57'"
+ 1393  mysql --login-path=tiledb tiledb -t -e "SELECT * FROM daughterboard WHERE burn_in_stop = '2026-07-31 19:48:15'"
+ 1394  mysql --login-path=tiledb tiledb -t -e "SELECT * FROM daughterboard WHERE burn_in_stop = '2026-07-31 19:48:34'"
+ 1395  mysql --login-path=tiledb tiledb -t -e "SELECT * FROM daughterboard WHERE burn_in_stop = '2026-07-31 19:48:49'"
+ 1396  mysql --login-path=tiledb tiledb -t -e "SELECT * FROM daughterboard WHERE burn_in_stop = '2026-07-31 19:49:07'"
+ 1397  mysql --login-path=tiledb tiledb -t -e "SELECT * FROM daughterboard WHERE burn_in_start = '2026-07-22 13:55:57'"
+ 1398  ls -lt
+ 1399  ls -l
+ 1400  mysql --login-path=tiledb tiledb -t -e "SELECT * FROM daughterboard ORDER BY burn_in_stop"
+ 1401  ls -.l"
+ 1402  ls -l
+ 1403  emacs DaughterBoardQual.sh 
+ 1404  ls -l
+ 1405  emacs production_plots_v1.py 
+ 1406  ls -l
+ 1407  emacs DaughterBoardQual.sh 
+ 1408  history > hist.txt 
+ 1409  emacs hist.txt 
+ 1410  mysql --login-path=tiledb tiledb -t -e "SELECT * FROM daughterboard ORDER BY burn_in_start"
+ 1411  mysql --login-path=tiledb tiledb -t -e "SELECT * FROM daughterboard ORDER BY burn_in_start, burn_in_stop"
+ 1412  mysql --login-path=tiledb tiledb -t -e "SELECT * FROM daughterboard ORDER BY burn_in_stop"
+ 1413  ls -l
+ 1414  mysql --login-path=tiledb tiledb -t -e "SELECT * FROM daughterboard"
+ 1415  mysql --login-path=tiledb tiledb -t -e "SELECT * FROM benchtest" > benchtest.txt
+ 1416  emacs benchtest.txt 
+ 1417  mysql --login-path=tiledb tiledb -t -e "UPDATE daughteboard SET burn_in_stop = '2026-07-22 13:31:02' WHERE serial_no = '1102001'"
+ 1418  mysql --login-path=tiledb tiledb -t -e "UPDATE daughterboard SET burn_in_stop = '2026-07-22 13:31:02' WHERE serial_no = '1102001'"
+ 1419  mysql --login-path=tiledb tiledb -t -e "SELECT * FROM daughterboard"
+ 1420  emacs production_plots_v1.py 
+ 1421  emacs DaughterBoardQual.sh 
+ 1422  systemctl list-timers --all
+ 1423  emacs production_plots_v1.py 
+ 1424  emacs DBQ.log 
+ 1425  ls -lt
+ 1426  rm \#DBQ.log# 
+ 1427  emacs DBQ.log 
+ 1428  emacs production_plots_v1.py 
+ 1429  emacs DBQ.log 
+ 1430  mysql --login-path=tiledb tiledb -t -e "SELECT * FROM daughterboard ORDER BY burn_in_start, burn_in_stop"
+ 1431  mysql --login-path=tiledb tiledb -t -e "SELECT * FROM daughterboard ORDER BY burn_in_stop"
+ 1432  mysql --login-path=tiledb tiledb -t -e "SELECT * FROM daughterboard ORDER BY burn_in_stop, serial_no"
+ 1433  mysql --login-path=tiledb tiledb -t -e "UPDATE daughterboard SET burn_in_stop = '2026-07-22 13:31:02' WHERE serial_no IN (1102002, 1102004, 1102006, 1101010)"
+ 1434  mysql --login-path=tiledb tiledb -t -e "SELECT * FROM daughterboard ORDER BY burn_in_stop, serial_no"
+ 1435  mysql --login-path=tiledb tiledb -t -e "UPDATE daughterboard SET burn_in_stop = '2026-04-23 13:20:00' WHERE serial_no = '1101010'"
+ 1436  mysql --login-path=tiledb tiledb -t -e "SELECT * FROM daughterboard ORDER BY burn_in_start, burn_in_stop, serial_no"
+ 1437  mysql --login-path=tiledb tiledb -t -e "UPDATE daughterboard SET burn_in_stop = '2026-07-22 13:31:02' WHERE serial_no = '1102010'"
+ 1438  mysql --login-path=tiledb tiledb -t -e "SELECT * FROM daughterboard ORDER BY burn_in_start, burn_in_stop, serial_no"
+ 1439  mysql --login-path=tiledb tiledb -t -e "UPDATE daughterboard SET burn_in_stop = '2026-07-22 13:31:02' WHERE burn_in_stop > '2026-07-27 13:38:00'"
+ 1440  mysql --login-path=tiledb tiledb -t -e "SELECT * FROM daughterboard ORDER BY burn_in_start, burn_in_stop, serial_no"
+ 1441  mysql --login-path=tiledb tiledb -t -e "SELECT * FROM daughterboard ORDER BY burn_in_start, burn_in_stop, serial_no WHERE serial_no in (1102016, 1102017, 1102018, 1102019, 1102025, 1102029, 1102031, 1102048)"
+ 1442  mysql --login-path=tiledb tiledb -t -e "SELECT * FROM daughterboard ORDER BY burn_in_start, burn_in_stop, serial_no WHERE serial_no IN (1102016, 1102017, 1102018, 1102019, 1102025, 1102029, 1102031, 1102048)"
+ 1443  mysql --login-path=tiledb tiledb -t -e "SELECT * FROM daughterboard WHERE serial_no IN (1102016, 1102017, 1102018, 1102019, 1102025, 1102029, 1102031, 1102048)"
+ 1444  mysql --login-path=tiledb tiledb -t -e "SELECT * FROM daughterboard WHERE burn_in_stop = '2026-07-22 13:31:02'"
+ 1445  mysql --login-path=tiledb tiledb -t -e "SELECT * FROM daughterboard WHERE burn_in_start = '2026-07-17 12:00:26'"
+ 1446  mysql --login-path=tiledb tiledb -t -e "SELECT * FROM daughterboard WHERE burn_in_start = '2026-07-22 13:55:57'"
+ 1447  mysql --login-path=tiledb tiledb -t -e "UPDATE daughterboard SET burn_in_stop = '2026-07-27 13:37:09' WHERE serial_no IN ('1102016', '1102017', '1102018', '1102019', '1102025', '1102029', '1102031', '1102048')
+ 1448  mysql --login-path=tiledb tiledb -t -e "UPDATE daughterboard SET burn_in_stop = '2026-07-27 13:37:09' WHERE serial_no IN ('1102016', '1102017', '1102018', '1102019', '1102025', '1102029', '1102031', '1102048')"
+ 1449  mysql --login-path=tiledb tiledb -t -e "SELECT * FROM daughterboard WHERE burn_in_start = '2026-07-22 13:55:57'"
+ 1450  mysql --login-path=tiledb tiledb -t -e "SELECT * FROM daughterboard ORDER BY burn_in_start"
+ 1451  mysql --login-path=tiledb tiledb -t -e "SELECT * FROM daughterboard ORDER BY burn_in_start, serial_no"
+ 1452  emacs benchtest.txt 
+ 1453  mysql --login-path=tiledb tiledb -t -e "SELECT * FROM daughterboard"
+ 1454  emacs benchtest.txt 
+ 1455  cd atlas_lab_scripts/data_analyzer/
+ 1456  ls -l
+ 1457  emacs benchtest.txt 
+ 1458  cp benchtest.txt
+ 1459  cp benchtest.txt Batch2BTs.txt
+ 1460  emacs Batch2BTs.txt 
+ 1461  ls
+ 1462  ls -r
+ 1463  ls -t
+ 1464  rm Batch2BTs.txt 
+ 1465  emacs benchtest.txt 
+ 1466  mysql --login-path=tiledb tiledb -t -e "SELECT * FROM daughterboard"
+ 1467  emacs benchtest.txt 
+ 1468  pwd
+ 1469  ls
+ 1470  ls -t
+ 1471  logout
+ 1472  cd atlas_lab_scripts/data_analyzer/
+ 1473  ls -l
+ 1474  mysql --login-path=tiledb tiledb -t -e "SELECT * FROM benchtest"
+ 1475  mysql --login-path=tiledb tiledb -t -e "SELECT * FROM benchtest" > benchtest.txt
+ 1476  emacs benchtest.txt 
+ 1477  exit
+ 1478  cd atlas_lab_scripts/data_analyzer/
+ 1479  ls -l
+ 1480  emacs DBQ_Mk5.py
+ 1481  systemctl stop DaughterBoardQual.timer
+ 1482  ls -l
+ 1483  emacs DBQ.log 
+ 1484  tail DBQ.log
+ 1485  emacs DBQ.log 
+ 1486  mysql --login-path=tiledb tiledb -t -e "SELECT * FROM benchtest WHERE id = 116
+ 1487  mysql --login-path=tiledb tiledb -t -e "SELECT * FROM benchtest WHERE id = 116"
+ 1488  mysql --login-path=tiledb tiledb -t -e "UPDATE benchtest SET test_pass = 2 WHERE id = '116'""
+ 1489  mysql --login-path=tiledb tiledb -t -e "UPDATE benchtest SET test_pass = 2 WHERE id = '116'"
+ 1490  mysql --login-path=tiledb tiledb -t -e "SELECT * FROM benchtest WHERE id = 116"
+ 1491  source myenv/bin/activate
+ 1492  python3 DBQ_Mk5.py 
+ 1493  emacs DBQ_Mk5.py
+ 1494  python3 DBQ_Mk5.py > bt116.txt
+ 1495  emacs bt116.txt 
+ 1496  rm bt116.txt 
+ 1497  emacs DBQ_Mk5.py
+ 1498  diff DBQ_Mk5.py db-qual/DBQ_Mk5.py 
+ 1499  emacs DBQ_Mk5.py
+ 1500  mysql --login-path=tiledb tiledb -t -e "SELECT * FROM benchtest WHERE id = 116"
+ 1501  mysql --login-path=tiledb tiledb -t -e "UPDATE benchtest SET test_pass = 3 WHERE id = 116"
+ 1502  mysql --login-path=tiledb tiledb -t -e "SELECT * FROM benchtest WHERE id = 116"
+ 1503  mysql --login-path=tiledb tiledb -t -e "SELECT * FROM benchtest"
+ 1504  systemctl start DaughterBoardQual.timer
+ 1505  tail DBQ.log 
+ 1506  mysql --login-path=tiledb tiledb -t -e "SELECT * FROM benchtest"
+ 1507  mysql --login-path=tiledb tiledb -t -e "SELECT * FROM benchtest" > benchtest.txt 
+ 1508  emacs benchtest
+ 1509  emacs benchtest.txt 
+ 1510  ls
+ 1511  mysql --login-path=tiledb tiledb -t -e "SELECT * FROM daughterboard" 
+ 1512  mysql --login-path=tiledb tiledb -t -e "SELECT * FROM daughterboard"  > daughterboard.txt
+ 1513  emacs daughterboard.txt 
+ 1514  cd /var/www/html/drive/
+ 1515  ls
+ 1516  cd b
+ 1517  cd benchtests/
+ 1518  ls
+ 1519  cd benchtest_id_145/
+ 1520  ls
+ 1521  emacs benchtest_id_145.log 
+ 1522  cd
+ 1523  cd atlas_lab_scripts/data_analyzer/
+ 1524  dc DBQLogs
+ 1525  cd DBQLogs
+ 1526  emacs DBQ_20260729
+ 1527  emacs DBQ_20260728.log 
+ 1528  emacs DBQ_20260731.log 
+ 1529  cd ..
+ 1530  cd /var/www/html/drive/benchtests/benchtest_id_144/
+ 1531  ls -l
+ 1532  emacs benchtest_id_144.log 
+ 1533  cd ../benchtest_id_143/
+ 1534  emacs ~/atlas_lab_scripts/data_analyzer/DBQLogs/DBQ_20260728.log 
+ 1535  emacs ~/atlas_lab_scripts/data_analyzer/DBQLogs/DBQ_20260731.log 
+ 1536  cd 
+ 1537  cd atlas_lab_scripts/data_analyzer/
+ 1538  ls -l
+ 1539  mysql --login-path=tiledb tiledb -t -e "SELECT * FROM benchtest" 
+ 1540  mysql --login-path=tiledb tiledb -t -e "UPDATE benchtest SET test_pass = '1' WHERE id IN (144, 145, 146)" 
+ 1541  mysql --login-path=tiledb tiledb -t -e "SELECT * FROM benchtest" 
+ 1542  tail DBQ.log 
+ 1543  emacs DaughterBoarQual.sh
+ 1544  emacs DaughterBoardQual.sh
+ 1545  cd /var/www/html/drive/benchtests/benchtest_id_144/
+ 1546  ls -l
+ 1547  rmdir DB_1102016
+ 1548  rm DB_1102016/*
+ 1549  rm DB_11020167*
+ 1550  rm DB_110201/7*
+ 1551  rm DB_1102017/*
+ 1552  rm DB_1102018/*
+ 1553  ls -l
+ 1554  rmdir DB_1102016/
+ 1555  rmdir DB_1102017/
+ 1556  rmdir DB_1102018/
+ 1557  rmdir DB_1102019/
+ 1558  rm DB_1102019/*
+ 1559  rmdir DB_1102019/
+ 1560  rm benchtest_id_144*
+ 1561  ls -l
+ 1562  cd ..
+ 1563  rmdir benchtest_id_144/
+ 1564  cd benchtest_id_145/
+ 1565  ls -l
+ 1566  rm DB_*/*
+ 1567  rm DB_11020*/*
+ 1568  rm DB_1102014/*
+ 1569  rmdir DB_*
+ 1570  ls -l
+ 1571  rm benchtest_id_14*
+ 1572  cd ..
+ 1573  rmdir benchtest_id_145/
+ 1574  cd benchtest_id_146/
+ 1575  ls -l
+ 1576  rm DB_11020*/*
+ 1577  rmdir DB*
+ 1578  rm benchtest_id_146*
+ 1579  cd ..
+ 1580  rmdir benchtest_id_146
+ 1581  ls -l
+ 1582  cd
+ 1583  cd atlas_lab_scripts/data_analyzer/
+ 1584  ls -l
+ 1585  emacs DBQ.log 
+ 1586  emacs DaughterBoardQual.sh
+ 1587  ls -l
+ 1588  clear
+ 1589  ls -l
+ 1590  mysql --login-path=tiledb tiledb -t -e "SELECT * FROM benchtest" 
+ 1591  mysql --login-path=tiledb tiledb -t -e "UPDATE benchtest SET id = 153 WHERE id = 904"
+ 1592  mysql --login-path=tiledb tiledb -t -e "SELECT * FROM benchtest" 
+ 1593  mysql --login-path=tiledb tiledb -t -e "UPDATE benchtest SET id = 154 WHERE id = 905"
+ 1594  mysql --login-path=tiledb tiledb -t - 
+ 1595  mysql --login-path=tiledb tiledb -t -e "SHOW TABLE STATUS LIKE 'benchtest'"
+ 1596  mysql --login-path=tiledb tiledb -t -e "SELECT * FROM benchtest" 
+ 1597  emacs benchtest.txt 
+ 1598  mysql --login-path=tiledb tiledb -t -e "UPDATE benchtest SET id = 155 WHERE id = 906"
+ 1599  emacs benchtest.txt 
+ 1600  mv benchtest_OLDID.txt
+ 1601  mv benchtest.txt benchtest_OLDID.txt
+ 1602  mysql --login-path=tiledb tiledb -t -e "UPDATE benchtest SET id = 156 WHERE id = 907"
+ 1603  mysql --login-path=tiledb tiledb -t -e "UPDATE benchtest SET id = 157 WHERE id = 908"
+ 1604  mysql --login-path=tiledb tiledb -t -e "UPDATE benchtest SET id = 158 WHERE id = 909"
+ 1605  mysql --login-path=tiledb tiledb -t -e "UPDATE benchtest SET id = 159 WHERE id = 910"
+ 1606  mysql --login-path=tiledb tiledb -t -e "UPDATE benchtest SET id = 160 WHERE id = 911"
+ 1607  mysql --login-path=tiledb tiledb -t -e "UPDATE benchtest SET id = 161 WHERE id = 912"
+ 1608  mysql --login-path=tiledb tiledb -t -e "UPDATE benchtest SET id = 162 WHERE id = 913"
+ 1609  mysql --login-path=tiledb tiledb -t -e "UPDATE benchtest SET id = 163 WHERE id = 914"
+ 1610  mysql --login-path=tiledb tiledb -t -e "UPDATE benchtest SET id = 164 WHERE id = 915"
+ 1611  mysql --login-path=tiledb tiledb -t -e "UPDATE benchtest SET id = 165 WHERE id = 916"
+ 1612  mysql --login-path=tiledb tiledb -t -e "UPDATE benchtest SET id = 166 WHERE id = 917"
+ 1613  mysql --login-path=tiledb tiledb -t -e "UPDATE benchtest SET id = 167 WHERE id = 918"
+ 1614  mysql --login-path=tiledb tiledb -t -e "UPDATE benchtest SET id = 168 WHERE id = 919"
+ 1615  mysql --login-path=tiledb tiledb -t -e "UPDATE benchtest SET id = 169 WHERE id = 920"
+ 1616  mysql --login-path=tiledb tiledb -t -e "UPDATE benchtest SET id = 170 WHERE id = 921"
+ 1617  mysql --login-path=tiledb tiledb -t -e "UPDATE benchtest SET id = 171 WHERE id = 922"
+ 1618  mysql --login-path=tiledb tiledb -t -e "SELECT * FROM benchtest" 
+ 1619  mysql --login-path=tiledb tiledb -t -e "UPDATE benchtest SET id = 172 WHERE id = 924"
+ 1620  mysql --login-path=tiledb tiledb -t -e "SELECT * FROM benchtest" 
+ 1621  mysql --login-path=tiledb tiledb -t -e "UPDATE benchtest SET id = 173 WHERE id = 925"
+ 1622  mysql --login-path=tiledb tiledb -t -e "UPDATE benchtest SET id = 174 WHERE id = 926"
+ 1623  mysql --login-path=tiledb tiledb -t -e "UPDATE benchtest SET id = 175 WHERE id = 927"
+ 1624  mysql --login-path=tiledb tiledb -t -e "UPDATE benchtest SET id = 176 WHERE id = 928"
+ 1625  mysql --login-path=tiledb tiledb -t -e "UPDATE benchtest SET id = 177 WHERE id = 929"
+ 1626  mysql --login-path=tiledb tiledb -t -e "UPDATE benchtest SET id = 178 WHERE id = 930"
+ 1627  mysql --login-path=tiledb tiledb -t -e "SELECT * FROM benchtest" 
+ 1628  emacs DBQ.log 
+ 1629  ls -l
+ 1630  emacs DBQ.log
+ 1631  mysql --login-path=tiledb tiledb -t -e "SELECT * FROM benchtest" 
+ 1632  mysql --login-path=tiledb tiledb -t -e "UPDATE benchtest SET test_pass = 3 WHERE id = 177" 
+ 1633  mysql --login-path=tiledb tiledb -t -e "SELECT * FROM benchtest" 
+ 1634  emacs DBQ.log
+ 1635  mysql --login-path=tiledb tiledb -t -e "SELECT * FROM benchtest" 
+ 1636  tail DBQ.log
+ 1637  mysql --login-path=tiledb tiledb -t -e "SELECT * FROM benchtest" 
+ 1638  history > hist.txt 
+ 1639  logout
+ 1640  cd atlas_lab_scripts/data_analyzer/
+ 1641  ls -l
+ 1642  emacs benchtest_OLDID.txt 
+ 1643  mysql --login-path=tiledb tiledb -t -e "SELECT * FROM benchtest" 
+ 1644  mv /var/www/html/drive/benchtests/benchtest_id_104 /var/www/html/drive/benchtests/benchtest_id_104_OLD
+ 1645  mv /var/www/html/drive/benchtests/benchtest_id_150 /var/www/html/drive/benchtests/benchtest_id_150_OLD
+ 1646  mysql --login-path=tiledb tiledb -t -e "UPDATE benchtest SET test_pass = 1 WHERE id = 104" 
+ 1647  mysql --login-path=tiledb tiledb -t -e "UPDATE benchtest SET test_pass = 1 WHERE id = 150" 
+ 1648  mysql --login-path=tiledb tiledb -t -e "SELECT * FROM benchtest" 
+ 1649  tail DBQ.log 
+ 1650  mysql --login-path=tiledb tiledb -t -e "SELECT * FROM benchtest" 
+ 1651  emacs DBQ.log 
+ 1652  emacs DBQ_Mk5.py
+ 1653  emacs DBQ.log 
+ 1654  emacs DBQ_Mk5.py
+ 1655  emacs DaughterBoardQual.sh 
+ 1656  emacs DBQ.log 
+ 1657  emacs DBQ_Mk5.py
+ 1658  emacs DBQ.log 
+ 1659  df -h
+ 1660  ls -l
+ 1661  emacs DBQ.log 
+ 1662  logout
+ 1663  ls -l
+ 1664  mysql --login-path=tiledb tiledb -t -e "SELECT * FROM benchtest" 
+ 1665  logout'
+ 1666  logout
+ 1667  cd atlas_lab_scripts/data_analyzer/
+ 1668  emacs benchtest_OLDID.txt 
+ 1669  mysql --login-path=tiledb tiledb -t -e "SELECT * FROM benchtest" 
+ 1670  emacs DaughterBoardQual.sh
+ 1671  source myenv/bin/activate
+ 1672  python3 DBQ_Mk6.py --help
+ 1673  emacs DBQ_Mk5.py
+ 1674  emacs DBQ_Mk6.py 
+ 1675  emacs DBQ_Mk5.py
+ 1676  emacs DBQ_Mk6.py 
+ 1677  mysql --login-path=tiledb tiledb -t -e "UPDATE benchtest SET test_pass = 0 WHERE id = 158" 
+ 1678  mysql --login-path=tiledb tiledb -t -e "SELECT * FROM benchtest" 
+ 1679  logout
+ 1680  cd atlas_lab_scripts/data_analyzer/
+ 1681  ls -l
+ 1682  mysql --login-path=tiledb tiledb -t -e "SELECT * FROM benchtest" 
+ 1683  mysql --login-path=tiledb tiledb -t -e "SELECT * FROM daughterboard" 
+ 1684  mysql --login-path=tiledb tiledb -t -e "UPDATE daughterboard SET burn_in_stop = '2026-07-27 15:14:11' WHERE burn_in_stop = '2026-07-27 13:37:09'" 
+ 1685  mysql --login-path=tiledb tiledb - 
+ 1686  mysql --login-path=tiledb tiledb -t -e "SELECT * FROM daughterboard" 
+ 1687  mysql --login-path=tiledb tiledb -t -e "UPDATE daughterboard SET burn_in_start = '2026-07-28 13:37:09' WHERE serial_no IN ('1103001', '1103003', '1103006', '1103007', '1103009')" 
+ 1688  mysql --login-path=tiledb tiledb -t -e "UPDATE daughterboard SET burn_in_stop = '2026-08-02 10:53:23' WHERE serial_no IN ('1103001', '1103003', '1103006', '1103007', '1103009')" 
+ 1689  mysql --login-path=tiledb tiledb -t -e "SELECT * FROM daughterboard" 
+ 1690  mysql --login-path=tiledb tiledb -t -e "UPDATE daughterboard SET burn_in_start = '2026-07-28 13:37:09' WHERE serial_no IN ('1103010', '1103011', '1103012', '1103014', '1103016', '1103017', '1103018', '1103019')" 
+ 1691  mysql --login-path=tiledb tiledb -t -e "UPDATE daughterboard SET burn_in_stop = '2026-08-02 10:53:23' WHERE serial_no IN ('1103010', '1103011', '1103012', '1103014', '1103016', '1103017', '1103018', '1103019')" 
+ 1692  mysql --login-path=tiledb tiledb -t -e "SELECT * FROM daughterboard" 
+ 1693  mysql --login-path=tiledb tiledb -t -e "UPDATE daughterboard SET burn_in_start = '2026-07-28 13:37:09' WHERE serial_no IN ('1103020', '1103022', '1103023', '1103025', '1103027', '1103028', '1103029')" 
+ 1694  mysql --login-path=tiledb tiledb -t -e "UPDATE daughterboard SET burn_in_stop = '2026-08-02 10:53:23' WHERE serial_no IN ('1103020', '1103022', '1103023', '1103025', '1103027', '1103028', '1103029')" 
+ 1695  mysql --login-path=tiledb tiledb -t -e "SELECT * FROM daughterboard" 
+ 1696  mysql --login-path=tiledb tiledb -t -e "UPDATE daughterboard SET burn_in_start = '2026-07-28 13:37:09' WHERE serial_no IN ('1103031', '1103032', '1103034', '1103036')" 
+ 1697  mysql --login-path=tiledb tiledb -t -e "UPDATE daughterboard SET burn_in_stop = '2026-08-02 10:53:23' WHERE serial_no IN ('1103031', '1103032', '1103034', '1103036')" 
+ 1698  mysql --login-path=tiledb tiledb -t -e "SELECT * FROM daughterboard" 
+ 1699  mysql --login-path=tiledb tiledb -t -e "UPDATE daughterboard SET burn_in_start = '2026-07-28 13:37:09' WHERE serial_no IN ('1103040', '1103041', '1103044', '1103046', '1103047', '1103048', '1103049')" 
+ 1700  mysql --login-path=tiledb tiledb -t -e "UPDATE daughterboard SET burn_in_stop = '2026-08-02 10:53:23' WHERE serial_no IN ('1103040', '1103041', '1103044', '1103046', '1103047', '1103048', '1103049')" 
+ 1701  mysql --login-path=tiledb tiledb -t -e "SELECT * FROM daughterboard" 
+ 1702  mysql --login-path=tiledb tiledb -t -e "UPDATE daughterboard SET burn_in_start = '2026-07-28 13:37:09' WHERE serial_no IN ('1103050', '1103051', '1103052', '1103054', '1103061', '1103076', '1103079', '1103080')"
+ 1703  mysql --login-path=tiledb tiledb -t -e "UPDATE daughterboard SET burn_in_stop = '2026-08-02 10:53:23' WHERE serial_no IN ('1103050', '1103051', '1103052', '1103054', '1103061', '1103076', '1103079', '1103080')" 
+ 1704  mysql --login-path=tiledb tiledb -t -e "SELECT * FROM daughterboard" 
+ 1705  logout
+ 1706  cd atlas_lab_scripts/data_analyzer/
+ 1707  emacs benchtest.t
+ 1708  ls
+ 1709  emacs benchtest_OLDID.txt 
+ 1710  logout
+ 1711  mysql --login-path=tiledb tiledb -t -e "SELECT * FROM daughterboard" 
+ 1712  mysql --login-path=tiledb tiledb -t -e "UPDATE daughterboard SET kin_lot = '2345' WHERE serial_no IN ('1105001','1105002')"
+ 1713  mysql --login-path=tiledb tiledb -t -e "SELECT * FROM daughterboard" 
+ 1714  mysql --login-path=tiledb tiledb -t -e "UPDATE daughterboard SET  WHERE serial_no IN ('1105001','1105002')"
+ 1715  mysql --login-path=tiledb tiledb -t -e "SELECT * FROM daughterboard" 
+ 1716  mysql --login-path=tiledb tiledb -t -e "UPDATE daughterboard SET kin_lot = '2345' WHERE serial_no IN ('1105001','1105002')"
+ 1717  mysql --login-path=tiledb tiledb -t -e "UPDATE daughterboard SET pro_lot = 'D2548' WHERE serial_no IN ('1105001','1105002')"
+ 1718  mysql --login-path=tiledb tiledb -t -e "SELECT * FROM daughterboard" 
+ 1719  mysql --login-path=tiledb tiledb -t -e "UPDATE daughterboard SET gbt_lot = 'GBTX01' WHERE serial_no IN ('1105001','1105002')"
+ 1720  mysql --login-path=tiledb tiledb -t -e "SELECT * FROM daughterboard" 
+ 1721  mysql --login-path=tiledb tiledb -t -e "UPDATE daughterboard SET ina_lot = '2438' WHERE serial_no IN ('1105001','1105002')"
+ 1722  mysql --login-path=tiledb tiledb -t -e "SELECT * FROM daughterboard" 
+ 1723  mysql --login-path=tiledb tiledb -t -e "UPDATE daughterboard SET ltm_lot = '2525' WHERE serial_no IN ('1105001','1105002')"
+ 1724  mysql --login-path=tiledb tiledb -t -e "SELECT * FROM daughterboard" 
+ 1725  mysql --login-path=tiledb tiledb -t -e "UPDATE daughterboard SET mos_lot = '2137' WHERE serial_no IN ('1105001','1105002')"
+ 1726  mysql --login-path=tiledb tiledb -t -e "SELECT * FROM daughterboard" 
+ 1727  mysql --login-path=tiledb tiledb -t -e "UPDATE daughterboard SET op4_lot = 'F5' WHERE serial_no IN ('1105001','1105002')"
+ 1728  mysql --login-path=tiledb tiledb -t -e "SELECT * FROM daughterboard" 
+ 1729  mysql --login-path=tiledb tiledb -t -e "UPDATE daughterboard SET ok4_lot = '2510' WHERE serial_no IN ('1105001','1105002')"
+ 1730  mysql --login-path=tiledb tiledb -t -e "SELECT * FROM daughterboard" 
+ 1731  mysql --login-path=tiledb tiledb -t -e "UPDATE daughterboard SET ok1_lot = '2437' WHERE serial_no IN ('1105001','1105002')"
+ 1732  mysql --login-path=tiledb tiledb -t -e "SELECT * FROM daughterboard" 
+ 1733  mysql --login-path=tiledb tiledb -t -e "UPDATE daughterboard SET mem_lot = '2512' WHERE serial_no IN ('1105001','1105002')"
+ 1734  mysql --login-path=tiledb tiledb -t -e "SELECT * FROM daughterboard" 
+ 1735  mysql --login-path=tiledb tiledb -t -e "UPDATE daughterboard SET sfp_lot = 'FXP96S' WHERE serial_no IN ('1105001','1105002')"
+ 1736  mysql --login-path=tiledb tiledb -t -e "SELECT * FROM daughterboard" 
+ 1737  mysql --login-path=tiledb tiledb -t -e "UPDATE daughterboard SET kin_lot = '2345' WHERE serial_no = '1103001'"
+ 1738  mysql --login-path=tiledb tiledb -t -e "SELECT * FROM daughterboard" 
+ 1739  mysql --login-path=tiledb tiledb -t -e "SELECT * FROM daughterboard WHERE id = '1103001'"
+ 1740  mysql --login-path=tiledb tiledb -t -e "SELECT * FROM daughterboard WHERE serial_no = '1103001'"
+ 1741  mysql --login-path=tiledb tiledb -t -e "UPDATE daughterboard SET pro_lot = 'D2548' WHERE serial_no = '1103001'"
+ 1742  mysql --login-path=tiledb tiledb -t -e "UPDATE daughterboard SET gbt_lot = 'GBTX01' WHERE serial_no = '1103001'"
+ 1743  mysql --login-path=tiledb tiledb -t -e "UPDATE daughterboard SET ina_lot = '2434' WHERE serial_no = '1103001'"
+ 1744  mysql --login-path=tiledb tiledb -t -e "UPDATE daughterboard SET ltm_lot = '2525' WHERE serial_no = '1103001'"
+ 1745  mysql --login-path=tiledb tiledb -t -e "UPDATE daughterboard SET mos_lot = '2137' WHERE serial_no = '1103001'"
+ 1746  mysql --login-path=tiledb tiledb -t -e "UPDATE daughterboard SET op4_lot = 'F5' WHERE serial_no = '1103001'"
+ 1747  mysql --login-path=tiledb tiledb -t -e "UPDATE daughterboard SET ok4_lot = '' WHERE serial_no = '1103001'"
+ 1748  mysql --login-path=tiledb tiledb -t -e "UPDATE daughterboard SET ok4_lot = '2510' WHERE serial_no = '1103001'"
+ 1749  mysql --login-path=tiledb tiledb -t -e "UPDATE daughterboard SET ok1_lot = '2507' WHERE serial_no = '1103001'"
+ 1750  mysql --login-path=tiledb tiledb -t -e "UPDATE daughterboard SET mem_lot = '2512' WHERE serial_no = '1103001'"
+ 1751  mysql --login-path=tiledb tiledb -t -e "UPDATE daughterboard SET sfp_lot = 'FXP96S' WHERE serial_no = '1103001'"
+ 1752  ls -l
+ 1753  mysql --login-path=tiledb tiledb -t -e "SELECT * FROM daughterboard WHERE serial_no IN  ('1103001', '1102080')"
+ 1754  mysql --login-path=tiledb tiledb -t -e "SELECT * FROM daughterboard WHERE serial_no IN  ('1102080', '1103001', '1103002')"
+ 1755  mysql --login-path=tiledb tiledb -t -e "SELECT * FROM daughterboard WHERE serial_no IN  ('1103075', '1103076', '1103077')"
+ 1756  mysql --login-path=tiledb tiledb -t -e "SELECT * FROM daughterboard WHERE serial_no IN  ('1103073', '1103074', '1103075')"
+ 1757  mysql --login-path=tiledb tiledb -t -e "UPDATE daughterboard SET kin_lot = '2345', pro_lot = 'D2548', gbt_lot = 'GBTX01', ina_lot = '2438', ltm_lot = '2525', mos_lot = '2137', op4_lot = 'F5', ok4_lot = '2510', ok1_lot = '2507', mem_lot = '2512', sfp_lot = 'FXP96S' WHERE serial_no = '1103074'"
+ 1758  mysql --login-path=tiledb tiledb -t -e "SELECT * FROM daughterboard WHERE serial_no IN  ('1103073', '1103074', '1103075')"
+ 1759  mysql --login-path=tiledb tiledb -t -e "SELECT * FROM daughterboard WHERE serial_no IN  ('1103079', '1103080', '1104001')"
+ 1760  mysql --login-path=tiledb tiledb -t -e "SELECT * FROM daughterboard WHERE serial_no IN  ('1103073', '11103074', '1103075', '1103079', '1103080', '1104001')"
+ 1761  mysql --login-path=tiledb tiledb -t -e "SELECT * FROM daughterboard WHERE serial_no IN  ('1103073', '1103074', '1103075', '1103079', '1103080', '1104001')"
+ 1762  mysql --login-path=tiledb tiledb -t -e "UPDATE daughterboard SET kin_lot = '2345', pro_lot = 'D2548', gbt_lot = 'GBTX01', ina_lot = '2438', ltm_lot = '2525', mos_lot = '2137', op4_lot = 'F5', ok4_lot = '2510', ok1_lot = '2507', mem_lot = '2512', sfp_lot = 'FXP96S' WHERE serial_no = '1103080'"
+ 1763  mysql --login-path=tiledb tiledb -t -e "SELECT * FROM daughterboard WHERE serial_no IN  ('1103073', '1103074', '1103075', '1103079', '1103080', '1104001')"
+ 1764  mysql --login-path=tiledb tiledb -t -e "SELECT * FROM daughterboard"
+ 1765  mysql --login-path=tiledb tiledb -t -e "SELECT * FROM daughterboard WHERE serial_no IN  ('1103073', '1103074', '1103075', '1103079', '1103080', '1104001', '1104002', '1104003')"
+ 1766  mysql --login-path=tiledb tiledb -t -e "UPDATE daughterboard SET kin_lot = '2345', pro_lot = 'D2548', gbt_lot = 'GBTX01', ina_lot = '2438', ltm_lot = '2525', mos_lot = '2137', op4_lot = 'F5', ok4_lot = '2510', ok1_lot = '2507', mem_lot = '2512', sfp_lot = 'FXP96S' WHERE serial_no IN ('1104001', '1104002')"
+ 1767  mysql --login-path=tiledb tiledb -t -e "SELECT * FROM daughterboard WHERE serial_no IN  ('1103073', '1103074', '1103075', '1103079', '1103080', '1104001', '1104002', '1104003')"
+ 1768  mysql --login-path=tiledb tiledb -t -e "SELECT * FROM daughterboard WHERE ina_lot = '2438'"
+ 1769  mysql --login-path=tiledb tiledb -t -e "SELECT * FROM daughterboard WHERE ina_lot = '2438' AND serial_no < 1103001"
+ 1770  mysql --login-path=tiledb tiledb -t -e "UPDATE daughterboard SET ina_lot = 2434 WHERE ina_lot = 2438 AND serial_no < 1103001"
+ 1771  mysql --login-path=tiledb tiledb -t -e "SELECT * FROM daughterboard WHERE ina_lot = '2438' AND serial_no < 1103001"
+ 1772  mysql --login-path=tiledb tiledb -t -e "SELECT * FROM daughterboard WHERE serial_no IN (1102053, 1102054, 1102056, 1102061, 1102062, 1102069, 1102073, 1102074, 1102075, 1102076, 1102078)"
+ 1773  mysql --login-path=tiledb tiledb -t -e "SELECT * FROM daughterboar"
+ 1774  mysql --login-path=tiledb tiledb -t -e "SELECT * FROM daughterboard"
+ 1775  emacs benchtesttxt
+ 1776  emacs benchtest.txt
+ 1777  cd atldd
+ 1778  ssh root@piro-atlas-lab.fysik.su.se
+ 1779  logout
+ 1780  ls -l
+ 1781  cd atlas_lab_scripts/data_analyzer/
+ 1782  ls -l
+ 1783  mysql --login-path=tiledb tiledb -t -e "SELECT * FROM benchtest" > benchtest.txt
+ 1784  emacs benchtest.txt 
+ 1785  mysql --login-path=tiledb tiledb -t -e "SELECT * FROM daughterboard"
+ 1786  mysql --login-path=tiledb tiledb -t -e "SELECT * FROM daughterboard WHERE serial_no > 1102080 AND serial_no < 1104001 AND burn_in = 0"
+ 1787  emacs benchtest.txt 
+ 1788  emacs hist.txt 
+ 1789  mysql --login-path=tiledb tiledb -t -e "SELECT * FROM benchtest"
+ 1790  mysql --login-path=tiledb tiledb -t -e "SELECT * FROM daughterboard"
+ 1791  emacs hist.txt 
+ 1792  logout
+ 1793  ls -l
+ 1794  logout
+ 1795  cd atlas_lab_scripts/data_analyzer/
+ 1796  source myenv/bin/activate
+ 1797  ls
+ 1798  python DBQ_Mk6.py --help
+ 1799  ls *.sh
+ 1800  source benchtest_cmd_helper.sh 
+ 1801  source benchtest_cmd_helper.sh --help
+ 1802  cat benchtest_cmd_helper.sh 
+ 1803  emacs hist.txt 
+ 1804  history > hist.txt 
+ 1805  emacs hist.txt 
+ 1806  source benchtest_cmd_helper.sh 153 197
+ 1807  cd ..
+ 1808  cd data_analyzer/
+ 1809  history 
+ 1810  cp /etc/apache2/sites-available/tiledb.piro-atlas-lab.fysik.su.se.conf /etc/apache2/sites-available/tileqa.piro-atlas-lab.fysik.su.se.conf
+ 1811  nano /etc/apache2/sites-available/tileqa.piro-atlas-lab.fysik.su.se.conf
+ 1812  history | grep certbot
+ 1813  sudo certbot --apache -d tileqa.piro-atlas-lab.fysik.su.se
+ 1814  a2ensite tileqa.piro-atlas-lab.fysik.su.se.conf 
+ 1815  systemctl reload apache2
+ 1816  sudo certbot --apache -d tileqa.piro-atlas-lab.fysik.su.se
+ 1817  sudo certbot renew --dry-run
+ 1818  exit
+ 1819  cd atlas_lab_scripts/data_analyzer/
+ 1820  ls -l
+ 1821  ps
+ 1822  emacs
+ 1823  ps
+ 1824  fg "%emacs" 
+ 1825  logout
+ 1826  cd atlas_lab_scripts/data_analyzer/
+ 1827  ls -l
+ 1828  mysql --login-path=tiledb tiledb -t -e "SELECT * FROM benchtest"
+ 1829  systemctl stop DaughterBoardQual.timer 
+ 1830  emacs hist.txt 
+ 1831  history > hist.txt 
+ 1832  emacs hist.txt 
+ 1833  mysql --login-path=tiledb tiledb -t -e "UPDATE benchtest SET id = 180 WHERE id = 931"
+ 1834  mysql --login-path=tiledb tiledb -t -e "SELECT * FROM benchtest"
+ 1835  mysql --login-path=tiledb tiledb -t -e "UPDATE benchtest SET id = 181 WHERE id = 933"
+ 1836  mysql --login-path=tiledb tiledb -t -e "UPDATE benchtest SET id = 182 WHERE id = 934"
+ 1837  mysql --login-path=tiledb tiledb -t -e "UPDATE benchtest SET id = 183 WHERE id = 935"
+ 1838  mysql --login-path=tiledb tiledb -t -e "UPDATE benchtest SET id = 184 WHERE id = 936"
+ 1839  mysql --login-path=tiledb tiledb -t -e "UPDATE benchtest SET id = 185 WHERE id = 937 "
+ 1840  mysql --login-path=tiledb tiledb -t -e "UPDATE benchtest SET id = 186 WHERE id = 938 "
+ 1841  mysql --login-path=tiledb tiledb -t -e "UPDATE benchtest SET id = 187 WHERE id = 939"
+ 1842  mysql --login-path=tiledb tiledb -t -e "UPDATE benchtest SET id = 188 WHERE id = 940"
+ 1843  mysql --login-path=tiledb tiledb -t -e "UPDATE benchtest SET id = 189 WHERE id = 941"
+ 1844  mysql --login-path=tiledb tiledb -t -e "UPDATE benchtest SET id = 190 WHERE id = 942"
+ 1845  mysql --login-path=tiledb tiledb -t -e "UPDATE benchtest SET id = 191 WHERE id = 943"
+ 1846  mysql --login-path=tiledb tiledb -t -e "UPDATE benchtest SET id = 192 WHERE id = 944"
+ 1847  mysql --login-path=tiledb tiledb -t -e "UPDATE benchtest SET id = 193 WHERE id = 945"
+ 1848  mysql --login-path=tiledb tiledb -t -e "UPDATE benchtest SET id = 194 WHERE id = 946"
+ 1849  mysql --login-path=tiledb tiledb -t -e "UPDATE benchtest SET id = 194 WHERE id = 947"
+ 1850  mysql --login-path=tiledb tiledb -t -e "UPDATE benchtest SET id = 195 WHERE id = 947"
+ 1851  mysql --login-path=tiledb tiledb -t -e "UPDATE benchtest SET id = 196 WHERE id = 948"
+ 1852  mysql --login-path=tiledb tiledb -t -e "UPDATE benchtest SET id = 197 WHERE id = 949"
+ 1853  ls -l
+ 1854  clear'
+ 1855  clear
+ 1856  mysql --login-path=tiledb tiledb -t -e "UPDATE benchtest SET id = 196 WHERE id = 948"
+ 1857  mysql --login-path=tiledb tiledb -t -e "SELECT * FROM benchtest"
+ 1858  emacs bench
+ 1859  emacs bench.txt 
+ 1860  rm bench.txt 
+ 1861  emacs benchtest_OLDID.txt 
+ 1862  mysql --login-path=tiledb tiledb -t -e "SELECT * FROM daughterboard"
+ 1863  mysql --login-path=tiledb tiledb -t -e "SELECT * FROM benchtest"
+ 1864  mysql --login-path=tiledb tiledb -t -e "SHOW benchtest STATUS"
+ 1865  mysql --login-path=tiledb tiledb -t -e "SHOW TABLE STATUS LIKE 'benchtest'"
+ 1866  mysql --login-path=tiledb tiledb -t -e "SELECT AUTO_INCREMENT FROM information_schema.TABLES WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = 'benchtest'"
+ 1867  mysql --login-path=tiledb tiledb -t -e "ALTER TABLE benchtest AUTO_INCREMENT = '199'"
+ 1868  mysql --login-path=tiledb tiledb -t -e "ALTER TABLE benchtest AUTO_INCREMENT = 199"
+ 1869  mysql --login-path=tiledb tiledb -t -e "SELECT AUTO_INCREMENT FROM information_schema.TABLES WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = 'benchtest'"
+ 1870  mysql --login-path=tiledb tiledb -t -e "SHOW benchtest STATUS"
+ 1871  mysql --login-path=tiledb tiledb -t -e "SHOW TABLE STATUS LIKE 'benchtest'"
+ 1872  mysql --login-path=tiledb tiledb -t -e "SELECT * FROM benchtest
+ 1873  "
+ 1874  mysql --login-path=tiledb tiledb -t -e "SHOW TABLE STATUS LIKE 'benchtest'"
+ 1875  mysql --login-path=tiledb tiledb -t -e "SELECT * FROM benchtest"
+ 1876  systemctl start DaughterBoardQual.timer 
+ 1877  emacs DBQ.log 
+ 1878  systemctl start DaughterBoardQual.timer 
+ 1879  mysql --login-path=tiledb tiledb -t -e "SELECT * FROM benchtest"
+ 1880  emacs DBQ.log 
+ 1881  mysql --login-path=tiledb tiledb -t -e "SELECT * FROM benchtest"
+ 1882  tail DBQ.log 
+ 1883  mysql --login-path=tiledb tiledb -t -e "SELECT * FROM daughterboard"
+ 1884  tail DBQ.log 
+ 1885  mysql --login-path=tiledb tiledb -t -e "SELECT * FROM benchtest"
+ 1886  tail DBQ.log 
+ 1887  mysql --login-path=tiledb tiledb -t -e "SELECT * FROM daughterboard"
+ 1888  mysql --login-path=tiledb tiledb -t -e "UPDATE daughterboard SET burn_in_start = '2026-08-03 14:00:09' WHERE serial_no IN (1103002, 1103004, 1103005, 1103008')"
+ 1889  mysql --login-path=tiledb tiledb -t -e "UPDATE daughterboard SET burn_in_start = '2026-08-03 14:00:09' WHERE serial_no IN (1103002, 1103004, 1103005, 1103008)"
+ 1890  mysql --login-path=tiledb tiledb -t -e "UPDATE daughterboard SET burn_in_start = '2026-08-03 14:00:09' WHERE serial_no IN (1103013, 1103015, 1103021, 1103024)"
+ 1891  mysql --login-path=tiledb tiledb -t -e "UPDATE daughterboard SET burn_in_start = '2026-08-03 14:00:09' WHERE serial_no IN (1103030, 1103033, 1103035, 1103037, 1103038, 1103039)"
+ 1892  mysql --login-path=tiledb tiledb -t -e "UPDATE daughterboard SET burn_in_start = '2026-08-03 14:00:09' WHERE serial_no IN (1103042, 1103043, 1103045, 1103053, 1103055, 1103056, 1103057, 1103058, 1103059, 1103060)"
+ 1893  mysql --login-path=tiledb tiledb -t -e "UPDATE daughterboard SET burn_in_start = '2026-08-03 14:00:09' WHERE serial_no IN (1103063, 1103064, 1103065, 1103066, 1103067, 1103068, 1103069)"
+ 1894  mysql --login-path=tiledb tiledb -t -e "UPDATE daughterboard SET burn_in_start = '2026-08-03 14:00:09' WHERE serial_no IN (1103070, 1103071, 1103072, 1103073, 1103074, 1103075, 1103077, 1103078)"
+ 1895  mysql --login-path=tiledb tiledb -t -e "SELECT * FROM daughterboard"
+ 1896  mysql --login-path=tiledb tiledb -t -e "UPDATE daughterboard SET burn_in_stop = '2026-08-08 10:38:00' WHERE serial_no IN (1103002, 1103004, 1103005, 1103008, 1103013, 1103015, 1103021, 1103024, 1103030, 1103033, 1103035, 1103037, 1103038, 1103039, 1103042, 1103043, 1103045, 1103053, 1103055, 1103056, 1103057, 1103058, 1103059, 1103060, 1103063, 1103064, 1103065, 1103066, 1103067, 1103068, 1103069, 1103070, 1103071, 1103072, 1103073, 1103074, 1103075, 1103077, 1103078)"
+ 1897  mysql --login-path=tiledb tiledb -t -e "SELECT * FROM daughterboard"
+ 1898  mysql --login-path=tiledb tiledb -t -e "UPDATE daughterboard SET burn_in = '1' WHERE serial_no IN (1103002, 1103004, 1103005, 1103008, 1103013, 1103015, 1103021, 1103024, 1103030, 1103033, 1103035, 1103037, 1103038, 1103039, 1103042, 1103043, 1103045, 1103053, 1103055, 1103056, 1103057, 1103058, 1103059, 1103060, 1103063, 1103064, 1103065, 1103066, 1103067, 1103068, 1103069, 1103070, 1103071, 1103072, 1103073, 1103074, 1103075, 1103077, 1103078)"
+ 1899  mysql --login-path=tiledb tiledb -t -e "SELECT * FROM daughterboard"
+ 1900  mysql --login-path=tiledb tiledb -t -e "UpDATE daughterboard SET burn_in = '1' WHERE burn_in_start = '2026-07-28 13:37:09''"
+ 1901  mysql --login-path=tiledb tiledb -t -e "UpDATE daughterboard SET burn_in = '1' WHERE burn_in_start = '2026-07-28 13:37:09'"
+ 1902  mysql --login-path=tiledb tiledb -t -e "SELECT * FROM daughterboard"
+ 1903  mysql --login-path=tiledb tiledb -t -e "SELECT * FROM daughterboar"
+ 1904  mysql --login-path=tiledb tiledb -t -e "SELECT * FROM benchtest"
+ 1905  exit
+ 1906  ls -l
+ 1907  cd atlas_lab_scripts/data_analyzer
+ 1908  3015\ slot2 =  
+ 1909  015\ slot2 =  
+ 1910  mysql --login-path=tiledb tiledb -t -e "SELECT * FROM benchtest WHERE db_slot1 = '1103015' OR db_slot2 = '1103015' OR db_slot3 = '1103015' OR db_slot4 = '1103015'"
+ 1911  emacs benchtest.txt 
+ 1912  mysql --login-path=tiledb tiledb -t -e "SELECT * FROM daughterboard"
+ 1913  mysql --login-path=tiledb tiledb -t -e "SELECT * FROM daughterboard WHERE a0 = 'NULL'"1
+ 1914  mysql --login-path=tiledb tiledb -t -e "SELECT * FROM daughterboard WHERE a0 = NULL"
+ 1915  mysql --login-path=tiledb tiledb -t -e "SELECT * FROM daughterboard WHERE a0 = 'None'"
+ 1916  mysql --login-path=tiledb tiledb -t -e "SELECT * FROM daughterboard WHERE a0 = None"
+ 1917  mysql --login-path=tiledb tiledb -t -e "SELECT * FROM daughterboard WHERE a0 IS NULL"
+ 1918  mysql --login-path=tiledb tiledb -t -e "SELECT * FROM "
+ 1919  mysql --login-path=tiledb tiledb -t -e "SELECT * FROM benchtest WHERE db_slot1 = '1103015' OR db_slot2 = '1103015' OR db_slot3 = '1103015' OR db_slot4 = '1103015'"
+ 1920  mysql --login-path=tiledb tiledb -t -e "SELECT * FROM benchtest WHERE db_slot1 = '1103037' OR db_slot2 = '1103037' OR db_slot3 = '1103037' OR db_slot4 = '1103037'"
+ 1921  mysql --login-path=tiledb tiledb -t -e "SELECT * FROM daughterboard WHERE a1 IS NULL"
+ 1922  mysql --login-path=tiledb tiledb -t -e "SELECT * FROM daughterboard WHERE a0 IS NULL OR a1 IS NULL OR b0 IS NULL OR b1 IS NULL"
+ 1923  mysql --login-path=tiledb tiledb -t -e "SELECT * FROM daughterboard WHERE serial_no < 1104001 AND serial_no > 1102080 AND burn_in = 0""
+ 1924  mysql --login-path=tiledb tiledb -t -e "SELECT * FROM daughterboard WHERE serial_no < 1104001 AND serial_no > 1102080 AND burn_in = 0"
+ 1925  mysql --login-path=tiledb tiledb -t -e "SELECT * FROM daughterboard WHERE a0 IS NULL OR a1 IS NULL OR b0 IS NULL OR b1 IS NULL"
+ 1926  mysql --login-path=tiledb tiledb -t -e "SELECT * FROM daughterboard WHERE (serial_no > 1102080 AND serial_nop < 1104001) AND (a0 IS NULL OR a1 IS NULL OR b0 IS NULL OR b1 IS NULL)"
+ 1927  mysql --login-path=tiledb tiledb -t -e "SELECT * FROM daughterboard WHERE (serial_no > 1102080 AND serial_no < 1104001) AND (a0 IS NULL OR a1 IS NULL OR b0 IS NULL OR b1 IS NULL)"
+ 1928  ls -l
+ 1929  hello
+ 1930  ps 
+ 1931  kill -CONT 2032549
+ 1932  ps aux "grep emacs
+ 1933  ps aux | grep emacs
+ 1934  ps -o state= -p 2032549
+ 1935  top
+ 1936  kill --help
+ 1937  kill -s help
+ 1938  kill -s --help
+ 1939  kill -s 18 2032549
+ 1940  ps -o state= -p 2032549
+ 1941  ps -o ppid= -p 2032549
+ 1942  kill -9 2027188
+ 1943  ls
+ 1944  diff \#DaughterBoardQual.sh#  DaughterBoardQual.sh
+ 1945  mysql --login-path=tiledb tiledb -t -e "SELECT * FROM daughterboard WHERE serial_no = '1101037'"his
+ 1946  history
+ 1947  mysql --login-path=tiledb tiledb -t -e "SELECT * FROM benchtest WHERE db_slot1 = '1103037' OR db_slot2 = '1103037' OR db_slot3 = '1103037' OR db_slot4 = '1103037'"
+ 1948  mysql --login-path=tiledb tiledb -t -e "SELECT * FROM benchtest WHERE db_slot1 = '1101037' OR db_slot2 = '1101037' OR db_slot3 = '1101037' OR db_slot4 = '1101037'"
+ 1949  mysql --login-path=tiledb tiledb -t -e "SELECT * FROM comment"
+ 1950  ls /.lt
+ 1951  ls -lt
+ 1952  emacs
+ 1953  emacs 
+ 1954  systemctl list-timers --all
+ 1955  mysql --login-path=tiledb tiledb -t -e "SELECT * FROM benchtest"
+ 1956  mysql --login-path=tiledb tiledb -t -e "SELECT * FROM daughterboard"
+ 1957  mysql --login-path=tiledb tiledb -t -e "UPDATE daughterboard SET burn_in_start = 2026-08-08 11:04:15 WHERE serial_no IN (1104001, 1104002, 1104009, 1104011, 1104012, 1104013, 1104014, 1104017)"
+ 1958  mysql --login-path=tiledb tiledb -t -e "UPDATE daughterboard SET burn_in_start = '2026-08-08 11:04:15' WHERE serial_no IN (1104001, 1104002, 1104009, 1104011, 1104012, 1104013, 1104014, 1104017)"
+ 1959  mysql --login-path=tiledb tiledb -t -e "SELECT * FROM daughterboard"
+ 1960  mysql --login-path=tiledb tiledb -t -e "UPDATE daughterboard SET burn_in_start = '2026-08-08 11:04:15' WHERE serial_no IN (1104020, 1104021, 1104022, 1104028, 1104036, 1104037, 1104048, 1104049)"
+ 1961  mysql --login-path=tiledb tiledb -t -e "SELECT * FROM daughterboard"
+ 1962  mysql --login-path=tiledb tiledb -t -e "UPDATE daughterboard SET burn_in_start = '2026-08-08 11:04:15' WHERE serial_no IN (1104050, 1104052, 1104056, 1104057, 1104059, 1104060, 1104061, 1104062)"
+ 1963  mysql --login-path=tiledb tiledb -t -e "SELECT * FROM daughterboard"
+ 1964  mysql --login-path=tiledb tiledb -t -e "UPDATE daughterboard SET burn_in_start = '2026-08-08 11:04:15' WHERE serial_no IN (1104063, 1104065, 1104066, 1104067, 1104068, 1104069, 1104070, 11040711104073"
+ 1965  mysql --login-path=tiledb tiledb -t -e "UPDATE daughterboard SET burn_in_start = '2026-08-08 11:04:15' WHERE serial_no IN (1104063, 1104065, 1104066, 1104067, 1104068, 1104069, 1104070, 1104071)"
+ 1966  mysql --login-path=tiledb tiledb -t -e "SELECT * FROM daughterboard"
+ 1967  mysql --login-path=tiledb tiledb -t -e "UPDATE daughterboard SET burn_in_start = '2026-08-08 11:04:15' WHERE serial_no IN (1104073, 1104074, 1104075, 1104077, 1104078, 1104080, 1102069, 1103026)"
+ 1968  mysql --login-path=tiledb tiledb -t -e "SELECT * FROM daughterboard"
+ 1969  mysql --login-path=tiledb tiledb -t -e "UPDATE daughterboard SET burn_in_stop = '2026-08-13 11:50:15' WHERE serial_no IN (1104001, 1104002, 1104009, 1104011, 1104012, 1104013, 1104014, 1104017, 1104020, 1104021, 1104022, 1104028, 1104036, 1104037, 1104048, 1104049, 1104050, 1104052, 1104056, 1104057, 1104059, 1104060, 1104061, 1104062, 1104063, 1104065, 1104066, 1104067, 1104068, 1104069, 1104070, 1104071, 1104073, 1104074, 1104075, 1104077, 1104078, 1104080, 1102069, 1103026)"
+ 1970  mysql --login-path=tiledb tiledb -t -e "UPDATE daughterboard SET burn_in = '1' WHERE serial_no IN (1104001, 1104002, 1104009, 1104011, 1104012, 1104013, 1104014, 1104017, 1104020, 1104021, 1104022, 1104028, 1104036, 1104037, 1104048, 1104049, 1104050, 1104052, 1104056, 1104057, 1104059, 1104060, 1104061, 1104062, 1104063, 1104065, 1104066, 1104067, 1104068, 1104069, 1104070, 1104071, 1104073, 1104074, 1104075, 1104077, 1104078, 1104080, 1102069, 1103026)"
+ 1971  mysql --login-path=tiledb tiledb -t -e "SELECT * FROM daughterboard"
+ 1972  mysql --login-path=tiledb tiledb -t -e "SELECT * FROM dcomment"
+ 1973  mysql --login-path=tiledb tiledb -t -e "SELECT * FROM comment"
+ 1974  mysql --login-path=tiledb tiledb -t -e "SELECT * FROM daughterboard"
+ 1975  source myenv/bin/activate
+ 1976  ./DaughterBoardQual.sh 
+ 1977  emacs DaughterBoardQual.sh 
+ 1978  ./DaughterBoardQual.sh 
+ 1979  mysql --login-path=tiledb tiledb -t -e "SELECT * FROM benchtest"
+ 1980  ls /t
+ 1981  ls -t
+ 1982  emacs hist.txt 
+ 1983  history > hist2.txt
+ 1984  emacs hist2.txt 
+ 1985  rm hist2.txt 
+ 1986  logout\
+ 1987  logout
+ 1988  cd atlas_lab_scripts/data_analyzer/'
+ 1989  cd atlas_lab_scripts/data_analyzer/
+ 1990  emacs hist.txt 
+ 1991  history > hist2.txt
+ 1992  emacs hist2.txt 
+ 1993  history
+ 1994  mysql --login-path=tiledb tiledb -t -e "SELECT * FROM benchtest"
+ 1995  ls -t
+ 1996  logout
+ 1997  cd atlas_lab_scripts/data_analyzer/
+ 1998  history
+ 1999  history > hist2.txt 

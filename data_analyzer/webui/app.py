@@ -447,7 +447,106 @@ def brick_wall_data():
             print(f"Benchtest rows: {len(benchtest_rows)}")
             if benchtest_rows:
                 print(f"First benchtest row: {benchtest_rows[0]}")
-            
+
+            # Query comment information for bricks (foreign_typ = 3) and benchtests (foreign_typ = 4)
+            serial_to_comments = {}
+            try:
+                # First, check if comment table exists
+                cursor.execute("SHOW TABLES LIKE 'comment'")
+                comment_table_exists = cursor.fetchone()
+                print(f"Comment table exists: {comment_table_exists}")
+
+                if comment_table_exists:
+                    # Query brick comments (foreign_typ = 3)
+                    comment_query = """
+                        SELECT c.foreign_id, c.tstamp, c.op, c.note
+                        FROM comment c
+                        WHERE c.foreign_typ = 3
+                        ORDER BY c.tstamp
+                    """
+                    cursor.execute(comment_query)
+                    comment_rows = cursor.fetchall()
+                    print(f"Brick comment rows: {len(comment_rows)}")
+
+                    # Organize brick comments by daughterboard serial_no
+                    for comment in comment_rows:
+                        serial_no = comment['foreign_id']
+                        if serial_no:
+                            if serial_no not in serial_to_comments:
+                                serial_to_comments[serial_no] = []
+                            serial_to_comments[serial_no].append({
+                                'tstamp': str(comment['tstamp']) if comment['tstamp'] else None,
+                                'op': comment['op'],
+                                'note': comment['note']
+                            })
+
+                    # Query benchtest comments (foreign_typ = 4)
+                    benchtest_comment_query = """
+                        SELECT c.foreign_id, c.tstamp, c.op, c.note
+                        FROM comment c
+                        WHERE c.foreign_typ = 4
+                        ORDER BY c.tstamp
+                    """
+                    cursor.execute(benchtest_comment_query)
+                    benchtest_comment_rows = cursor.fetchall()
+                    print(f"Benchtest comment rows: {len(benchtest_comment_rows)}")
+
+                    # Get benchtest data to map benchtest IDs to slot information
+                    benchtest_slots_query = """
+                        SELECT id, db_slot1, db_slot2, db_slot3, db_slot4
+                        FROM benchtest
+                    """
+                    cursor.execute(benchtest_slots_query)
+                    benchtest_slots_rows = cursor.fetchall()
+                    print(f"Benchtest slots rows for comments: {len(benchtest_slots_rows)}")
+
+                    # Create a mapping from benchtest ID to its slot data
+                    benchtest_id_to_slots = {}
+                    for bt in benchtest_slots_rows:
+                        benchtest_id_to_slots[bt['id']] = {
+                            'db_slot1': bt['db_slot1'],
+                            'db_slot2': bt['db_slot2'],
+                            'db_slot3': bt['db_slot3'],
+                            'db_slot4': bt['db_slot4']
+                        }
+
+                    # Process benchtest comments and link them to bricks
+                    for comment in benchtest_comment_rows:
+                        benchtest_id = comment['foreign_id']
+                        if benchtest_id and benchtest_id in benchtest_id_to_slots:
+                            slots = benchtest_id_to_slots[benchtest_id]
+                            # Check each slot for the brick serial number
+                            for slot_num in range(1, 5):
+                                slot_key = f'db_slot{slot_num}'
+                                serial_no = slots[slot_key]
+                                if serial_no:
+                                    if serial_no not in serial_to_comments:
+                                        serial_to_comments[serial_no] = []
+                                    # Format: "tstamp (op, mdX@btY): note"
+                                    formatted_note = f"{comment['note']}"
+                                    serial_to_comments[serial_no].append({
+                                        'tstamp': str(comment['tstamp']) if comment['tstamp'] else None,
+                                        'op': comment['op'],
+                                        'note': formatted_note,
+                                        'md': slot_num,
+                                        'bt': benchtest_id,
+                                        'is_benchtest_comment': True
+                                    })
+
+                    # Sort comments chronologically for each serial number
+                    for serial_no in serial_to_comments:
+                        serial_to_comments[serial_no].sort(key=lambda x: x['tstamp'] or '')
+
+                    print(f"Serial to comments mapping: {len(serial_to_comments)} boards with comments")
+            except Exception as e:
+                print(f"Error querying comment data: {e}")
+                import traceback
+                traceback.print_exc()
+                serial_to_comments = {}
+
+            # Initialize serial_to_has_post_burnin_test before the try block
+            serial_to_has_post_burnin_test = {}
+
             # Organize benchtest data by serial
             for bt in benchtest_rows:
                 # Each benchtest has up to 4 daughterboards (db_slot1, db_slot2, db_slot3, db_slot4)
@@ -485,15 +584,14 @@ def brick_wall_data():
                             'benchtest_id': bt['id'],
                             'benchtest_slot': slot_name,
                             'test_pass': test_pass_value,
-                            'test_stop': str(bt['test_stop']) if bt['test_stop'] else None,
-                            'test_op': bt['test_op'],
+                            'test_stop': str(bt.get('test_stop')) if bt.get('test_stop') else None,
+                            'test_op': bt.get('test_op'),
                             'failed_tests': failed_tests,
                             'burned': burned_status
                         })
             print(f"Serial to benchtests mapping: {len(serial_to_benchtests)} boards with benchtests")
-            
+
             # Determine which boards have post-burn-in tests
-            serial_to_has_post_burnin_test = {}
             for serial_str in serial_to_benchtests:
                 # Find the board's burn_in_stop from daughterboard data
                 burn_in_stop = None
@@ -574,7 +672,8 @@ def brick_wall_data():
                 'b1': row['b1'],
                 'benchtests': board_benchtests,
                 'has_benchtest': len(board_benchtests) > 0,
-                'has_post_burnin_test': serial_to_has_post_burnin_test.get(serial_str, False)
+                'has_post_burnin_test': serial_to_has_post_burnin_test.get(serial_str, False),
+                'comments': serial_to_comments.get(serial, [])  # Use serial (int) instead of serial_str
             })
         
         # Sort boards within each batch by position
@@ -591,6 +690,46 @@ def brick_wall_data():
         
     except Exception as e:
         print(f"Error fetching brick wall data: {e}")
+        return jsonify({'error': str(e)}), 500
+
+@app.route('/api/add_comment', methods=['POST'])
+def add_comment():
+    if not session.get('logged_in'):
+        return jsonify({'error': 'Not logged in'}), 401
+
+    try:
+        data = request.get_json()
+        foreign_typ = data.get('foreign_typ')
+        foreign_id = data.get('foreign_id')
+        op = data.get('op')
+        note = data.get('note')
+
+        if not foreign_typ or not foreign_id or not op or not note:
+            return jsonify({'error': 'Missing required fields'}), 400
+
+        conn = get_db_connection()
+        if not conn:
+            return jsonify({'error': 'Database connection failed'}), 500
+
+        cursor = conn.cursor(dictionary=True)
+
+        # Insert the comment into the comment table
+        insert_query = """
+            INSERT INTO comment (foreign_typ, foreign_id, tstamp, op, note)
+            VALUES (%s, %s, NOW(), %s, %s)
+        """
+        cursor.execute(insert_query, (foreign_typ, foreign_id, op, note))
+
+        conn.commit()
+        cursor.close()
+        conn.close()
+
+        return jsonify({'success': True})
+
+    except Exception as e:
+        print(f"Error adding comment: {e}")
+        import traceback
+        traceback.print_exc()
         return jsonify({'error': str(e)}), 500
 
 @app.route('/api/rerun_analysis', methods=['POST'])

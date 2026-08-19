@@ -217,6 +217,11 @@
             gap: 6px;
         }
 
+        .brick-wall-wrapper {
+            display: flex;
+            flex-direction: column;
+        }
+
         .y-axis-column {
             display: flex;
             flex-direction: column;
@@ -319,6 +324,121 @@
             z-index: 2;
             pointer-events: none;
             border-radius: 2px;
+        }
+
+        .brick-wall-legend {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 5px;
+            margin-top: 0px;
+            padding: 5px;
+            background: #f9f9f9;
+            border-radius: 4px;
+            font-size: 11px;
+            color: #666;
+        }
+
+        .legend-item {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .legend-color {
+            width: 12px;
+            height: 12px;
+            border-radius: 2px;
+        }
+
+        .filters-section {
+            margin-top: 20px;
+            padding: 15px;
+            background: #f9f9f9;
+            border-radius: 8px;
+        }
+
+        .filters-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 10px;
+        }
+
+        .filters-title {
+            font-size: 14px;
+            font-weight: 600;
+            color: #333;
+        }
+
+        .filters-actions {
+            display: flex;
+            gap: 8px;
+        }
+
+        .filter-action-btn {
+            padding: 4px 10px;
+            border: 1px solid #ccc;
+            border-radius: 3px;
+            background: white;
+            cursor: pointer;
+            font-size: 11px;
+            transition: all 0.2s;
+        }
+
+        .filter-action-btn:hover {
+            background: #e0e0e0;
+        }
+
+        .filters-container {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+
+        .filter-btn {
+            padding: 4px 12px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            background: white;
+            cursor: pointer;
+            font-size: 11px;
+            transition: all 0.2s;
+        }
+
+        .filter-btn:hover {
+            background: #f0f0f0;
+        }
+
+        .filter-btn.active {
+            background: #4caf50;
+            color: white;
+            border-color: #4caf50;
+        }
+
+        .brick.filtered-out {
+            opacity: 0.2;
+            filter: grayscale(100%);
+        }
+
+        .filter-subgroup {
+            background: #f0f0f0;
+            border-radius: 8px;
+            padding: 12px;
+            margin-bottom: 15px;
+            border: 1px solid #ddd;
+        }
+
+        .filter-subgroup-title {
+            font-size: 13px;
+            font-weight: 600;
+            color: #333;
+            margin-bottom: 10px;
+        }
+
+        .filter-subgroup-buttons {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
         }
 
         .brick {
@@ -494,6 +614,178 @@
             background: #0052a3;
         }
 
+        .add-comment-btn {
+            background: #28a745;
+            color: white;
+            border: none;
+            padding: 6px 12px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 13px;
+            transition: background 0.3s ease;
+        }
+
+        .add-comment-btn:hover {
+            background: #218838;
+        }
+
+        .add-comment-modal {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+            z-index: 2001;
+            width: 400px;
+            max-width: 90vw;
+            display: none;
+        }
+
+        .add-comment-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            padding-bottom: 10px;
+            border-bottom: 1px solid #e1e5e9;
+        }
+
+        .add-comment-title {
+            font-size: 18px;
+            font-weight: 600;
+            color: #333;
+        }
+
+        .add-comment-close {
+            background: none;
+            border: none;
+            font-size: 24px;
+            cursor: pointer;
+            color: #666;
+            padding: 0;
+            width: 30px;
+            height: 30px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .add-comment-close:hover {
+            color: #333;
+        }
+
+        .add-comment-content {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+
+        .add-comment-field {
+            display: flex;
+            flex-direction: column;
+            gap: 5px;
+        }
+
+        .add-comment-field label {
+            font-size: 14px;
+            font-weight: 500;
+            color: #666;
+        }
+
+        .add-comment-input {
+            padding: 8px 12px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-size: 14px;
+        }
+
+        .add-comment-input:focus {
+            outline: none;
+            border-color: #0066cc;
+        }
+
+        .add-comment-textarea {
+            padding: 8px 12px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-size: 14px;
+            min-height: 100px;
+            resize: vertical;
+        }
+
+        .add-comment-textarea:focus {
+            outline: none;
+            border-color: #0066cc;
+        }
+
+        .add-comment-actions {
+            display: flex;
+            justify-content: flex-end;
+            gap: 10px;
+            margin-top: 10px;
+        }
+
+        .add-comment-cancel {
+            background: #f5f5f5;
+            color: #666;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 14px;
+            transition: background 0.3s ease;
+        }
+
+        .add-comment-cancel:hover {
+            background: #e0e0e0;
+        }
+
+        .add-comment-submit {
+            background: #28a745;
+            color: white;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 14px;
+            transition: background 0.3s ease;
+        }
+
+        .add-comment-submit:hover {
+            background: #218838;
+        }
+
+        #add-comment-overlay {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.5);
+            z-index: 2000;
+            pointer-events: auto;
+        }
+
+        #benchtest-comment-overlay {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.5);
+            z-index: 2000;
+            pointer-events: auto;
+        }
+
+        #benchtest-comment-modal {
+            display: none;
+        }
+
         .terminal-modal {
             position: fixed;
             top: 50%;
@@ -662,7 +954,7 @@
             color: #333;
             display: flex;
             gap: 15px;
-            flex-wrap: nowrap;
+            flex-wrap: wrap;
         }
 
         .modal-section {
@@ -711,6 +1003,42 @@
             font-weight: 600;
             color: #333;
             margin-bottom: 5px;
+        }
+
+        .modal-benchtest-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 10px;
+        }
+
+        .add-benchtest-comment-btn {
+            background: #28a745;
+            color: white;
+            border: none;
+            padding: 4px 8px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 12px;
+            transition: background 0.3s ease;
+        }
+
+        .add-benchtest-comment-btn:hover {
+            background: #218838;
+        }
+
+        .modal-comment {
+            padding: 8px;
+            background: #f0f0f0;
+            border-radius: 6px;
+            margin-bottom: 6px;
+            font-size: 13px;
+            color: #333;
+        }
+
+        .modal-comments-section {
+            flex: none;
+            width: 100%;
         }
 
         .modal-failed-test {
@@ -1003,6 +1331,7 @@
 
         <div class="tabs">
             <button class="tab active" onclick="switchTab('brick-wall')">Production Brick Wall</button>
+            <button class="tab" onclick="switchTab('brick-wall-filters')">Production Brick Wall Filters</button>
             <button class="tab" onclick="switchTab('advanced-options')">Advanced Options</button>
             <button class="tab" onclick="switchTab('session-info')">Session Information</button>
         </div>
@@ -1031,30 +1360,63 @@
                     <div class="loading">Loading brick wall data...</div>
                 </div>
             </div>
-            <div class="legend">
-                <div class="legend-item">
-                    <div class="legend-color" style="background: #00CC96;"></div>
-                    <span class="legend-label">Passed (Post-Burn-In)</span>
+        </div>
+
+        <div id="brick-wall-filters" class="tab-content">
+            <div class="brick-wall-section">
+                <div class="brick-wall-container" id="brick-wall-filters-container">
+                    <div class="loading">Loading brick wall data...</div>
                 </div>
-                <div class="legend-item">
-                    <div class="legend-color" style="background: #FF9800;"></div>
-                    <span class="legend-label">Passed (Pre-Burn-In Only)</span>
+            </div>
+            <div class="filters-section">
+                <div class="filters-header">
+                    <div class="filters-title">Basic Information Filters</div>
+                    <div class="filters-actions">
+                        <button class="filter-action-btn" data-action="enable-all" data-group="basic">Enable
+                            All</button>
+                        <button class="filter-action-btn" data-action="disable-all" data-group="basic">Disable
+                            All</button>
+                    </div>
                 </div>
-                <div class="legend-item">
-                    <div class="legend-color" style="background: #EF553B;"></div>
-                    <span class="legend-label">Failed</span>
+                <div class="filters-container">
+                    <button class="filter-btn active" data-filter="passed-post-burn-in" data-group="basic">Passed
+                        Post-Burn-In</button>
+                    <button class="filter-btn active" data-filter="passed-pre-burn-in" data-group="basic">Passed
+                        Pre-Burn-In</button>
+                    <button class="filter-btn active" data-filter="failed" data-group="basic">Failed</button>
+                    <button class="filter-btn active" data-filter="no-test" data-group="basic">No Test</button>
+                    <button class="filter-btn active" data-filter="missing-sfp-data" data-group="basic">Missing SFP
+                        Data</button>
+                    <button class="filter-btn active" data-filter="not-burned-in" data-group="basic">Not Burned
+                        In</button>
                 </div>
-                <div class="legend-item">
-                    <div class="legend-color" style="background: #FECB52;"></div>
-                    <span class="legend-label">No Test</span>
+            </div>
+            <div class="filters-section">
+                <div class="filters-header">
+                    <div class="filters-title">Component Lots Filters</div>
+                    <div class="filters-actions">
+                        <button class="filter-action-btn" data-action="enable-all" data-group="component-lots">Enable
+                            All</button>
+                        <button class="filter-action-btn" data-action="disable-all" data-group="component-lots">Disable
+                            All</button>
+                    </div>
                 </div>
-                <div class="legend-item">
-                    <div class="legend-color" style="background: #90EE90;">&#128245;</div>
-                    <span class="legend-label">Missing SFP Data</span>
+                <div class="filters-container" id="component-lots-filters">
+                    <!-- Dynamically populated with lot filters -->
                 </div>
-                <div class="legend-item">
-                    <div class="legend-color" style="background: #e0e0e0;">&#128219;</div>
-                    <span class="legend-label">Not Burned In</span>
+            </div>
+            <div class="filters-section">
+                <div class="filters-header">
+                    <div class="filters-title">Benchtest Information</div>
+                    <div class="filters-actions">
+                        <button class="filter-action-btn" data-action="enable-all" data-group="benchtest">Enable
+                            All</button>
+                        <button class="filter-action-btn" data-action="disable-all" data-group="benchtest">Disable
+                            All</button>
+                    </div>
+                </div>
+                <div class="filters-container" id="benchtest-filters">
+                    <!-- Dynamically populated with benchtest filters -->
                 </div>
             </div>
         </div>
@@ -1106,10 +1468,75 @@
                 <div class="modal-title" id="modal-title">Board Details</div>
                 <div class="modal-header-actions">
                     <button class="rerun-btn" id="rerun-btn" onclick="rerunBenchtest()">Rerun Analysis</button>
+                    <button class="add-comment-btn" id="add-comment-btn" onclick="openAddCommentModal()">Add
+                        Comment</button>
                     <button class="modal-close" id="modal-close">&times;</button>
                 </div>
             </div>
             <div class="modal-content" id="modal-content"></div>
+        </div>
+
+        <div class="modal-overlay" id="add-comment-overlay"></div>
+        <div class="add-comment-modal" id="add-comment-modal">
+            <div class="add-comment-header">
+                <div class="add-comment-title">Add Comment</div>
+                <button class="add-comment-close" id="add-comment-close">&times;</button>
+            </div>
+            <div class="add-comment-content">
+                <div class="add-comment-field">
+                    <label for="comment-serial">Serial Number:</label>
+                    <input type="text" id="comment-serial" class="add-comment-input" readonly>
+                </div>
+                <div class="add-comment-field">
+                    <label for="comment-timestamp">Timestamp:</label>
+                    <input type="text" id="comment-timestamp" class="add-comment-input" readonly>
+                </div>
+                <div class="add-comment-field">
+                    <label for="comment-op">Operator (OP):</label>
+                    <input type="text" id="comment-op" class="add-comment-input" placeholder="Enter operator name">
+                </div>
+                <div class="add-comment-field">
+                    <label for="comment-note">Note:</label>
+                    <textarea id="comment-note" class="add-comment-textarea"
+                        placeholder="Enter comment note"></textarea>
+                </div>
+                <div class="add-comment-actions">
+                    <button class="add-comment-cancel" id="add-comment-cancel">Cancel</button>
+                    <button class="add-comment-submit" id="add-comment-submit">Submit</button>
+                </div>
+            </div>
+        </div>
+
+        <div class="modal-overlay" id="benchtest-comment-overlay"></div>
+        <div class="add-comment-modal" id="benchtest-comment-modal">
+            <div class="add-comment-header">
+                <div class="add-comment-title">Add Benchtest Comment</div>
+                <button class="add-comment-close" id="benchtest-comment-close">&times;</button>
+            </div>
+            <div class="add-comment-content">
+                <div class="add-comment-field">
+                    <label for="benchtest-comment-id">Benchtest ID:</label>
+                    <input type="text" id="benchtest-comment-id" class="add-comment-input" readonly>
+                </div>
+                <div class="add-comment-field">
+                    <label for="benchtest-comment-timestamp">Timestamp:</label>
+                    <input type="text" id="benchtest-comment-timestamp" class="add-comment-input" readonly>
+                </div>
+                <div class="add-comment-field">
+                    <label for="benchtest-comment-op">Operator (OP):</label>
+                    <input type="text" id="benchtest-comment-op" class="add-comment-input"
+                        placeholder="Enter operator name">
+                </div>
+                <div class="add-comment-field">
+                    <label for="benchtest-comment-note">Note:</label>
+                    <textarea id="benchtest-comment-note" class="add-comment-textarea"
+                        placeholder="Enter comment note"></textarea>
+                </div>
+                <div class="add-comment-actions">
+                    <button class="add-comment-cancel" id="benchtest-comment-cancel">Cancel</button>
+                    <button class="add-comment-submit" id="benchtest-comment-submit">Submit</button>
+                </div>
+            </div>
         </div>
 
         <div class="modal-overlay" id="terminal-overlay"></div>
@@ -1166,14 +1593,20 @@
             selectedContent.style.opacity = '1';
             selectedContent.style.transform = 'translateY(0)';
 
-            // Load brick wall data if switching to brick-wall tab
+            // Load brick wall data if switching to brick-wall or brick-wall-filters tab
             if (tabId === 'brick-wall') {
-                loadBrickWall();
+                loadBrickWall('brick-wall-container', 10, true);
+            } else if (tabId === 'brick-wall-filters') {
+                loadBrickWall('brick-wall-filters-container', 6, false).then(() => {
+                    applyFilters();
+                });
             }
         }
 
-        async function loadBrickWall() {
-            const container = document.getElementById('brick-wall-container');
+        async function loadBrickWall(containerId = 'brick-wall-container', brickHeight = 10, showLegend = true) {
+            const container = document.getElementById(containerId);
+            if (!container) return;
+            container.innerHTML = '';
             const tooltip = document.getElementById('tooltip');
 
             try {
@@ -1214,6 +1647,13 @@
                 // Use maxPosition as the height (actual position values)
                 maxBricks = maxPosition;
 
+                // Create wrapper for brick wall content and legend
+                const wrapper = document.createElement('div');
+                wrapper.className = 'brick-wall-wrapper';
+
+                const content = document.createElement('div');
+                content.className = 'brick-wall-content';
+
                 // Add Y-axis column on the left
                 const yAxisLeft = document.createElement('div');
                 yAxisLeft.className = 'y-axis-column';
@@ -1224,6 +1664,8 @@
                 for (let pos = 0; pos <= maxBricks; pos++) {
                     const label = document.createElement('div');
                     label.className = 'y-axis-label';
+                    label.style.height = (brickHeight + 1) + 'px'; // brick height + gap
+                    label.style.lineHeight = (brickHeight + 1) + 'px';
                     if (pos % 2 === 0) {
                         const span = document.createElement('span');
                         span.textContent = pos;
@@ -1237,17 +1679,18 @@
                         // Create row highlight div positioned based on label position
                         const rowHighlight = document.createElement('div');
                         rowHighlight.className = 'row-highlight';
-                        const containerRect = container.getBoundingClientRect();
+                        rowHighlight.style.height = brickHeight + 'px';
+                        const wrapperRect = wrapper.getBoundingClientRect();
                         const labelRect = label.getBoundingClientRect();
-                        const labelTop = labelRect.top - containerRect.top + 2;
+                        const labelTop = labelRect.top - wrapperRect.top + 2;
                         rowHighlight.style.top = labelTop + 'px';
                         rowHighlight.dataset.pos = pos;
-                        container.appendChild(rowHighlight);
+                        wrapper.appendChild(rowHighlight);
                     });
 
                     label.addEventListener('mouseleave', () => {
                         // Remove row highlight
-                        const rowHighlight = container.querySelector('.row-highlight[data-pos="' + pos + '"]');
+                        const rowHighlight = wrapper.querySelector('.row-highlight[data-pos="' + pos + '"]');
                         if (rowHighlight) {
                             rowHighlight.remove();
                         }
@@ -1255,7 +1698,7 @@
 
                     yAxisLeft.appendChild(label);
                 }
-                container.appendChild(yAxisLeft);
+                content.appendChild(yAxisLeft);
 
                 for (let batchNum = 0; batchNum <= totalBatches; batchNum++) {
                     const batchColumn = document.createElement('div');
@@ -1292,6 +1735,7 @@
                         if (board) {
                             const brick = document.createElement('div');
                             brick.className = 'brick';
+                            brick.style.height = brickHeight + 'px';
                             brick.dataset.serial = board.serial_no;
 
                             // Determine color based on status (matching production overview plot logic)
@@ -1324,6 +1768,9 @@
                                 // Red for any other fail
                                 brick.style.background = '#EF553B';
                             }
+
+                            // Store board data for filtering
+                            brick._boardData = board;
 
                             // Add border style and emojis based on burn-in status and SFP data
                             const emojisContainer = document.createElement('div');
@@ -1421,6 +1868,7 @@
                             // Add placeholder brick for empty position
                             const emptyBrick = document.createElement('div');
                             emptyBrick.className = 'brick';
+                            emptyBrick.style.height = brickHeight + 'px';
                             emptyBrick.style.background = '#e0e0e0';
                             emptyBrick.style.opacity = '0.3';
                             batchColumn.appendChild(emptyBrick);
@@ -1443,7 +1891,7 @@
 
                     batchColumn.appendChild(batchLabelBottom);
 
-                    container.appendChild(batchColumn);
+                    content.appendChild(batchColumn);
                 }
 
                 // Add Y-axis column on the right
@@ -1456,6 +1904,8 @@
                 for (let pos = 0; pos <= maxBricks; pos++) {
                     const label = document.createElement('div');
                     label.className = 'y-axis-label';
+                    label.style.height = (brickHeight + 1) + 'px'; // brick height + gap
+                    label.style.lineHeight = (brickHeight + 1) + 'px';
                     if (pos % 2 === 0) {
                         const span = document.createElement('span');
                         span.textContent = pos;
@@ -1469,17 +1919,18 @@
                         // Create row highlight div positioned based on label position
                         const rowHighlight = document.createElement('div');
                         rowHighlight.className = 'row-highlight';
-                        const containerRect = container.getBoundingClientRect();
+                        rowHighlight.style.height = brickHeight + 'px';
+                        const wrapperRect = wrapper.getBoundingClientRect();
                         const labelRect = label.getBoundingClientRect();
-                        const labelTop = labelRect.top - containerRect.top + 2;
+                        const labelTop = labelRect.top - wrapperRect.top + 2;
                         rowHighlight.style.top = labelTop + 'px';
                         rowHighlight.dataset.pos = pos;
-                        container.appendChild(rowHighlight);
+                        wrapper.appendChild(rowHighlight);
                     });
 
                     label.addEventListener('mouseleave', () => {
                         // Remove row highlight
-                        const rowHighlight = container.querySelector('.row-highlight[data-pos="' + pos + '"]');
+                        const rowHighlight = wrapper.querySelector('.row-highlight[data-pos="' + pos + '"]');
                         if (rowHighlight) {
                             rowHighlight.remove();
                         }
@@ -1487,15 +1938,445 @@
 
                     yAxisRight.appendChild(label);
                 }
-                container.appendChild(yAxisRight);
+                content.appendChild(yAxisRight);
+
+                // Add legend if showLegend is true
+                if (showLegend) {
+                    const legend = document.createElement('div');
+                    legend.className = 'brick-wall-legend';
+
+                    const legendItems = [
+                        { color: '#00CC96', label: 'Passed (Post-Burn-In)' },
+                        { color: '#FF9800', label: 'Passed (Pre-Burn-In Only)' },
+                        { color: '#EF553B', label: 'Failed' },
+                        { color: '#FECB52', label: 'No Test' },
+                        { color: '#90EE90', label: 'Missing SFP Data', emoji: '&#128245;' },
+                        { color: '#e0e0e0', label: 'Not Burned In', emoji: '&#128219;' }
+                    ];
+
+                    legendItems.forEach(item => {
+                        const legendItem = document.createElement('div');
+                        legendItem.className = 'legend-item';
+
+                        const legendColor = document.createElement('div');
+                        legendColor.className = 'legend-color';
+                        legendColor.style.background = item.color;
+                        if (item.emoji) {
+                            legendColor.innerHTML = item.emoji;
+                        }
+
+                        const legendLabel = document.createElement('span');
+                        legendLabel.textContent = item.label;
+
+                        legendItem.appendChild(legendColor);
+                        legendItem.appendChild(legendLabel);
+                        legend.appendChild(legendItem);
+                    });
+
+                    wrapper.appendChild(legend);
+                }
+
+                wrapper.appendChild(content);
+                container.appendChild(wrapper);
+
+                // Populate component lots filters if this is the filters tab
+                if (containerId === 'brick-wall-filters-container') {
+                    populateComponentLotsFilters(data);
+                    populateBenchtestFilters(data);
+                }
 
             } catch (error) {
                 container.innerHTML = `<div class="error">Error loading brick wall: ${error.message}</div>`;
             }
         }
 
+        function populateComponentLotsFilters(data) {
+            const container = document.getElementById('component-lots-filters');
+            if (!container) return;
+
+            container.innerHTML = '';
+
+            const lotTypes = [
+                { key: 'kin_lot', label: 'KIN Lot' },
+                { key: 'pro_lot', label: 'PRO Lot' },
+                { key: 'gbt_lot', label: 'GBT Lot' },
+                { key: 'ina_lot', label: 'INA Lot' },
+                { key: 'ltm_lot', label: 'LTM Lot' },
+                { key: 'mos_lot', label: 'MOS Lot' },
+                { key: 'op4_lot', label: 'OP4 Lot' },
+                { key: 'ok4_lot', label: 'OK4 Lot' },
+                { key: 'ok1_lot', label: 'OK1 Lot' },
+                { key: 'mem_lot', label: 'MEM Lot' },
+                { key: 'sfp_lot', label: 'SFP Lot' }
+            ];
+
+            // Collect all unique lot values for each lot type
+            const lotValues = {};
+            lotTypes.forEach(lotType => {
+                lotValues[lotType.key] = new Set();
+            });
+
+            // Iterate through all boards to collect lot values
+            for (let batchNum = 0; batchNum <= 15; batchNum++) {
+                const boards = data.boards_by_batch[batchNum] || [];
+                boards.forEach(board => {
+                    lotTypes.forEach(lotType => {
+                        if (board[lotType.key]) {
+                            lotValues[lotType.key].add(board[lotType.key]);
+                        }
+                    });
+                });
+            }
+
+            // Create filter buttons for each lot type
+            lotTypes.forEach(lotType => {
+                const values = Array.from(lotValues[lotType.key]).sort();
+                if (values.length === 0) return;
+
+                // Create subgroup container with rounded corners
+                const subgroupContainer = document.createElement('div');
+                subgroupContainer.className = 'filter-subgroup';
+
+                // Create subgroup header
+                const subgroupHeader = document.createElement('div');
+                subgroupHeader.className = 'filter-subgroup-title';
+                subgroupHeader.textContent = lotType.label;
+                subgroupContainer.appendChild(subgroupHeader);
+
+                // Create buttons container for vertical layout
+                const buttonsContainer = document.createElement('div');
+                buttonsContainer.className = 'filter-subgroup-buttons';
+
+                values.forEach(lotValue => {
+                    const filterKey = `${lotType.key}_${lotValue}`;
+                    const btn = document.createElement('button');
+                    btn.className = 'filter-btn active';
+                    btn.dataset.filter = filterKey;
+                    btn.dataset.group = 'component-lots';
+                    btn.textContent = lotValue;
+                    buttonsContainer.appendChild(btn);
+
+                    // Add to activeFilters
+                    activeFilters[filterKey] = true;
+                });
+
+                subgroupContainer.appendChild(buttonsContainer);
+                container.appendChild(subgroupContainer);
+            });
+
+            // Re-attach event listeners to all filter buttons
+            attachFilterEventListeners();
+        }
+
+        function populateBenchtestFilters(data) {
+            const container = document.getElementById('benchtest-filters');
+            if (!container) return;
+
+            container.innerHTML = '';
+
+            // Collect all unique numbers of benchtests
+            const numBenchtestsSet = new Set();
+
+            // Collect all unique MD positions
+            const mdPositionsSet = new Set();
+
+            // Iterate through all boards to collect benchtest counts and MD positions
+            for (let batchNum = 0; batchNum <= 15; batchNum++) {
+                const boards = data.boards_by_batch[batchNum] || [];
+                boards.forEach(board => {
+                    if (board.benchtests && board.benchtests.length > 0) {
+                        numBenchtestsSet.add(board.benchtests.length);
+
+                        // Collect MD positions from benchtests
+                        board.benchtests.forEach(bt => {
+                            if (bt.benchtest_slot) {
+                                mdPositionsSet.add(bt.benchtest_slot);
+                            }
+                        });
+                    }
+                });
+            }
+
+            const numBenchtests = Array.from(numBenchtestsSet).sort((a, b) => a - b);
+            const mdPositions = Array.from(mdPositionsSet).sort();
+
+            if (numBenchtests.length === 0 && mdPositions.length === 0) {
+                container.innerHTML = '<div style="color: #999; font-size: 12px;">No benchtest data available</div>';
+                return;
+            }
+
+            // Create subgroup for Number of Benchtests
+            if (numBenchtests.length > 0) {
+                const numBenchtestsSubgroup = document.createElement('div');
+                numBenchtestsSubgroup.className = 'filter-subgroup';
+
+                const numBenchtestsHeader = document.createElement('div');
+                numBenchtestsHeader.className = 'filter-subgroup-title';
+                numBenchtestsHeader.textContent = 'Number of Benchtests';
+                numBenchtestsSubgroup.appendChild(numBenchtestsHeader);
+
+                const numBenchtestsButtons = document.createElement('div');
+                numBenchtestsButtons.className = 'filter-subgroup-buttons';
+
+                numBenchtests.forEach(count => {
+                    const filterKey = `num_benchtests_${count}`;
+                    const btn = document.createElement('button');
+                    btn.className = 'filter-btn active';
+                    btn.dataset.filter = filterKey;
+                    btn.dataset.group = 'benchtest';
+                    btn.textContent = count;
+                    numBenchtestsButtons.appendChild(btn);
+
+                    // Add to activeFilters
+                    activeFilters[filterKey] = true;
+                });
+
+                numBenchtestsSubgroup.appendChild(numBenchtestsButtons);
+                container.appendChild(numBenchtestsSubgroup);
+            }
+
+            // Create subgroup for MD Position
+            if (mdPositions.length > 0) {
+                const mdPositionSubgroup = document.createElement('div');
+                mdPositionSubgroup.className = 'filter-subgroup';
+
+                const mdPositionHeader = document.createElement('div');
+                mdPositionHeader.className = 'filter-subgroup-title';
+                mdPositionHeader.textContent = 'MD Position';
+                mdPositionSubgroup.appendChild(mdPositionHeader);
+
+                const mdPositionButtons = document.createElement('div');
+                mdPositionButtons.className = 'filter-subgroup-buttons';
+
+                mdPositions.forEach(mdPos => {
+                    const filterKey = `md_position_${mdPos}`;
+                    const btn = document.createElement('button');
+                    btn.className = 'filter-btn active';
+                    btn.dataset.filter = filterKey;
+                    btn.dataset.group = 'benchtest';
+                    btn.textContent = mdPos;
+                    mdPositionButtons.appendChild(btn);
+
+                    // Add to activeFilters
+                    activeFilters[filterKey] = true;
+                });
+
+                mdPositionSubgroup.appendChild(mdPositionButtons);
+                container.appendChild(mdPositionSubgroup);
+            }
+
+            // Re-attach event listeners to all filter buttons
+            attachFilterEventListeners();
+        }
+
+        function attachFilterEventListeners() {
+            document.querySelectorAll('.filter-btn').forEach(btn => {
+                // Remove existing listeners to avoid duplicates
+                const newBtn = btn.cloneNode(true);
+                btn.parentNode.replaceChild(newBtn, btn);
+
+                newBtn.addEventListener('click', () => {
+                    const filter = newBtn.dataset.filter;
+                    activeFilters[filter] = !activeFilters[filter];
+                    newBtn.classList.toggle('active');
+                    applyFilters();
+                });
+
+                // Double-click to disable all other filters in the same group
+                newBtn.addEventListener('dblclick', (e) => {
+                    const group = newBtn.dataset.group;
+                    const filter = newBtn.dataset.filter;
+
+                    // Disable all other filters in the same group
+                    document.querySelectorAll(`.filter-btn[data-group="${group}"]`).forEach(otherBtn => {
+                        if (otherBtn !== newBtn) {
+                            const otherFilter = otherBtn.dataset.filter;
+                            activeFilters[otherFilter] = false;
+                            otherBtn.classList.remove('active');
+                        }
+                    });
+
+                    // Ensure this filter is enabled
+                    activeFilters[filter] = true;
+                    newBtn.classList.add('active');
+
+                    applyFilters();
+                });
+            });
+
+            // Add event listeners to action buttons
+            document.querySelectorAll('.filter-action-btn').forEach(btn => {
+                btn.addEventListener('click', () => {
+                    const action = btn.dataset.action;
+                    const group = btn.dataset.group;
+
+                    if (action === 'enable-all') {
+                        // Enable all filters in the group
+                        document.querySelectorAll(`.filter-btn[data-group="${group}"]`).forEach(filterBtn => {
+                            const filter = filterBtn.dataset.filter;
+                            activeFilters[filter] = true;
+                            filterBtn.classList.add('active');
+                        });
+                    } else if (action === 'disable-all') {
+                        // Disable all filters in the group
+                        document.querySelectorAll(`.filter-btn[data-group="${group}"]`).forEach(filterBtn => {
+                            const filter = filterBtn.dataset.filter;
+                            activeFilters[filter] = false;
+                            filterBtn.classList.remove('active');
+                        });
+                    }
+
+                    applyFilters();
+                });
+            });
+        }
+
         // Load brick wall on page load
-        document.addEventListener('DOMContentLoaded', loadBrickWall);
+        document.addEventListener('DOMContentLoaded', () => {
+            loadBrickWall('brick-wall-container', 10, true);
+        });
+
+        // Filter functionality
+        const activeFilters = {
+            'passed-post-burn-in': true,
+            'passed-pre-burn-in': true,
+            'failed': true,
+            'no-test': true,
+            'missing-sfp-data': true,
+            'not-burned-in': true
+        };
+
+        function applyFilters() {
+            const bricks = document.querySelectorAll('#brick-wall-filters-container .brick');
+            bricks.forEach(brick => {
+                const serial = brick.dataset.serial;
+                if (!serial) return; // Skip placeholder bricks
+
+                const board = brick._boardData;
+                if (!board) return;
+
+                const status = board.db_status;
+                const e_test = board.e_test;
+                const p_test = board.p_test;
+                const has_benchtest = board.has_benchtest;
+                const has_sfp_data = board.a0 && board.a1 && board.b0 && board.b1;
+                const has_post_burnin_test = board.has_post_burnin_test;
+
+                // Check if any Basic Information filters are enabled
+                const hasEnabledBasicInfoFilters = Object.keys(activeFilters).some(key =>
+                    ['passed-post-burn-in', 'passed-pre-burn-in', 'failed', 'no-test', 'missing-sfp-data', 'not-burned-in'].includes(key) && activeFilters[key]
+                );
+
+                // Check if any Component Lots filters are enabled
+                const hasEnabledComponentLotsFilters = Object.keys(activeFilters).some(key =>
+                    key.includes('_') && !key.startsWith('num_benchtests_') && !key.startsWith('md_position_') && activeFilters[key]
+                );
+
+                // Check if any Benchtest filters are enabled
+                const hasEnabledBenchtestFilters = Object.keys(activeFilters).some(key =>
+                    (key.startsWith('num_benchtests_') || key.startsWith('md_position_')) && activeFilters[key]
+                );
+
+                // If no filters are enabled at all, gray out all bricks
+                if (!hasEnabledBasicInfoFilters && !hasEnabledComponentLotsFilters && !hasEnabledBenchtestFilters) {
+                    brick.classList.add('filtered-out');
+                    return;
+                }
+
+                // Check Basic Information filters
+                let matchesBasicInfo = false;
+
+                if (hasEnabledBasicInfoFilters) {
+                    // Passed Post-Burn-In filter
+                    if (activeFilters['passed-post-burn-in'] && status === 1 && e_test === 1 && p_test === 1 && has_post_burnin_test) {
+                        matchesBasicInfo = true;
+                    }
+
+                    // Passed Pre-Burn-In filter
+                    if (activeFilters['passed-pre-burn-in'] && status === 1 && e_test === 1 && p_test === 1 && !has_post_burnin_test) {
+                        matchesBasicInfo = true;
+                    }
+
+                    // Failed filter
+                    if (activeFilters['failed'] && (status === 0 || e_test === 0 || p_test === 0)) {
+                        matchesBasicInfo = true;
+                    }
+
+                    // No Test filter
+                    if (activeFilters['no-test'] && (status === null || e_test === null || p_test === null)) {
+                        matchesBasicInfo = true;
+                    }
+
+                    // Missing SFP Data filter
+                    if (activeFilters['missing-sfp-data'] && !has_sfp_data) {
+                        matchesBasicInfo = true;
+                    }
+
+                    // Not Burned In filter
+                    if (activeFilters['not-burned-in'] && !board.burn_in_stop) {
+                        matchesBasicInfo = true;
+                    }
+                } else {
+                    // If no basic info filters are enabled, treat as all match
+                    matchesBasicInfo = true;
+                }
+
+                // Check Component Lots filters
+                let matchesComponentLots = false;
+
+                if (hasEnabledComponentLotsFilters) {
+                    const lotTypes = ['kin_lot', 'pro_lot', 'gbt_lot', 'ina_lot', 'ltm_lot', 'mos_lot', 'op4_lot', 'ok4_lot', 'ok1_lot', 'mem_lot', 'sfp_lot'];
+                    lotTypes.forEach(lotType => {
+                        if (board[lotType]) {
+                            const filterKey = `${lotType}_${board[lotType]}`;
+                            if (activeFilters[filterKey]) {
+                                matchesComponentLots = true;
+                            }
+                        }
+                    });
+                } else {
+                    // If no component lots filters are enabled, treat as all match
+                    matchesComponentLots = true;
+                }
+
+                // Check Benchtest filters
+                let matchesBenchtest = false;
+
+                if (hasEnabledBenchtestFilters) {
+                    // Check number of benchtests filter
+                    if (board.benchtests && board.benchtests.length > 0) {
+                        const filterKey = `num_benchtests_${board.benchtests.length}`;
+                        if (activeFilters[filterKey]) {
+                            matchesBenchtest = true;
+                        }
+                    }
+
+                    // Check MD position filter
+                    if (board.benchtests && board.benchtests.length > 0) {
+                        board.benchtests.forEach(bt => {
+                            if (bt.benchtest_slot) {
+                                const filterKey = `md_position_${bt.benchtest_slot}`;
+                                if (activeFilters[filterKey]) {
+                                    matchesBenchtest = true;
+                                }
+                            }
+                        });
+                    }
+                } else {
+                    // If no benchtest filters are enabled, treat as all match
+                    matchesBenchtest = true;
+                }
+
+                // AND logic: brick must match at least one filter from each group (if group has enabled filters)
+                const shouldShow = matchesBasicInfo && matchesComponentLots && matchesBenchtest;
+
+                if (!shouldShow) {
+                    brick.classList.add('filtered-out');
+                } else {
+                    brick.classList.remove('filtered-out');
+                }
+            });
+        }
 
         // Modal functionality
         const modal = document.getElementById('modal');
@@ -1504,10 +2385,36 @@
         const modalContent = document.getElementById('modal-content');
         const modalClose = document.getElementById('modal-close');
 
+        // Add Comment modal functionality
+        const addCommentModal = document.getElementById('add-comment-modal');
+        const addCommentOverlay = document.getElementById('add-comment-overlay');
+        const addCommentClose = document.getElementById('add-comment-close');
+        const addCommentCancel = document.getElementById('add-comment-cancel');
+        const addCommentSubmit = document.getElementById('add-comment-submit');
+        const commentOpInput = document.getElementById('comment-op');
+        const commentNoteInput = document.getElementById('comment-note');
+        const commentSerialInput = document.getElementById('comment-serial');
+        const commentTimestampInput = document.getElementById('comment-timestamp');
+
+        // Benchtest Comment modal functionality
+        const benchtestCommentModal = document.getElementById('benchtest-comment-modal');
+        const benchtestCommentOverlay = document.getElementById('benchtest-comment-overlay');
+        const benchtestCommentClose = document.getElementById('benchtest-comment-close');
+        const benchtestCommentCancel = document.getElementById('benchtest-comment-cancel');
+        const benchtestCommentSubmit = document.getElementById('benchtest-comment-submit');
+        const benchtestCommentIdInput = document.getElementById('benchtest-comment-id');
+        const benchtestCommentTimestampInput = document.getElementById('benchtest-comment-timestamp');
+        const benchtestCommentOpInput = document.getElementById('benchtest-comment-op');
+        const benchtestCommentNoteInput = document.getElementById('benchtest-comment-note');
+
+        let currentBenchtestId = null;
+
         let currentBoardSerial = null;
+        let currentBoardData = null;
 
         function showModal(board) {
             currentBoardSerial = board.serial_no;
+            currentBoardData = board;
             modalTitle.textContent = `Board ${board.serial_no}`;
 
             let html = '';
@@ -1590,7 +2497,10 @@
 
                     // Create hyperlink to benchtest folder with title format "Benchtest XX MD YY"
                     const benchtestUrl = 'https://piro-atlas-lab.fysik.su.se/drive/benchtests/benchtest_id_' + bt.benchtest_id + '/DB_' + board.serial_no + '/';
+                    html += '<div class="modal-benchtest-header">';
                     html += '<div class="modal-benchtest-title"><a href="' + benchtestUrl + '" target="_blank" style="color: #0066cc; text-decoration: none;">Benchtest ' + bt.benchtest_id + ' ' + bt.benchtest_slot + '</a></div>';
+                    html += '<button class="add-benchtest-comment-btn" onclick="openBenchtestCommentModal(' + bt.benchtest_id + ')">Add Comment</button>';
+                    html += '</div>';
 
                     html += '<div class="modal-row"><span class="modal-label">Test OP:</span><span class="modal-value">' + (bt.test_op || 'N/A') + '</span></div>';
 
@@ -1635,6 +2545,30 @@
                 html += '</div>';
             }
 
+            // Comments
+            if (board.comments && board.comments.length > 0) {
+                html += '<div class="modal-section modal-comments-section">';
+                html += '<div class="modal-section-title">Comments</div>';
+
+                board.comments.forEach(comment => {
+                    const tstamp = comment.tstamp || 'N/A';
+                    const op = comment.op || 'N/A';
+                    const note = comment.note || '';
+
+                    if (comment.is_benchtest_comment) {
+                        // Format benchtest comments as "tstamp (op, mdX@btY): note"
+                        const md = comment.md || '?';
+                        const bt = comment.bt || '?';
+                        html += '<div class="modal-comment">' + tstamp + ' (' + op + ', md' + md + '@bt' + bt + '): ' + note + '</div>';
+                    } else {
+                        // Format brick comments as "tstamp (op): note"
+                        html += '<div class="modal-comment">' + tstamp + ' (' + op + '): ' + note + '</div>';
+                    }
+                });
+
+                html += '</div>';
+            }
+
             modalContent.innerHTML = html;
             modal.style.display = 'block';
             modalOverlay.style.display = 'block';
@@ -1649,8 +2583,170 @@
             }, 300);
         }
 
+        function openAddCommentModal() {
+            if (!currentBoardSerial) {
+                alert('No board selected');
+                return;
+            }
+            commentSerialInput.value = currentBoardSerial;
+            commentTimestampInput.value = new Date().toISOString();
+            commentOpInput.value = '';
+            commentNoteInput.value = '';
+            addCommentModal.style.display = 'block';
+            addCommentOverlay.style.display = 'block';
+            commentOpInput.focus();
+        }
+
+        function closeAddCommentModal() {
+            addCommentModal.style.display = 'none';
+            addCommentOverlay.style.display = 'none';
+        }
+
+        function openBenchtestCommentModal(benchtestId) {
+            currentBenchtestId = benchtestId;
+            benchtestCommentIdInput.value = benchtestId;
+            benchtestCommentTimestampInput.value = new Date().toISOString();
+            benchtestCommentOpInput.value = '';
+            benchtestCommentNoteInput.value = '';
+            benchtestCommentModal.style.display = 'block';
+            benchtestCommentOverlay.style.display = 'block';
+            benchtestCommentOpInput.focus();
+        }
+
+        function closeBenchtestCommentModal() {
+            benchtestCommentModal.style.display = 'none';
+            benchtestCommentOverlay.style.display = 'none';
+        }
+
+        async function submitBenchtestComment() {
+            const op = benchtestCommentOpInput.value.trim();
+            const note = benchtestCommentNoteInput.value.trim();
+
+            if (!op) {
+                alert('Please enter an operator name');
+                return;
+            }
+
+            if (!note) {
+                alert('Please enter a note');
+                return;
+            }
+
+            try {
+                const response = await fetch('/api/add_comment', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        foreign_typ: 4,
+                        foreign_id: currentBenchtestId,
+                        op: op,
+                        note: note
+                    })
+                });
+
+                if (response.ok) {
+                    closeBenchtestCommentModal();
+                    // Refresh the brick wall data to show the new comment
+                    await loadBrickWall();
+                    // Refresh the modal with updated data
+                    if (currentBoardData) {
+                        const data = await fetch('/api/brick_wall_data').then(r => r.json());
+                        let updatedBoard = null;
+                        for (let batch = 0; batch <= 15; batch++) {
+                            const boards = data.boards_by_batch[batch] || [];
+                            const found = boards.find(b => b.serial_no === currentBoardSerial);
+                            if (found) {
+                                updatedBoard = found;
+                                break;
+                            }
+                        }
+                        if (updatedBoard) {
+                            showModal(updatedBoard);
+                        }
+                    }
+                    alert('Comment added successfully');
+                } else {
+                    alert('Failed to add comment');
+                }
+            } catch (error) {
+                console.error('Error adding comment:', error);
+                alert('Error adding comment');
+            }
+        }
+
+        async function submitComment() {
+            const op = commentOpInput.value.trim();
+            const note = commentNoteInput.value.trim();
+
+            if (!op) {
+                alert('Please enter an operator name');
+                return;
+            }
+
+            if (!note) {
+                alert('Please enter a note');
+                return;
+            }
+
+            try {
+                const response = await fetch('/api/add_comment', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        foreign_typ: 3,
+                        foreign_id: currentBoardSerial,
+                        op: op,
+                        note: note
+                    })
+                });
+
+                if (response.ok) {
+                    closeAddCommentModal();
+                    // Refresh the brick wall data to show the new comment
+                    await loadBrickWall();
+                    // Refresh the modal with updated data
+                    if (currentBoardData) {
+                        // Find the updated board data
+                        const data = await fetch('/api/brick_wall_data').then(r => r.json());
+                        let updatedBoard = null;
+                        for (let batch = 0; batch <= 15; batch++) {
+                            const boards = data.boards_by_batch[batch] || [];
+                            const found = boards.find(b => b.serial_no === currentBoardSerial);
+                            if (found) {
+                                updatedBoard = found;
+                                break;
+                            }
+                        }
+                        if (updatedBoard) {
+                            showModal(updatedBoard);
+                        }
+                    }
+                    alert('Comment added successfully');
+                } else {
+                    alert('Failed to add comment');
+                }
+            } catch (error) {
+                console.error('Error adding comment:', error);
+                alert('Error adding comment');
+            }
+        }
+
         modalClose.addEventListener('click', closeModal);
         modalOverlay.addEventListener('click', closeModal);
+
+        // Add Comment modal event listeners
+        addCommentClose.addEventListener('click', closeAddCommentModal);
+        addCommentCancel.addEventListener('click', closeAddCommentModal);
+        addCommentSubmit.addEventListener('click', submitComment);
+
+        // Benchtest Comment modal event listeners
+        benchtestCommentClose.addEventListener('click', closeBenchtestCommentModal);
+        benchtestCommentCancel.addEventListener('click', closeBenchtestCommentModal);
+        benchtestCommentSubmit.addEventListener('click', submitBenchtestComment);
 
         // Prevent modal from closing when clicking inside the modal content
         modal.addEventListener('click', (e) => {

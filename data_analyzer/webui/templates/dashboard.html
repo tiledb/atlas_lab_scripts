@@ -1316,23 +1316,180 @@
             background: #e0e0e0;
             border: 3px solid #ff9800;
         }
+
+        .production-summary-section {
+            background: white;
+            border-radius: 12px;
+            padding: 20px;
+            margin-top: 15px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+        }
+
+        .production-summary-header {
+            margin-bottom: 20px;
+        }
+
+        .production-summary-header h3 {
+            color: #333;
+            font-size: 22px;
+            margin-bottom: 6px;
+        }
+
+        .production-summary-header p {
+            color: #666;
+            font-size: 14px;
+        }
+
+        .production-summary-controls {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 16px;
+            flex-wrap: wrap;
+            margin-bottom: 6px;
+        }
+
+        .production-summary-toggle {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            color: #444;
+            font-size: 14px;
+            white-space: nowrap;
+        }
+
+        .production-summary-toggle input {
+            width: 16px;
+            height: 16px;
+            cursor: pointer;
+        }
+
+        .summary-charts-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+            gap: 20px;
+            margin-bottom: 20px;
+        }
+
+        .summary-chart-card {
+            background: #fafbfc;
+            border: 1px solid #e8ebef;
+            border-radius: 10px;
+            padding: 10px;
+            display: flex;
+            flex-direction: column;
+            min-height: 0;
+            overflow: hidden;
+        }
+
+        .summary-chart-card.summary-chart-card-pie {
+            height: 380px;
+        }
+
+        .summary-chart-card.wide {
+            grid-column: 1 / -1;
+            height: 420px;
+        }
+
+        .summary-chart-title {
+            font-size: 15px;
+            font-weight: 600;
+            color: #444;
+            margin-bottom: 4px;
+            padding: 0 8px;
+            flex: 0 0 auto;
+        }
+
+        .summary-chart-subtitle {
+            font-size: 12px;
+            color: #666;
+            margin-bottom: 6px;
+            padding: 0 8px;
+            flex: 0 0 auto;
+            min-height: 16px;
+        }
+
+        .summary-chart-plot {
+            flex: 1 1 auto;
+            min-height: 0;
+            width: 100%;
+            overflow: hidden;
+        }
+
+        .summary-chart-plot .js-plotly-plot,
+        .summary-chart-plot .plot-container,
+        .summary-chart-plot .svg-container {
+            width: 100% !important;
+            height: 100% !important;
+        }
+
+        .summary-chart-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 8px;
+            padding: 0 8px;
+        }
+
+        .summary-chart-header .summary-chart-title {
+            margin-bottom: 0;
+            padding: 0;
+        }
+
+        .summary-chart-toggle {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            color: #555;
+            font-size: 12px;
+            white-space: nowrap;
+        }
+
+        .summary-chart-toggle input {
+            width: 14px;
+            height: 14px;
+            cursor: pointer;
+        }
+
+        .summary-loading,
+        .summary-error {
+            padding: 40px;
+            text-align: center;
+            color: #666;
+            font-size: 15px;
+        }
+
+        .summary-error {
+            color: #c33;
+        }
     </style>
+    <script src="https://cdn.plot.ly/plotly-2.35.2.min.js"></script>
 </head>
 
 <body>
     <div class="container">
         <div class="welcome-section">
             <div class="welcome-header">
-                <h2>TileQA Administration</h2>
+                <h2>TileQA Administration{% if session.get('guest_mode') %} <span style="font-size: 16px; font-weight: 500; opacity: 0.9;">(Guest)</span>{% endif %}</h2>
                 <a href="{{ url_for('logout') }}" class="logout-btn">Logout</a>
             </div>
-
+            {% with messages = get_flashed_messages() %}
+                {% if messages %}
+                    {% for message in messages %}
+                        <p style="color: #fff; background: rgba(255,255,255,0.15); padding: 10px 12px; border-radius: 6px; margin-top: 10px; font-size: 14px;">{{ message }}</p>
+                    {% endfor %}
+                {% endif %}
+            {% endwith %}
         </div>
 
         <div class="tabs">
             <button class="tab active" onclick="switchTab('brick-wall')">Production Brick Wall</button>
             <button class="tab" onclick="switchTab('brick-wall-filters')">Production Brick Wall Filters</button>
+            <button class="tab" onclick="switchTab('production-summary')">Production Summary</button>
+            {% if not session.get('guest_mode') %}
             <button class="tab" onclick="switchTab('advanced-options')">Advanced Options</button>
+            {% endif %}
             <button class="tab" onclick="switchTab('session-info')">Session Information</button>
         </div>
 
@@ -1421,6 +1578,19 @@
             </div>
         </div>
 
+        <div id="production-summary" class="tab-content">
+            <div class="production-summary-section">
+                <div class="production-summary-header">
+                    <h3>Production Summary</h3>
+                    <p id="production-summary-subtitle">Loading production statistics...</p>
+                </div>
+                <div id="production-summary-content">
+                    <div class="summary-loading">Loading charts...</div>
+                </div>
+            </div>
+        </div>
+
+        {% if not session.get('guest_mode') %}
         <div id="advanced-options" class="tab-content">
             <div class="cards-grid">
                 <a href="{{ url_for('run_script') }}" class="card">
@@ -1439,8 +1609,15 @@
                         analysis.
                     </p>
                 </a>
+
+                <a href="{{ url_for('edit_production') }}" class="card">
+                    <div class="card-icon">📅</div>
+                    <h3>Production Configuration</h3>
+                    <p>Edit the production schedule calendar, timeline offsets, and upload updated CSV planning files.</p>
+                </a>
             </div>
         </div>
+        {% endif %}
 
         <div id="session-info" class="tab-content">
             <div class="info-section">
@@ -1451,11 +1628,11 @@
                 </div>
                 <div class="info-item">
                     <span class="info-label">User</span>
-                    <span class="info-value">{{ session.get('db_user', 'N/A') }}</span>
+                    <span class="info-value">{% if session.get('guest_mode') %}guest{% else %}{{ session.get('db_user', 'N/A') }}{% endif %}</span>
                 </div>
                 <div class="info-item">
                     <span class="info-label">Status</span>
-                    <span class="info-value">Connected</span>
+                    <span class="info-value">{% if session.get('guest_mode') %}Guest (read-only){% else %}Connected{% endif %}</span>
                 </div>
             </div>
         </div>
@@ -1467,9 +1644,11 @@
             <div class="modal-header">
                 <div class="modal-title" id="modal-title">Board Details</div>
                 <div class="modal-header-actions">
+                    {% if not session.get('guest_mode') %}
                     <button class="rerun-btn" id="rerun-btn" onclick="rerunBenchtest()">Rerun Analysis</button>
                     <button class="add-comment-btn" id="add-comment-btn" onclick="openAddCommentModal()">Add
                         Comment</button>
+                    {% endif %}
                     <button class="modal-close" id="modal-close">&times;</button>
                 </div>
             </div>
@@ -1556,6 +1735,9 @@
     </div>
 
     <script>
+        const isGuestMode = {{ 'true' if session.get('guest_mode') else 'false' }};
+        const MAX_BRICK_WALL_BATCH = 13;
+
         function switchTab(tabId) {
             // Hide all tab contents with fade-out
             const tabContents = document.querySelectorAll('.tab-content');
@@ -1600,6 +1782,679 @@
                 loadBrickWall('brick-wall-filters-container', 6, false).then(() => {
                     applyFilters();
                 });
+            } else if (tabId === 'production-summary') {
+                loadProductionSummary();
+            }
+        }
+
+        let productionSummaryLoaded = false;
+        let lastProductionSummaryData = null;
+        let summaryChartIds = [];
+        let summaryResizeTimer = null;
+        let chartLabelSettings = {
+            time: true,
+            burnin: true,
+        };
+
+        function getSummaryPlotHeight(elementId, fallback = 260) {
+            const element = document.getElementById(elementId);
+            if (!element) {
+                return fallback;
+            }
+            const height = element.clientHeight;
+            return height > 0 ? height : fallback;
+        }
+
+        function buildSummaryBottomLegend(itemCount = 2, options = {}) {
+            const itemsPerRow = options.itemsPerRow || (itemCount > 3 ? 2 : 3);
+            const rows = Math.ceil(itemCount / itemsPerRow);
+            const bottomMargin = Math.max(options.minBottomMargin || 36, rows * 20 + 12);
+            return {
+                legend: {
+                    orientation: 'h',
+                    yanchor: 'top',
+                    y: -0.1,
+                    x: 0.5,
+                    xanchor: 'center',
+                    font: { size: 10 },
+                    itemsizing: 'constant',
+                },
+                bottomMargin,
+                domain: { x: [0, 1], y: [0.05, 1] },
+                margin: { t: 10, b: bottomMargin, l: 10, r: 10 },
+            };
+        }
+
+        function buildSummaryLineLayout(traceCount) {
+            const itemsPerRow = 4;
+            const rows = Math.ceil(traceCount / itemsPerRow);
+            const legendRowsHeight = rows * 22;
+            const bottomMargin = Math.max(105, legendRowsHeight + 85);
+            return {
+                legend: {
+                    orientation: 'h',
+                    yanchor: 'top',
+                    y: -0.32 - Math.max(rows - 1, 0) * 0.05,
+                    x: 0.5,
+                    xanchor: 'center',
+                    font: { size: 10 },
+                    itemsizing: 'constant',
+                },
+                margin: { t: 20, b: bottomMargin, l: 60, r: 20 },
+            };
+        }
+
+        function renderSummaryPlot(elementId, data, layout) {
+            const element = document.getElementById(elementId);
+            if (!element) {
+                return;
+            }
+
+            const height = getSummaryPlotHeight(elementId);
+            if (!summaryChartIds.includes(elementId)) {
+                summaryChartIds.push(elementId);
+            }
+
+            Plotly.newPlot(elementId, data, {
+                autosize: true,
+                ...layout,
+                height,
+            }, {
+                responsive: true,
+                displayModeBar: false,
+            });
+        }
+
+        function resizeSummaryCharts() {
+            summaryChartIds.forEach((elementId) => {
+                const element = document.getElementById(elementId);
+                if (!element || !element.querySelector('.js-plotly-plot')) {
+                    return;
+                }
+                Plotly.relayout(elementId, { height: getSummaryPlotHeight(elementId) });
+            });
+        }
+
+        function attachSummaryResizeListener() {
+            if (window.summaryResizeListenerAttached) {
+                return;
+            }
+            window.summaryResizeListenerAttached = true;
+            window.addEventListener('resize', () => {
+                clearTimeout(summaryResizeTimer);
+                summaryResizeTimer = setTimeout(resizeSummaryCharts, 150);
+            });
+        }
+
+        function collectTraceXTimes(traces) {
+            const values = [];
+            traces.forEach(trace => {
+                (trace.x || []).forEach(value => {
+                    const time = new Date(value).getTime();
+                    if (!Number.isNaN(time)) {
+                        values.push(time);
+                    }
+                });
+
+                const errorX = trace.error_x || {};
+                const startTimes = errorX.arrayminus || [];
+                const endTimes = errorX.array || [];
+                (trace.x || []).forEach((value, index) => {
+                    const center = new Date(value).getTime();
+                    if (Number.isNaN(center)) {
+                        return;
+                    }
+                    const minusMs = Number(startTimes[index] || 0);
+                    const plusMs = Number(endTimes[index] || 0);
+                    values.push(center - minusMs, center + plusMs);
+                });
+            });
+            return values;
+        }
+
+        function computeTraceXRange(traces) {
+            const times = collectTraceXTimes(traces);
+            if (times.length === 0) {
+                return null;
+            }
+
+            const min = Math.min(...times);
+            const max = Math.max(...times);
+            const padding = Math.max((max - min) * 0.02, 24 * 60 * 60 * 1000);
+            const format = (timestamp) => new Date(timestamp).toISOString().slice(0, 19).replace('T', ' ');
+            return [format(min - padding), format(max + padding)];
+        }
+
+        function getTraceYMax(traces) {
+            let ymax = 0;
+            traces.forEach(trace => {
+                (trace.y || []).forEach(value => {
+                    if (typeof value === 'number' && value > ymax) {
+                        ymax = value;
+                    }
+                });
+            });
+            return ymax || 1;
+        }
+
+        function filterCommentsInRange(comments, xRange) {
+            if (!xRange || !comments || comments.length === 0) {
+                return [];
+            }
+
+            const min = new Date(xRange[0]).getTime();
+            const max = new Date(xRange[1]).getTime();
+            return comments.filter(item => {
+                const time = calendarDateToMs(item.date);
+                return !Number.isNaN(time) && time >= min && time <= max;
+            });
+        }
+
+        function calendarDatePart(dateString) {
+            return String(dateString).split(' ')[0];
+        }
+
+        function calendarDateToPlotlyX(dateString) {
+            const [year, month, day] = calendarDatePart(dateString).split('-').map(Number);
+            return new Date(year, month - 1, day, 12, 0, 0);
+        }
+
+        function calendarDateToMs(dateString) {
+            return calendarDateToPlotlyX(dateString).getTime();
+        }
+
+        function formatCommentDate(dateString) {
+            return calendarDatePart(dateString);
+        }
+
+        function buildCalendarLabelLayout(comments, enabled, yMax) {
+            if (!enabled || !comments || comments.length === 0) {
+                return { annotations: [], traces: [] };
+            }
+
+            const topY = yMax * 0.98;
+            const step = Math.max(yMax * 0.08, 1);
+
+            const annotations = comments.map((item, index) => ({
+                x: calendarDateToPlotlyX(item.date),
+                y: Math.max(topY - (index % 5) * step, step * 0.5),
+                xref: 'x',
+                yref: 'y',
+                text: item.comment,
+                showarrow: false,
+                textangle: -55,
+                font: { size: 9, color: '#555' },
+                xanchor: 'left',
+            }));
+
+            const traces = comments.map(item => {
+                const linePointCount = 25;
+                const x = [];
+                const y = [];
+                const formattedDate = formatCommentDate(item.date);
+                const plotDate = calendarDateToPlotlyX(item.date);
+                for (let i = 0; i < linePointCount; i++) {
+                    x.push(plotDate);
+                    y.push((topY * i) / (linePointCount - 1));
+                }
+                return {
+                    x,
+                    y,
+                    mode: 'lines',
+                    line: { color: 'rgba(120, 120, 120, 0.45)', width: 1, dash: 'dot' },
+                    customdata: x.map(() => [formattedDate, item.comment]),
+                    hovertemplate: '<b>%{customdata[0]}</b><br>%{customdata[1]}<extra></extra>',
+                    showlegend: false,
+                    name: 'Calendar label',
+                };
+            });
+
+            return { annotations, traces };
+        }
+
+        function readChartLabelSettings() {
+            const timeToggle = document.getElementById('show-time-chart-labels');
+            const burninToggle = document.getElementById('show-burnin-chart-labels');
+            if (timeToggle) {
+                chartLabelSettings.time = timeToggle.checked;
+            }
+            if (burninToggle) {
+                chartLabelSettings.burnin = burninToggle.checked;
+            }
+        }
+
+        function attachChartLabelListeners() {
+            const timeToggle = document.getElementById('show-time-chart-labels');
+            if (timeToggle) {
+                timeToggle.checked = chartLabelSettings.time;
+                timeToggle.onchange = () => {
+                    chartLabelSettings.time = timeToggle.checked;
+                    if (lastProductionSummaryData) {
+                        renderProductionSummaryCharts(lastProductionSummaryData);
+                    }
+                };
+            }
+
+            const burninToggle = document.getElementById('show-burnin-chart-labels');
+            if (burninToggle) {
+                burninToggle.checked = chartLabelSettings.burnin;
+                burninToggle.onchange = () => {
+                    chartLabelSettings.burnin = burninToggle.checked;
+                    if (lastProductionSummaryData) {
+                        renderProductionSummaryCharts(lastProductionSummaryData);
+                    }
+                };
+            }
+        }
+
+        function buildLineTrace(name, points, color) {
+            return {
+                x: points.map(point => point.x),
+                y: points.map(point => point.y),
+                mode: 'lines+markers',
+                name: name,
+                line: { color: color, width: 2 },
+                marker: { color: color, size: 6 },
+                text: points.map(point => `Serial: ${point.serial}<br>${name}: ${point.y}`),
+                hovertemplate: '%{text}<extra></extra>',
+            };
+        }
+
+        function renderProductionSummaryCharts(data) {
+            readChartLabelSettings();
+            lastProductionSummaryData = data;
+            summaryChartIds = [];
+            const calendarComments = data.schedule ? data.schedule.comments : [];
+
+            const container = document.getElementById('production-summary-content');
+            container.innerHTML = `
+                <div class="summary-charts-grid">
+                    <div class="summary-chart-card summary-chart-card-pie">
+                        <div class="summary-chart-title">Yield (Tested Boards After Burn-In)</div>
+                        <div class="summary-chart-subtitle" id="yield-chart-subtitle">Failure Rate: --</div>
+                        <div id="yield-pie-chart" class="summary-chart-plot"></div>
+                    </div>
+                    <div class="summary-chart-card summary-chart-card-pie">
+                        <div class="summary-chart-title">Burn-In Status</div>
+                        <div class="summary-chart-subtitle" id="burnin-chart-subtitle">Not Burned In: --</div>
+                        <div id="burnin-pie-chart" class="summary-chart-plot"></div>
+                    </div>
+                    <div class="summary-chart-card summary-chart-card-pie">
+                        <div class="summary-chart-title">Total Produced vs Expected</div>
+                        <div class="summary-chart-subtitle" id="total-produced-chart-subtitle">Produced: -- / --</div>
+                        <div id="total-produced-pie-chart" class="summary-chart-plot"></div>
+                    </div>
+                    <div class="summary-chart-card wide">
+                        <div class="summary-chart-title">Cumulative Board Count (by Batch)</div>
+                        <div id="cumulative-batch-chart" class="summary-chart-plot"></div>
+                    </div>
+                    <div class="summary-chart-card wide">
+                        <div class="summary-chart-header">
+                            <div class="summary-chart-title">Cumulative Board Count (by Time)</div>
+                            <label class="summary-chart-toggle">
+                                <input type="checkbox" id="show-time-chart-labels" ${chartLabelSettings.time ? 'checked' : ''}>
+                                Show labels
+                            </label>
+                        </div>
+                        <div id="cumulative-time-chart" class="summary-chart-plot"></div>
+                    </div>
+                    <div class="summary-chart-card wide">
+                        <div class="summary-chart-header">
+                            <div class="summary-chart-title">Burn-In Timeline</div>
+                            <label class="summary-chart-toggle">
+                                <input type="checkbox" id="show-burnin-chart-labels" ${chartLabelSettings.burnin ? 'checked' : ''}>
+                                Show labels
+                            </label>
+                        </div>
+                        <div id="burnin-timeline-chart" class="summary-chart-plot"></div>
+                    </div>
+                </div>
+            `;
+
+            const yieldSubtitle = document.getElementById('yield-chart-subtitle');
+
+            const colors = data.colors;
+            const testedTotal = data.yield_after_burnin.passed + data.yield_after_burnin.failed;
+            const failureRate = testedTotal > 0
+                ? (data.yield_after_burnin.failed / testedTotal * 100).toFixed(1)
+                : '0.0';
+            if (yieldSubtitle) {
+                yieldSubtitle.textContent = `Failure Rate: ${failureRate}%`;
+            }
+
+            const yieldLegend = buildSummaryBottomLegend(2);
+            renderSummaryPlot('yield-pie-chart', [{
+                type: 'pie',
+                labels: ['Passed', 'Failed'],
+                values: [data.yield_after_burnin.passed, data.yield_after_burnin.failed],
+                marker: { colors: [colors.passed, colors.failed] },
+                textinfo: 'percent',
+                textposition: 'inside',
+                insidetextorientation: 'radial',
+                domain: yieldLegend.domain,
+                hovertemplate: '%{label}: %{value}<extra></extra>',
+            }], {
+                margin: yieldLegend.margin,
+                showlegend: true,
+                legend: yieldLegend.legend,
+            });
+
+            const burninTotal = data.burnin_status.burned_in + data.burnin_status.not_burned_in;
+            const notBurnedInRate = burninTotal > 0
+                ? (data.burnin_status.not_burned_in / burninTotal * 100).toFixed(1)
+                : '0.0';
+            const burninSubtitle = document.getElementById('burnin-chart-subtitle');
+            if (burninSubtitle) {
+                burninSubtitle.textContent = `Not Burned In: ${notBurnedInRate}%`;
+            }
+
+            const burninLegend = buildSummaryBottomLegend(2);
+            renderSummaryPlot('burnin-pie-chart', [{
+                type: 'pie',
+                labels: ['Burned In', 'Not Burned In'],
+                values: [data.burnin_status.burned_in, data.burnin_status.not_burned_in],
+                marker: { colors: [colors.burned_in, colors.not_burned_in] },
+                textinfo: 'percent',
+                textposition: 'inside',
+                insidetextorientation: 'radial',
+                domain: burninLegend.domain,
+                hovertemplate: '%{label}: %{value}<extra></extra>',
+            }], {
+                margin: burninLegend.margin,
+                showlegend: true,
+                legend: burninLegend.legend,
+            });
+
+            const totalProduced = data.total_produced || {};
+            const totalProducedLabels = [];
+            const totalProducedValues = [];
+            const totalProducedColors = [];
+
+            function addTotalProducedSlice(label, value, color) {
+                if (!value || value <= 0) {
+                    return;
+                }
+                totalProducedLabels.push(label);
+                totalProducedValues.push(value);
+                totalProducedColors.push(color);
+            }
+
+            addTotalProducedSlice(
+                'Passed After Burn-In',
+                totalProduced.passed_after_burnin,
+                colors.passed
+            );
+            addTotalProducedSlice(
+                'Failed After Burn-In',
+                totalProduced.failed_after_burnin,
+                colors.failed
+            );
+            addTotalProducedSlice(
+                'No Test',
+                totalProduced.no_test_or_untested,
+                colors.no_test
+            );
+            addTotalProducedSlice(
+                'Not Yet Produced',
+                totalProduced.not_yet_produced,
+                colors.not_yet_produced
+            );
+
+            const producedCount = totalProduced.produced || 0;
+            const expectedCount = totalProduced.expected || 0;
+            const producedRate = expectedCount > 0
+                ? (producedCount / expectedCount * 100).toFixed(1)
+                : '0.0';
+            const totalProducedSubtitle = document.getElementById('total-produced-chart-subtitle');
+            if (totalProducedSubtitle) {
+                totalProducedSubtitle.textContent =
+                    `Produced: ${producedCount} / ${expectedCount} (${producedRate}%)`;
+            }
+
+            if (totalProducedValues.length === 0) {
+                document.getElementById('total-produced-pie-chart').innerHTML =
+                    '<div class="summary-loading">No production data available.</div>';
+            } else {
+                const totalProducedLayout = buildSummaryBottomLegend(totalProducedLabels.length, { itemsPerRow: 2 });
+                renderSummaryPlot('total-produced-pie-chart', [{
+                    type: 'pie',
+                    labels: totalProducedLabels,
+                    values: totalProducedValues,
+                    marker: { colors: totalProducedColors },
+                    textinfo: 'none',
+                    hovertemplate: '<b>%{label}</b><br>Count: %{value}<extra></extra>',
+                    domain: totalProducedLayout.domain,
+                }], {
+                    margin: totalProducedLayout.margin,
+                    showlegend: true,
+                    legend: totalProducedLayout.legend,
+                    hoverlabel: {
+                        align: 'left',
+                        namelength: -1,
+                    },
+                });
+            }
+
+            const batchData = data.cumulative_by_batch;
+            const batchTraces = [
+                {
+                    x: batchData.batches,
+                    y: batchData.passed,
+                    mode: 'lines+markers',
+                    name: 'Cumulative Passed (by Batch)',
+                    line: { color: colors.passed, width: 2 },
+                    marker: { size: 6 },
+                },
+                {
+                    x: batchData.batches,
+                    y: batchData.failed,
+                    mode: 'lines+markers',
+                    name: 'Cumulative Failed (by Batch)',
+                    line: { color: colors.failed, width: 2 },
+                    marker: { size: 6 },
+                },
+                {
+                    x: batchData.batches,
+                    y: batchData.no_test,
+                    mode: 'lines+markers',
+                    name: 'Cumulative No Test (by Batch)',
+                    line: { color: colors.no_test, width: 2 },
+                    marker: { size: 6 },
+                },
+            ];
+
+            if (data.schedule && data.schedule.expected_by_batch.batches.length > 0) {
+                batchTraces.push({
+                    x: data.schedule.expected_by_batch.batches,
+                    y: data.schedule.expected_by_batch.cumulative,
+                    mode: 'lines+markers',
+                    name: 'Expected Produced',
+                    line: { color: colors.expected_produced, width: 2, dash: 'dash' },
+                    marker: { color: colors.expected_produced, size: 7, symbol: 'diamond' },
+                    hovertemplate: 'Batch %{x}<br>Expected Cumulative: %{y}<extra></extra>',
+                });
+            }
+
+            const batchLayout = buildSummaryLineLayout(batchTraces.length);
+            renderSummaryPlot('cumulative-batch-chart', batchTraces, {
+                margin: batchLayout.margin,
+                xaxis: { title: 'Decoded Batch', dtick: 1 },
+                yaxis: { title: 'Cumulative Board Count' },
+                showlegend: true,
+                legend: batchLayout.legend,
+            });
+
+            const timeData = data.cumulative_by_time;
+            const timeTraces = [
+                buildLineTrace('Cumulative Passed (by Time)', timeData.passed, colors.passed),
+                buildLineTrace('Cumulative Failed (by Time)', timeData.failed, colors.failed),
+                buildLineTrace('Cumulative No Test (by Time)', timeData.no_test, colors.no_test),
+            ];
+
+            if (data.schedule && data.schedule.expected_by_time.length > 0) {
+                const planned = data.schedule.expected_by_time;
+                timeTraces.push({
+                    x: planned.map(point => point.x),
+                    y: planned.map(point => point.y),
+                    mode: 'lines+markers',
+                    name: 'Expected Produced (Planned)',
+                    line: { color: colors.expected_produced, width: 2, dash: 'dash' },
+                    marker: { color: colors.expected_produced, size: 7, symbol: 'diamond' },
+                    text: planned.map(point =>
+                        `Batch ${point.batch}<br>Expected Produced: ${point.x}<br>Boards in Batch: ${point.board_count}<br>Expected Cumulative: ${point.y}`
+                    ),
+                    hovertemplate: '%{text}<extra></extra>',
+                });
+            }
+
+            if (data.schedule && data.schedule.expected_tested_by_time.length > 0) {
+                const tested = data.schedule.expected_tested_by_time;
+                timeTraces.push({
+                    x: tested.map(point => point.x),
+                    y: tested.map(point => point.y),
+                    mode: 'lines+markers',
+                    name: 'Expected Tested',
+                    line: { color: colors.expected_tested, width: 2, dash: 'dot' },
+                    marker: { color: colors.expected_tested, size: 7, symbol: 'square' },
+                    text: tested.map(point =>
+                        `Batch ${point.batch}<br>Expected Tested: ${point.x}<br>Boards in Batch: ${point.board_count}<br>Expected Cumulative: ${point.y}`
+                    ),
+                    hovertemplate: '%{text}<extra></extra>',
+                });
+            }
+
+            const timeXRange = computeTraceXRange(timeTraces);
+            const timeYMax = getTraceYMax(timeTraces);
+            const timeComments = filterCommentsInRange(calendarComments, timeXRange);
+            const timeLabelLayout = buildCalendarLabelLayout(timeComments, chartLabelSettings.time, timeYMax);
+
+            const timeLayout = buildSummaryLineLayout(timeTraces.length);
+            renderSummaryPlot('cumulative-time-chart', [...timeTraces, ...timeLabelLayout.traces], {
+                margin: timeLayout.margin,
+                xaxis: {
+                    title: 'Test Passed Time',
+                    range: timeXRange || undefined,
+                    autorange: !timeXRange,
+                },
+                yaxis: { title: 'Cumulative Board Count', range: [0, timeYMax * 1.05] },
+                showlegend: true,
+                legend: timeLayout.legend,
+                annotations: timeLabelLayout.annotations,
+            });
+
+            const burninData = data.burnin_timeline;
+            const expectedBurninData = data.schedule ? data.schedule.expected_burnin_timeline : [];
+            const burninTraces = [];
+
+            if (burninData.length > 0) {
+                burninTraces.push({
+                    x: burninData.map(item => item.burn_in_center),
+                    y: burninData.map(item => item.y_pos),
+                    mode: 'markers',
+                    name: 'Burn-In Period',
+                    marker: { color: colors.burnin_timeline, size: 8 },
+                    error_x: {
+                        type: 'data',
+                        array: burninData.map(item => item.error_plus_ms),
+                        arrayminus: burninData.map(item => item.error_minus_ms),
+                        symmetric: false,
+                        color: colors.burnin_timeline,
+                        thickness: 4,
+                        width: 10,
+                    },
+                    text: burninData.map(item =>
+                        `Serial: ${item.serial}<br>Batch: ${item.batch}<br>Burn In Start: ${item.burn_in_start}<br>Burn In Stop: ${item.burn_in_stop}`
+                    ),
+                    hovertemplate: '%{text}<extra></extra>',
+                });
+            }
+
+            if (expectedBurninData.length > 0) {
+                burninTraces.push({
+                    x: expectedBurninData.map(item => item.burn_in_center),
+                    y: expectedBurninData.map(item => item.y_pos),
+                    mode: 'markers',
+                    name: 'Expected Burned In',
+                    marker: { color: colors.expected_burnin, size: 9, symbol: 'diamond' },
+                    error_x: {
+                        type: 'data',
+                        array: expectedBurninData.map(item => item.error_plus_ms),
+                        arrayminus: expectedBurninData.map(item => item.error_minus_ms),
+                        symmetric: false,
+                        color: colors.expected_burnin,
+                        thickness: 4,
+                        width: 10,
+                    },
+                    text: expectedBurninData.map(item =>
+                        `Batch ${item.batch}<br>Expected Burn In Start: ${item.burn_in_start}<br>Expected Burn In Stop: ${item.burn_in_stop}<br>Expected Cumulative: ${item.y_pos}`
+                    ),
+                    hovertemplate: '%{text}<extra></extra>',
+                });
+            }
+
+            if (burninTraces.length > 0) {
+                const burninXRange = computeTraceXRange(burninTraces);
+                const burninYMax = getTraceYMax(burninTraces);
+                const burninComments = filterCommentsInRange(calendarComments, burninXRange);
+                const burninLabelLayout = buildCalendarLabelLayout(
+                    burninComments,
+                    chartLabelSettings.burnin,
+                    burninYMax
+                );
+
+                const burninLayout = buildSummaryLineLayout(burninTraces.length);
+                renderSummaryPlot('burnin-timeline-chart', [...burninTraces, ...burninLabelLayout.traces], {
+                    margin: burninLayout.margin,
+                    xaxis: {
+                        title: 'Burn-In Time',
+                        range: burninXRange || undefined,
+                        autorange: !burninXRange,
+                    },
+                    yaxis: { title: 'Cumulative Board Count', range: [0, burninYMax * 1.05] },
+                    showlegend: true,
+                    legend: burninLayout.legend,
+                    annotations: burninLabelLayout.annotations,
+                });
+            } else {
+                document.getElementById('burnin-timeline-chart').innerHTML =
+                    '<div class="summary-loading">No burn-in timeline data available.</div>';
+            }
+
+            attachChartLabelListeners();
+            attachSummaryResizeListener();
+            requestAnimationFrame(() => {
+                resizeSummaryCharts();
+                setTimeout(resizeSummaryCharts, 100);
+            });
+        }
+
+        async function loadProductionSummary(forceReload = false) {
+            if (productionSummaryLoaded && !forceReload) {
+                return;
+            }
+
+            const content = document.getElementById('production-summary-content');
+            const subtitle = document.getElementById('production-summary-subtitle');
+            content.innerHTML = '<div class="summary-loading">Loading charts...</div>';
+
+            try {
+                const response = await fetch('/api/production_summary');
+                const data = await response.json();
+
+                if (data.error) {
+                    content.innerHTML = `<div class="summary-error">Error: ${data.error}</div>`;
+                    subtitle.textContent = 'Failed to load production statistics.';
+                    return;
+                }
+
+                subtitle.textContent =
+                    `Total Boards: ${data.total_boards}, Post-Burn-In Pass Rate: ${data.post_burnin_pass_rate}% (${data.timestamp} UTC)`;
+                renderProductionSummaryCharts(data);
+                productionSummaryLoaded = true;
+            } catch (error) {
+                console.error('Error loading production summary:', error);
+                content.innerHTML = '<div class="summary-error">Error loading production summary.</div>';
+                subtitle.textContent = 'Failed to load production statistics.';
             }
         }
 
@@ -1620,8 +2475,8 @@
 
                 container.innerHTML = '';
 
-                // Show 16 batches total (0-15)
-                const totalBatches = 15;
+                // Show planned batches only (0-13)
+                const totalBatches = MAX_BRICK_WALL_BATCH;
 
                 // Determine max position from data for Y-axis
                 let maxPosition = 0;
@@ -2017,7 +2872,7 @@
             });
 
             // Iterate through all boards to collect lot values
-            for (let batchNum = 0; batchNum <= 15; batchNum++) {
+            for (let batchNum = 0; batchNum <= MAX_BRICK_WALL_BATCH; batchNum++) {
                 const boards = data.boards_by_batch[batchNum] || [];
                 boards.forEach(board => {
                     lotTypes.forEach(lotType => {
@@ -2081,7 +2936,7 @@
             const mdPositionsSet = new Set();
 
             // Iterate through all boards to collect benchtest counts and MD positions
-            for (let batchNum = 0; batchNum <= 15; batchNum++) {
+            for (let batchNum = 0; batchNum <= MAX_BRICK_WALL_BATCH; batchNum++) {
                 const boards = data.boards_by_batch[batchNum] || [];
                 boards.forEach(board => {
                     if (board.benchtests && board.benchtests.length > 0) {
@@ -2499,7 +3354,9 @@
                     const benchtestUrl = 'https://piro-atlas-lab.fysik.su.se/drive/benchtests/benchtest_id_' + bt.benchtest_id + '/DB_' + board.serial_no + '/';
                     html += '<div class="modal-benchtest-header">';
                     html += '<div class="modal-benchtest-title"><a href="' + benchtestUrl + '" target="_blank" style="color: #0066cc; text-decoration: none;">Benchtest ' + bt.benchtest_id + ' ' + bt.benchtest_slot + '</a></div>';
-                    html += '<button class="add-benchtest-comment-btn" onclick="openBenchtestCommentModal(' + bt.benchtest_id + ')">Add Comment</button>';
+                    if (!isGuestMode) {
+                        html += '<button class="add-benchtest-comment-btn" onclick="openBenchtestCommentModal(' + bt.benchtest_id + ')">Add Comment</button>';
+                    }
                     html += '</div>';
 
                     html += '<div class="modal-row"><span class="modal-label">Test OP:</span><span class="modal-value">' + (bt.test_op || 'N/A') + '</span></div>';
@@ -2584,6 +3441,10 @@
         }
 
         function openAddCommentModal() {
+            if (isGuestMode) {
+                alert('Adding comments is not available in guest mode.');
+                return;
+            }
             if (!currentBoardSerial) {
                 alert('No board selected');
                 return;
@@ -2603,6 +3464,10 @@
         }
 
         function openBenchtestCommentModal(benchtestId) {
+            if (isGuestMode) {
+                alert('Adding comments is not available in guest mode.');
+                return;
+            }
             currentBenchtestId = benchtestId;
             benchtestCommentIdInput.value = benchtestId;
             benchtestCommentTimestampInput.value = new Date().toISOString();
@@ -2654,7 +3519,7 @@
                     if (currentBoardData) {
                         const data = await fetch('/api/brick_wall_data').then(r => r.json());
                         let updatedBoard = null;
-                        for (let batch = 0; batch <= 15; batch++) {
+                        for (let batch = 0; batch <= MAX_BRICK_WALL_BATCH; batch++) {
                             const boards = data.boards_by_batch[batch] || [];
                             const found = boards.find(b => b.serial_no === currentBoardSerial);
                             if (found) {
@@ -2713,7 +3578,7 @@
                         // Find the updated board data
                         const data = await fetch('/api/brick_wall_data').then(r => r.json());
                         let updatedBoard = null;
-                        for (let batch = 0; batch <= 15; batch++) {
+                        for (let batch = 0; batch <= MAX_BRICK_WALL_BATCH; batch++) {
                             const boards = data.boards_by_batch[batch] || [];
                             const found = boards.find(b => b.serial_no === currentBoardSerial);
                             if (found) {
@@ -2834,6 +3699,10 @@
         });
 
         async function rerunBenchtest() {
+            if (isGuestMode) {
+                alert('Rerun analysis is not available in guest mode.');
+                return;
+            }
             if (!currentBoardSerial) {
                 alert('No board selected');
                 return;

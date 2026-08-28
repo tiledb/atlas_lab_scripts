@@ -109,6 +109,53 @@
             transform: translateY(-2px);
             box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
         }
+
+        .btn-guest {
+            width: 100%;
+            padding: 14px;
+            background: white;
+            color: #667eea;
+            border: 2px solid #667eea;
+            border-radius: 6px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: transform 0.2s, box-shadow 0.2s, background 0.2s;
+            margin-top: 12px;
+        }
+
+        .btn-guest:hover {
+            transform: translateY(-2px);
+            background: #f8f9ff;
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.2);
+        }
+
+        .login-divider {
+            display: flex;
+            align-items: center;
+            margin: 20px 0;
+            color: #999;
+            font-size: 13px;
+        }
+
+        .login-divider::before,
+        .login-divider::after {
+            content: '';
+            flex: 1;
+            border-bottom: 1px solid #e1e5e9;
+        }
+
+        .login-divider span {
+            padding: 0 12px;
+        }
+
+        .guest-note {
+            color: #666;
+            font-size: 12px;
+            margin-top: 8px;
+            text-align: center;
+            line-height: 1.4;
+        }
         
         .flash-message {
             background: #fee;
@@ -136,7 +183,7 @@
             {% endif %}
         {% endwith %}
         
-        <form method="POST" action="{{ url_for('login') }}">
+        <form method="POST" action="{{ url_for('login') }}" id="login-form">
             <div class="form-group">
                 <label for="username">Username</label>
                 <input type="text" id="username" name="username" required autofocus>
@@ -147,12 +194,15 @@
                 <input type="password" id="password" name="password" required>
             </div>
             
-            <div class="checkbox-group">
-                <input type="checkbox" id="development" name="development" value="development">
-                <label for="development">Use Development Database</label>
-            </div>
-            
             <button type="submit" class="btn-submit">Login</button>
+        </form>
+
+        <div class="login-divider"><span>or</span></div>
+
+        <form method="POST" action="{{ url_for('login') }}" id="guest-form">
+            <input type="hidden" name="guest_mode" value="guest">
+            <button type="submit" class="btn-guest">Continue as Guest</button>
+            <p class="guest-note">Guest mode provides read-only access to production plots and brick wall views.</p>
         </form>
     </div>
 </body>

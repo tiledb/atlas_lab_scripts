@@ -1,0 +1,503 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DBQ Admin - Production Configuration</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            background: #f5f7fa;
+            min-height: 100vh;
+        }
+
+        .navbar {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            padding: 20px 40px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+        }
+
+        .navbar h1 {
+            color: white;
+            font-size: 24px;
+            font-weight: 600;
+        }
+
+        .nav-links {
+            display: flex;
+            gap: 20px;
+        }
+
+        .nav-links a {
+            color: white;
+            text-decoration: none;
+            font-size: 14px;
+            opacity: 0.9;
+        }
+
+        .nav-links a:hover {
+            opacity: 1;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 40px auto;
+            padding: 0 20px 40px;
+        }
+
+        .back-link {
+            display: inline-block;
+            margin-bottom: 20px;
+            color: #667eea;
+            text-decoration: none;
+            font-size: 14px;
+        }
+
+        .back-link:hover {
+            text-decoration: underline;
+        }
+
+        .form-card {
+            background: white;
+            border-radius: 12px;
+            padding: 30px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+            margin-bottom: 30px;
+        }
+
+        .form-card h2 {
+            color: #333;
+            font-size: 24px;
+            margin-bottom: 10px;
+        }
+
+        .help-text {
+            color: #666;
+            font-size: 14px;
+            line-height: 1.5;
+            margin-bottom: 20px;
+        }
+
+        .config-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+            gap: 16px;
+            margin-bottom: 20px;
+        }
+
+        .config-field label {
+            display: block;
+            margin-bottom: 8px;
+            color: #333;
+            font-size: 14px;
+            font-weight: 500;
+        }
+
+        .config-field input[type="number"],
+        .config-field input[type="file"] {
+            width: 100%;
+            padding: 10px 12px;
+            border: 2px solid #e1e5e9;
+            border-radius: 6px;
+            font-size: 14px;
+        }
+
+        .actions-row {
+            display: flex;
+            gap: 12px;
+            flex-wrap: wrap;
+            align-items: center;
+        }
+
+        .btn {
+            padding: 12px 18px;
+            border: none;
+            border-radius: 6px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+
+        .btn-secondary {
+            background: #eef1f6;
+            color: #444;
+        }
+
+        .message-box,
+        .error-box {
+            border-radius: 6px;
+            padding: 15px;
+            margin-bottom: 20px;
+            font-size: 14px;
+            display: none;
+        }
+
+        .message-box {
+            background: #e8f5e9;
+            border: 1px solid #c8e6c9;
+            color: #2e7d32;
+        }
+
+        .error-box {
+            background: #ffebee;
+            border: 1px solid #ffcdd2;
+            color: #c62828;
+        }
+
+        .calendar-toolbar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 12px;
+            flex-wrap: wrap;
+            margin-bottom: 16px;
+        }
+
+        .calendar-scroll {
+            overflow-x: auto;
+            border: 1px solid #e1e5e9;
+            border-radius: 8px;
+            background: #fafbfc;
+            padding: 12px;
+        }
+
+        .calendar-months {
+            display: flex;
+            gap: 12px;
+            min-width: max-content;
+        }
+
+        .month-card {
+            background: white;
+            border: 1px solid #e8ebef;
+            border-radius: 8px;
+            min-width: 220px;
+            overflow: hidden;
+        }
+
+        .month-card h3 {
+            background: #667eea;
+            color: white;
+            font-size: 13px;
+            font-weight: 600;
+            padding: 10px 12px;
+        }
+
+        .month-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 12px;
+        }
+
+        .month-table th,
+        .month-table td {
+            border-bottom: 1px solid #f0f2f5;
+            padding: 6px 8px;
+            vertical-align: middle;
+        }
+
+        .month-table th {
+            background: #f8f9fb;
+            color: #666;
+            font-weight: 600;
+            text-align: left;
+        }
+
+        .month-table tr.invalid td {
+            background: #f3f4f6;
+            color: #bbb;
+        }
+
+        .day-label {
+            width: 42px;
+            color: #444;
+            font-weight: 600;
+            white-space: nowrap;
+        }
+
+        .event-input {
+            width: 100%;
+            min-width: 130px;
+            padding: 6px 8px;
+            border: 1px solid #d9dee7;
+            border-radius: 4px;
+            font-size: 12px;
+        }
+
+        .event-input:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        .loading-text {
+            color: #666;
+            font-size: 14px;
+            padding: 20px 0;
+        }
+    </style>
+</head>
+<body>
+    <nav class="navbar">
+        <h1>DBQ Admin Panel</h1>
+        <div class="nav-links">
+            <a href="{{ url_for('dashboard') }}">Dashboard</a>
+            <a href="{{ url_for('logout') }}">Logout</a>
+        </div>
+    </nav>
+
+    <div class="container">
+        <a href="{{ url_for('dashboard') }}" class="back-link">← Back to Dashboard</a>
+
+        <div id="message-box" class="message-box"></div>
+        <div id="error-box" class="error-box"></div>
+
+        <div class="form-card">
+            <h2>Timeline Offsets</h2>
+            <p class="help-text">Configure offsets used by Production Summary expected traces.</p>
+            <form id="offsets-form">
+                <div class="config-grid">
+                    <div class="config-field">
+                        <label for="burnin-offset">Burn-In Offset (days)</label>
+                        <input type="number" id="burnin-offset" min="0" step="1" value="{{ config.burnin_offset_days }}">
+                    </div>
+                    <div class="config-field">
+                        <label for="pretest-offset">Pretest Offset (days)</label>
+                        <input type="number" id="pretest-offset" min="0" step="1" value="{{ config.pretest_offset_days }}">
+                    </div>
+                    <div class="config-field">
+                        <label for="posttest-offset">Post Test Offset (days)</label>
+                        <input type="number" id="posttest-offset" min="0" step="1" value="{{ config.post_test_offset_days }}">
+                    </div>
+                </div>
+                <div class="actions-row">
+                    <button type="submit" class="btn btn-primary">Save Offsets</button>
+                </div>
+            </form>
+        </div>
+
+        <div class="form-card">
+            <h2>Production Schedule Calendar</h2>
+            <p class="help-text">
+                Edit batch entries and comments directly in the calendar. Use formats like
+                <code>batch #3 (80)</code>, <code>batch #0 5 prototypes</code>, or free-text comments such as
+                <code>Green light production</code>.
+            </p>
+
+            <div class="calendar-toolbar">
+                <div class="actions-row">
+                    <button type="button" id="save-calendar-btn" class="btn btn-primary">Save Calendar</button>
+                    <button type="button" id="reload-calendar-btn" class="btn btn-secondary">Reload</button>
+                </div>
+                <form id="upload-form" class="actions-row">
+                    <input type="file" id="schedule-file" accept=".csv">
+                    <button type="submit" class="btn btn-secondary">Upload CSV</button>
+                </form>
+            </div>
+
+            <div id="calendar-container" class="calendar-scroll">
+                <div class="loading-text">Loading calendar...</div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let calendarData = null;
+
+        function escapeHtml(text) {
+            return String(text)
+                .replace(/&/g, '&amp;')
+                .replace(/"/g, '&quot;')
+                .replace(/</g, '&lt;')
+                .replace(/>/g, '&gt;');
+        }
+
+        function showMessage(text, isError = false) {
+            const messageBox = document.getElementById('message-box');
+            const errorBox = document.getElementById('error-box');
+            messageBox.style.display = 'none';
+            errorBox.style.display = 'none';
+
+            if (isError) {
+                errorBox.textContent = text;
+                errorBox.style.display = 'block';
+            } else {
+                messageBox.textContent = text;
+                messageBox.style.display = 'block';
+            }
+        }
+
+        function renderCalendar(calendar) {
+            calendarData = calendar;
+            const container = document.getElementById('calendar-container');
+            const monthsHtml = calendar.months.map((month, monthIndex) => {
+                const rowsHtml = calendar.rows.map(row => {
+                    const cell = row.cells[monthIndex];
+                    if (!cell.valid) {
+                        return `<tr class="invalid"><td class="day-label">-</td><td></td></tr>`;
+                    }
+                    return `
+                        <tr>
+                            <td class="day-label">${cell.day_label}</td>
+                            <td>
+                                <input
+                                    type="text"
+                                    class="event-input"
+                                    data-month-index="${monthIndex}"
+                                    data-day="${row.day}"
+                                    value="${escapeHtml(cell.event || '')}"
+                                >
+                            </td>
+                        </tr>
+                    `;
+                }).join('');
+
+                return `
+                    <div class="month-card">
+                        <h3>${month.label}</h3>
+                        <table class="month-table">
+                            <thead>
+                                <tr>
+                                    <th>Day</th>
+                                    <th>Event / Batch</th>
+                                </tr>
+                            </thead>
+                            <tbody>${rowsHtml}</tbody>
+                        </table>
+                    </div>
+                `;
+            }).join('');
+
+            container.innerHTML = `<div class="calendar-months">${monthsHtml}</div>`;
+        }
+
+        function collectCalendarFromDom() {
+            const calendar = JSON.parse(JSON.stringify(calendarData));
+            document.querySelectorAll('.event-input').forEach(input => {
+                const monthIndex = Number(input.dataset.monthIndex);
+                const day = Number(input.dataset.day);
+                const row = calendar.rows.find(item => item.day === day);
+                if (row && row.cells[monthIndex]) {
+                    row.cells[monthIndex].event = input.value.trim();
+                }
+            });
+            return calendar;
+        }
+
+        async function loadCalendar() {
+            const container = document.getElementById('calendar-container');
+            container.innerHTML = '<div class="loading-text">Loading calendar...</div>';
+
+            try {
+                const response = await fetch('/api/production_schedule');
+                const data = await response.json();
+                if (!response.ok || data.error) {
+                    showMessage(data.error || 'Failed to load calendar.', true);
+                    container.innerHTML = '';
+                    return;
+                }
+                renderCalendar(data.calendar);
+            } catch (error) {
+                console.error(error);
+                showMessage('Failed to load calendar.', true);
+                container.innerHTML = '';
+            }
+        }
+
+        document.getElementById('offsets-form').addEventListener('submit', async (event) => {
+            event.preventDefault();
+            try {
+                const response = await fetch('/api/production_config', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        burnin_offset_days: Number(document.getElementById('burnin-offset').value || 0),
+                        pretest_offset_days: Number(document.getElementById('pretest-offset').value || 0),
+                        post_test_offset_days: Number(document.getElementById('posttest-offset').value || 0),
+                    }),
+                });
+                const data = await response.json();
+                if (!response.ok || data.error) {
+                    showMessage(data.error || 'Failed to save offsets.', true);
+                    return;
+                }
+                showMessage('Timeline offsets saved.');
+            } catch (error) {
+                console.error(error);
+                showMessage('Failed to save offsets.', true);
+            }
+        });
+
+        document.getElementById('save-calendar-btn').addEventListener('click', async () => {
+            if (!calendarData) {
+                return;
+            }
+
+            try {
+                const response = await fetch('/api/production_schedule', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ calendar: collectCalendarFromDom() }),
+                });
+                const data = await response.json();
+                if (!response.ok || data.error) {
+                    showMessage(data.error || 'Failed to save calendar.', true);
+                    return;
+                }
+                showMessage('Production schedule saved. Previous CSV backed up with timestamp.');
+                await loadCalendar();
+            } catch (error) {
+                console.error(error);
+                showMessage('Failed to save calendar.', true);
+            }
+        });
+
+        document.getElementById('reload-calendar-btn').addEventListener('click', loadCalendar);
+
+        document.getElementById('upload-form').addEventListener('submit', async (event) => {
+            event.preventDefault();
+            const fileInput = document.getElementById('schedule-file');
+            if (!fileInput.files.length) {
+                showMessage('Please choose a CSV file to upload.', true);
+                return;
+            }
+
+            const formData = new FormData();
+            formData.append('schedule_file', fileInput.files[0]);
+
+            try {
+                const response = await fetch('/api/production_schedule/upload', {
+                    method: 'POST',
+                    body: formData,
+                });
+                const data = await response.json();
+                if (!response.ok || data.error) {
+                    showMessage(data.error || 'Failed to upload CSV.', true);
+                    return;
+                }
+                fileInput.value = '';
+                showMessage('CSV uploaded. Previous file backed up with timestamp.');
+                await loadCalendar();
+            } catch (error) {
+                console.error(error);
+                showMessage('Failed to upload CSV.', true);
+            }
+        });
+
+        loadCalendar();
+    </script>
+</body>
+</html>

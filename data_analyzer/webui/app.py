@@ -1,4 +1,4 @@
-from flask import Flask, render_template, request, redirect, url_for, session, jsonify
+from flask import Flask, render_template, request, redirect, url_for, session, jsonify, flash
 from pathlib import Path
 import mysql.connector
 from mysql.connector import Error
@@ -6,6 +6,15 @@ from ruamel.yaml import YAML
 import os
 import subprocess
 import re
+
+from production_summary import build_production_summary
+from production_config import (
+    SCHEDULE_CSV_PATH,
+    backup_and_save_schedule,
+    load_production_config,
+    save_production_config,
+)
+from production_schedule import load_calendar_grid, save_calendar_grid
 
 os.environ['TZ'] = 'UTC'
 app = Flask(__name__)
@@ -135,12 +144,13 @@ def get_burned_status(serial, benchtest_id, drive_dir="/var/www/html/drive/bench
 
 # Database configuration
 host = 'piro-atlas-lab-vserver-01.fysik.su.se'
-prod_database = 'tiledb'
-dev_database = 'tiledbdev'
+database = 'tiledb'
+MAX_BRICK_WALL_BATCH = 13
 
 # Paths
 SCRIPT_DIR = Path(__file__).parent.parent
 VARS_YAML_PATH = SCRIPT_DIR / 'vars.yaml'
+SECRETS_YAML_PATH = SCRIPT_DIR.parent / 'secrets' / 'secrets.yaml'
 DBQ_SCRIPT_PATH = SCRIPT_DIR / 'DBQ_Mk6.py'
 PRODUCTION_PLOTS_PATH = SCRIPT_DIR / 'production_plots_v1.py'
 
@@ -149,6 +159,30 @@ login_template = "login.html"
 dashboard_template = "dashboard.html"
 run_script_template = "run_script.html"
 edit_vars_template = "edit_vars.html"
+edit_production_template = "edit_production.html"
+
+def load_secrets():
+    """Load database credentials from secrets.yaml."""
+    try:
+        yaml_handler = YAML()
+        with open(SECRETS_YAML_PATH, 'r') as f:
+            return yaml_handler.load(f)
+    except Exception as e:
+        print(f"Error loading secrets.yaml: {e}")
+        return {}
+
+
+def is_guest_mode():
+    return session.get('guest_mode', False)
+
+
+def require_full_access():
+    """Return a redirect response if the current session is guest-only."""
+    if is_guest_mode():
+        flash('This action is not available in guest mode.')
+        return redirect(url_for('dashboard'))
+    return None
+
 
 def get_db_connection():
     """Create and return a database connection using session credentials."""
@@ -249,29 +283,55 @@ def decode_serial(serial):
 @app.route('/login', methods=['GET', 'POST'])
 def login():
     if request.method == 'POST':
-        username = request.form['username']
-        password = request.form['password']
-        development = request.form.get('development')
-        if development is not None:
-            database = dev_database
+        guest_mode = request.form.get('guest_mode') == 'guest'
+
+        if guest_mode:
+            secrets = load_secrets()
+            mariadb = secrets.get('tiledb-mariadb', {})
+            db_user = mariadb.get('user')
+            db_pass = mariadb.get('password')
+            if not db_user or not db_pass:
+                flash('Guest mode is not configured. Missing database credentials.')
+                return render_template(login_template)
+            try:
+                conn = mysql.connector.connect(
+                    host=host,
+                    user=db_user,
+                    password=db_pass,
+                    database=database,
+                )
+                if conn.is_connected():
+                    session['logged_in'] = True
+                    session['guest_mode'] = True
+                    session['db_user'] = db_user
+                    session['db_pass'] = db_pass
+                    session['db_name'] = database
+                    conn.close()
+                    return redirect(url_for('dashboard'))
+            except Error as e:
+                flash("Error connecting to database in guest mode: " + str(e))
+                return render_template(login_template)
         else:
-            database = prod_database
-        try:
-            conn = mysql.connector.connect(
-                host=host,
-                user=username,
-                password=password,
-            )
-            if conn.is_connected():
-                session['logged_in'] = True
-                session['db_user'] = username
-                session['db_pass'] = password
-                session['db_name'] = database
-                conn.close()
-                return redirect(url_for('dashboard'))
-        except Error as e:
-            flash("Error connecting to database: " + str(e))
-            return render_template(login_template)
+            username = request.form['username']
+            password = request.form['password']
+            try:
+                conn = mysql.connector.connect(
+                    host=host,
+                    user=username,
+                    password=password,
+                    database=database,
+                )
+                if conn.is_connected():
+                    session['logged_in'] = True
+                    session['guest_mode'] = False
+                    session['db_user'] = username
+                    session['db_pass'] = password
+                    session['db_name'] = database
+                    conn.close()
+                    return redirect(url_for('dashboard'))
+            except Error as e:
+                flash("Error connecting to database: " + str(e))
+                return render_template(login_template)
     return render_template(login_template)
 
 @app.route('/dashboard')
@@ -284,6 +344,9 @@ def dashboard():
 def run_script():
     if not session.get('logged_in'):
         return redirect(url_for('login'))
+    blocked = require_full_access()
+    if blocked:
+        return blocked
     
     message = ""
     error = None
@@ -347,6 +410,9 @@ def run_script():
 def edit_vars():
     if not session.get('logged_in'):
         return redirect(url_for('login'))
+    blocked = require_full_access()
+    if blocked:
+        return blocked
     
     message = ""
     error = None
@@ -407,6 +473,19 @@ def edit_vars():
     
     vars_data = load_vars_yaml()
     return render_template(edit_vars_template, message=message, error=error, vars_data=vars_data)
+
+@app.route('/edit_production')
+def edit_production():
+    if not session.get('logged_in'):
+        return redirect(url_for('login'))
+    blocked = require_full_access()
+    if blocked:
+        return blocked
+
+    return render_template(
+        edit_production_template,
+        config=load_production_config(),
+    )
 
 @app.route('/api/brick_wall_data')
 def brick_wall_data():
@@ -633,8 +712,10 @@ def brick_wall_data():
             # Filter out tag 90 (ignored boards)
             if decoded['tag'] == 90:
                 continue
-            
+
             batch = decoded['batch']
+            if batch > MAX_BRICK_WALL_BATCH:
+                continue
             
             if batch not in boards_by_batch:
                 boards_by_batch[batch] = []
@@ -696,6 +777,8 @@ def brick_wall_data():
 def add_comment():
     if not session.get('logged_in'):
         return jsonify({'error': 'Not logged in'}), 401
+    if is_guest_mode():
+        return jsonify({'error': 'Not allowed in guest mode'}), 403
 
     try:
         data = request.get_json()
@@ -736,6 +819,8 @@ def add_comment():
 def rerun_analysis():
     if not session.get('logged_in'):
         return jsonify({'error': 'Not logged in'}), 401
+    if is_guest_mode():
+        return jsonify({'error': 'Not allowed in guest mode'}), 403
     
     try:
         data = request.get_json()
@@ -781,6 +866,123 @@ def rerun_analysis():
         print(f"Error running analysis: {e}")
         import traceback
         traceback.print_exc()
+        return jsonify({'error': str(e)}), 500
+
+@app.route('/api/production_summary')
+def production_summary():
+    if not session.get('logged_in'):
+        return jsonify({'error': 'Not logged in'}), 401
+
+    try:
+        conn = get_db_connection()
+        if not conn:
+            return jsonify({'error': 'Database connection failed'}), 500
+
+        cursor = conn.cursor(dictionary=True)
+
+        db_query = """
+            SELECT d.serial_no, d.batch_id, d.db_status, d.burn_in,
+                   d.burn_in_start, d.burn_in_stop,
+                   d.kin_lot, d.pro_lot, d.gbt_lot,
+                   d.ina_lot, d.ltm_lot, d.mos_lot, d.op4_lot, d.ok4_lot, d.ok1_lot,
+                   d.mem_lot, d.sfp_lot, d.e_test, d.p_test, d.a0, d.a1, d.b0, d.b1
+            FROM daughterboard d
+            ORDER BY d.serial_no
+        """
+        cursor.execute(db_query)
+        db_rows = cursor.fetchall()
+
+        benchtest_query = """
+            SELECT id, test_start, test_stop, test_op, test_pass,
+                   db_slot1, db_slot2, db_slot3, db_slot4
+            FROM benchtest
+            ORDER BY id
+        """
+        cursor.execute(benchtest_query)
+        benchtest_rows = cursor.fetchall()
+
+        cursor.close()
+        conn.close()
+
+        return jsonify(build_production_summary(db_rows, benchtest_rows))
+
+    except Exception as e:
+        print(f"Error fetching production summary: {e}")
+        return jsonify({'error': str(e)}), 500
+
+@app.route('/api/production_config', methods=['GET', 'POST'])
+def production_config():
+    if not session.get('logged_in'):
+        return jsonify({'error': 'Not logged in'}), 401
+
+    if request.method == 'GET':
+        return jsonify({'success': True, 'config': load_production_config()})
+
+    blocked = require_full_access()
+    if blocked:
+        return jsonify({'error': 'Not allowed in guest mode'}), 403
+
+    try:
+        data = request.get_json() or {}
+        config = save_production_config({
+            'pretest_offset_days': data.get('pretest_offset_days', 0),
+            'post_test_offset_days': data.get('post_test_offset_days', 0),
+            'burnin_offset_days': data.get('burnin_offset_days', 0),
+        })
+        return jsonify({'success': True, 'config': config})
+    except Exception as e:
+        print(f'Error saving production config: {e}')
+        return jsonify({'error': str(e)}), 500
+
+@app.route('/api/production_schedule', methods=['GET', 'POST'])
+def production_schedule_api():
+    if not session.get('logged_in'):
+        return jsonify({'error': 'Not logged in'}), 401
+
+    if request.method == 'GET':
+        try:
+            calendar = load_calendar_grid(SCHEDULE_CSV_PATH)
+            return jsonify({'success': True, 'calendar': calendar})
+        except Exception as e:
+            print(f'Error loading production schedule: {e}')
+            return jsonify({'error': str(e)}), 500
+
+    blocked = require_full_access()
+    if blocked:
+        return jsonify({'error': 'Not allowed in guest mode'}), 403
+
+    try:
+        data = request.get_json() or {}
+        calendar = data.get('calendar')
+        if not calendar:
+            return jsonify({'error': 'Missing calendar data'}), 400
+
+        save_calendar_grid(calendar, SCHEDULE_CSV_PATH)
+        return jsonify({'success': True})
+    except Exception as e:
+        print(f'Error saving production schedule: {e}')
+        return jsonify({'error': str(e)}), 500
+
+@app.route('/api/production_schedule/upload', methods=['POST'])
+def upload_production_schedule():
+    if not session.get('logged_in'):
+        return jsonify({'error': 'Not logged in'}), 401
+
+    blocked = require_full_access()
+    if blocked:
+        return jsonify({'error': 'Not allowed in guest mode'}), 403
+
+    uploaded_file = request.files.get('schedule_file')
+    if not uploaded_file or not uploaded_file.filename:
+        return jsonify({'error': 'No file uploaded'}), 400
+    if not uploaded_file.filename.lower().endswith('.csv'):
+        return jsonify({'error': 'Uploaded file must be a CSV'}), 400
+
+    try:
+        filename = backup_and_save_schedule(uploaded_file)
+        return jsonify({'success': True, 'filename': filename})
+    except Exception as e:
+        print(f'Error uploading production schedule: {e}')
         return jsonify({'error': str(e)}), 500
 
 @app.route('/logout')

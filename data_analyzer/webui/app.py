@@ -8,6 +8,8 @@ import subprocess
 import re
 
 from production_summary import build_production_summary
+from production_statistics import build_production_statistics
+from benchtest_results import get_failed_tests_for_serial
 from production_config import (
     SCHEDULE_CSV_PATH,
     backup_and_save_schedule,
@@ -19,77 +21,6 @@ from production_schedule import load_calendar_grid, save_calendar_grid
 os.environ['TZ'] = 'UTC'
 app = Flask(__name__)
 app.secret_key = '6#1-&75-?66'
-
-# Function to read benchtest CSV and extract failed tests for a serial number
-def get_failed_tests_for_serial(serial, benchtest_id, drive_dir="/var/www/html/drive/benchtests/"):
-    """
-    Read benchtest CSV file and extract failed tests for a specific serial number.
-    Handles CSV files that may contain multiple boards in columns.
-    
-    Args:
-        serial: Serial number of the board
-        benchtest_id: Benchtest ID (integer)
-        drive_dir: Directory containing benchtest folders
-        
-    Returns:
-        list: List of failed test names, or None if file not found or no failures
-    """
-    benchtest_folder = f"benchtest_id_{benchtest_id}"
-    csv_file = Path(drive_dir) / benchtest_folder / f"{benchtest_folder}_results.csv"
-    
-    if not csv_file.exists():
-        return None, None
-    
-    try:
-        with open(csv_file, 'r') as f:
-            lines = f.readlines()
-        
-        # First line contains header with serial numbers
-        # Format: "Measurement,9000001" or "Measurement,1101030,1101035"
-        header = lines[0].strip().split(',')
-        if len(header) < 2:
-            return None, None
-        
-        # Find the column index for the requested serial number
-        serial_str = str(serial)
-        serial_index = None
-        for i, col in enumerate(header[1:], start=1):  # Skip "Measurement" column
-            if str(col) == serial_str:
-                serial_index = i
-                break
-        
-        if serial_index is None:
-            # Serial not found in this CSV file
-            return None, None
-        
-        # Parse measurements and find failed tests (value = 0) for this specific serial
-        failed_tests = []
-        board_pass_fail = None
-        for line in lines[1:]:
-            line = line.strip()
-            if not line or line.startswith('#'):
-                continue
-            
-            parts = line.split(',')
-            if len(parts) > serial_index:
-                measurement = parts[0]
-                value = parts[serial_index].strip()
-                
-                # Check for Board PassFail
-                if measurement == 'Board PassFail':
-                    board_pass_fail = value
-                
-                # Value 0 indicates failure
-                if value == '0':
-                    # Filter out unwanted test names
-                    if measurement not in ['burned', 'Board PassFail']:
-                        failed_tests.append(measurement)
-        
-        return failed_tests if failed_tests else None, board_pass_fail
-        
-    except Exception as e:
-        print(f"Error reading CSV file {csv_file}: {e}")
-        return None, None
 
 # Function to read burned status from benchtest results log file
 def get_burned_status(serial, benchtest_id, drive_dir="/var/www/html/drive/benchtests/"):
@@ -908,6 +839,48 @@ def production_summary():
 
     except Exception as e:
         print(f"Error fetching production summary: {e}")
+        return jsonify({'error': str(e)}), 500
+
+@app.route('/api/production_statistics')
+def production_statistics():
+    if not session.get('logged_in'):
+        return jsonify({'error': 'Not logged in'}), 401
+
+    try:
+        conn = get_db_connection()
+        if not conn:
+            return jsonify({'error': 'Database connection failed'}), 500
+
+        cursor = conn.cursor(dictionary=True)
+
+        db_query = """
+            SELECT d.serial_no, d.batch_id, d.db_status, d.burn_in,
+                   d.burn_in_start, d.burn_in_stop,
+                   d.kin_lot, d.pro_lot, d.gbt_lot,
+                   d.ina_lot, d.ltm_lot, d.mos_lot, d.op4_lot, d.ok4_lot, d.ok1_lot,
+                   d.mem_lot, d.sfp_lot, d.e_test, d.p_test, d.a0, d.a1, d.b0, d.b1
+            FROM daughterboard d
+            ORDER BY d.serial_no
+        """
+        cursor.execute(db_query)
+        db_rows = cursor.fetchall()
+
+        benchtest_query = """
+            SELECT id, test_start, test_stop, test_op, test_pass,
+                   db_slot1, db_slot2, db_slot3, db_slot4
+            FROM benchtest
+            ORDER BY id
+        """
+        cursor.execute(benchtest_query)
+        benchtest_rows = cursor.fetchall()
+
+        cursor.close()
+        conn.close()
+
+        return jsonify(build_production_statistics(db_rows, benchtest_rows))
+
+    except Exception as e:
+        print(f"Error fetching production statistics: {e}")
         return jsonify({'error': str(e)}), 500
 
 @app.route('/api/production_config', methods=['GET', 'POST'])

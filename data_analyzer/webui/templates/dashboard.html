@@ -1386,6 +1386,105 @@
             height: 380px;
         }
 
+        .summary-chart-card.summary-chart-card-statistics-pie {
+            grid-column: 1 / -1;
+            height: auto;
+        }
+
+        .summary-chart-card.summary-chart-card-statistics-bar {
+            grid-column: 1 / -1;
+            height: auto;
+        }
+
+        .statistics-pie-layout,
+        .statistics-bar-layout {
+            display: flex;
+            flex-direction: column;
+            flex: 1 1 auto;
+            gap: 16px;
+            min-height: 0;
+            padding: 0 8px 8px;
+        }
+
+        .statistics-pie-plot {
+            flex: 0 0 auto;
+            width: 100%;
+            min-height: 840px;
+        }
+
+        .statistics-bar-plot {
+            flex: 0 0 auto;
+            width: 100%;
+            min-height: 3200px;
+        }
+
+        .failure-mode-html-legend {
+            flex: 0 0 auto;
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+            gap: 10px 18px;
+            align-content: start;
+            font-size: 12px;
+            color: #444;
+            overflow: visible;
+            padding: 12px 12px 8px;
+            border-top: 1px solid #e8ebef;
+            margin-top: 4px;
+        }
+
+        .failure-mode-legend-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            cursor: pointer;
+            line-height: 1.35;
+            padding: 4px 6px;
+            border-radius: 6px;
+        }
+
+        .failure-mode-legend-item:hover {
+            color: #0066cc;
+            background: rgba(0, 102, 204, 0.06);
+        }
+
+        .failure-mode-legend-swatch {
+            width: 12px;
+            height: 12px;
+            border-radius: 2px;
+            flex: 0 0 auto;
+        }
+
+        .failure-mode-legend-label {
+            flex: 1 1 auto;
+            word-break: break-word;
+        }
+
+        .failure-mode-legend-meta {
+            flex: 0 0 auto;
+            color: #666;
+            font-size: 11px;
+            white-space: nowrap;
+        }
+
+        .failure-mode-modal-list {
+            margin: 0;
+            padding-left: 18px;
+        }
+
+        .failure-mode-modal-list li {
+            margin-bottom: 8px;
+            line-height: 1.4;
+        }
+
+        .failure-mode-modal-list a {
+            color: #0066cc;
+            text-decoration: none;
+        }
+
+        .failure-mode-modal-list a:hover {
+            text-decoration: underline;
+        }
+
         .summary-chart-card.wide {
             grid-column: 1 / -1;
             height: 420px;
@@ -1411,9 +1510,13 @@
 
         .summary-chart-plot {
             flex: 1 1 auto;
-            min-height: 0;
+            min-height: 260px;
             width: 100%;
             overflow: hidden;
+        }
+
+        .summary-chart-card.wide .summary-chart-plot {
+            min-height: 300px;
         }
 
         .summary-chart-plot .js-plotly-plot,
@@ -1487,6 +1590,7 @@
             <button class="tab active" onclick="switchTab('brick-wall')">Production Brick Wall</button>
             <button class="tab" onclick="switchTab('brick-wall-filters')">Production Brick Wall Filters</button>
             <button class="tab" onclick="switchTab('production-summary')">Production Summary</button>
+            <button class="tab" onclick="switchTab('production-statistics')">Production Statistics</button>
             {% if not session.get('guest_mode') %}
             <button class="tab" onclick="switchTab('advanced-options')">Advanced Options</button>
             {% endif %}
@@ -1585,6 +1689,18 @@
                     <p id="production-summary-subtitle">Loading production statistics...</p>
                 </div>
                 <div id="production-summary-content">
+                    <div class="summary-loading">Loading charts...</div>
+                </div>
+            </div>
+        </div>
+
+        <div id="production-statistics" class="tab-content">
+            <div class="production-summary-section">
+                <div class="production-summary-header">
+                    <h3>Production Statistics</h3>
+                    <p id="production-statistics-subtitle">Loading failure statistics...</p>
+                </div>
+                <div id="production-statistics-content">
                     <div class="summary-loading">Loading charts...</div>
                 </div>
             </div>
@@ -1718,6 +1834,17 @@
             </div>
         </div>
 
+        <div class="modal-overlay" id="failure-mode-overlay"></div>
+        <div class="modal" id="failure-mode-modal">
+            <div class="modal-header">
+                <div class="modal-title" id="failure-mode-modal-title">Failure Mode Details</div>
+                <div class="modal-header-actions">
+                    <button class="modal-close" id="failure-mode-modal-close">&times;</button>
+                </div>
+            </div>
+            <div class="modal-content" id="failure-mode-modal-content"></div>
+        </div>
+
         <div class="modal-overlay" id="terminal-overlay"></div>
         <div class="terminal-modal" id="terminal-modal">
             <div class="terminal-header">
@@ -1784,12 +1911,15 @@
                 });
             } else if (tabId === 'production-summary') {
                 loadProductionSummary();
+            } else if (tabId === 'production-statistics') {
+                loadProductionStatistics();
             }
         }
 
         let productionSummaryLoaded = false;
         let lastProductionSummaryData = null;
         let summaryChartIds = [];
+        let statisticsChartIds = [];
         let summaryResizeTimer = null;
         let chartLabelSettings = {
             time: true,
@@ -1801,8 +1931,237 @@
             if (!element) {
                 return fallback;
             }
-            const height = element.clientHeight;
-            return height > 0 ? height : fallback;
+
+            const computedMinHeight = parseInt(window.getComputedStyle(element).minHeight, 10);
+            if (!Number.isNaN(computedMinHeight) && computedMinHeight > fallback) {
+                fallback = computedMinHeight;
+            }
+
+            const directHeight = element.clientHeight;
+            if (directHeight > 40) {
+                return directHeight;
+            }
+
+            const card = element.closest('.summary-chart-card');
+            if (card) {
+                const header = card.querySelector('.summary-chart-title, .summary-chart-header');
+                const subtitle = card.querySelector('.summary-chart-subtitle');
+                const legend = card.querySelector('.failure-mode-html-legend');
+                const headerHeight = (header ? header.offsetHeight : 0)
+                    + (subtitle ? subtitle.offsetHeight : 0)
+                    + (legend ? legend.offsetHeight : 0);
+                return Math.max(card.clientHeight - headerHeight - 32, fallback);
+            }
+
+            return fallback;
+        }
+
+        function shortenFailureModeLabel(label, maxLength = 30) {
+            const cleaned = String(label || '').replace(/^Benchtest:\s*/i, '');
+            if (!cleaned || cleaned.length <= maxLength) {
+                return cleaned;
+            }
+            return `${cleaned.slice(0, maxLength - 3)}...`;
+        }
+
+        function buildStatisticsPieLayout(itemCount) {
+            if (itemCount > 3) {
+                const legendWidth = Math.min(220, 120 + itemCount * 6);
+                return {
+                    margin: { t: 12, b: 12, l: 12, r: legendWidth },
+                    legend: {
+                        orientation: 'v',
+                        yanchor: 'middle',
+                        y: 0.5,
+                        x: 1.0,
+                        xanchor: 'left',
+                        font: { size: 9 },
+                        itemsizing: 'constant',
+                        tracegroupgap: 2,
+                    },
+                    domain: { x: [0, 0.58], y: [0.02, 0.98] },
+                };
+            }
+
+            return {
+                margin: { t: 12, b: 40, l: 12, r: 12 },
+                legend: {
+                    orientation: 'h',
+                    yanchor: 'top',
+                    y: -0.1,
+                    x: 0.5,
+                    xanchor: 'center',
+                    font: { size: 9 },
+                    itemsizing: 'constant',
+                },
+                domain: { x: [0.08, 0.92], y: [0.12, 0.92] },
+            };
+        }
+
+        function buildStatisticsBarPlotLayout() {
+            return {
+                margin: { t: 24, b: 72, l: 70, r: 24 },
+            };
+        }
+
+        function getOccurringPieModes(pieData) {
+            if (pieData.modes && pieData.modes.length) {
+                return pieData.modes.filter(mode => (mode.value || 0) > 0);
+            }
+
+            const filtered = filterOccurringPieData(pieData);
+            return filtered.labels.map((name, index) => ({
+                name,
+                value: filtered.values[index],
+                percentage: Number(filtered.percentages[index]),
+                color: filtered.colors[index],
+                occurrences: [],
+            }));
+        }
+
+        function buildFailureModeHoverText(mode) {
+            const lines = (mode.occurrences || []).slice(0, 6).map(occurrence => occurrence.label);
+            if ((mode.occurrences || []).length > 6) {
+                lines.push(`+${mode.occurrences.length - 6} more (click slice)`);
+            }
+            return lines.join('<br>');
+        }
+
+        function organizeFailureModes(modes) {
+            const priority = {
+                'DB Status': 0,
+                'E-Test': 1,
+                'P-Test': 2,
+                'Other Failure': 99,
+            };
+            return [...modes].sort((left, right) => {
+                const leftPriority = priority[left.name] ?? 50;
+                const rightPriority = priority[right.name] ?? 50;
+                if (leftPriority !== rightPriority) {
+                    return leftPriority - rightPriority;
+                }
+                const leftValue = left.value ?? left.total ?? 0;
+                const rightValue = right.value ?? right.total ?? 0;
+                if (leftValue !== rightValue) {
+                    return rightValue - leftValue;
+                }
+                return String(left.name).localeCompare(String(right.name));
+            });
+        }
+
+        function renderFailureModeHtmlLegend(modes, containerId, options = {}) {
+            const legend = document.getElementById(containerId);
+            if (!legend) {
+                return;
+            }
+
+            const organizedModes = options.skipOrganize ? modes : organizeFailureModes(modes);
+            legend.innerHTML = organizedModes.map((mode, index) => {
+                const meta = options.showCount
+                    ? `${mode.total ?? mode.value ?? 0}`
+                    : `${mode.percentage ?? 0}%`;
+                return `
+                    <div class="failure-mode-legend-item" data-failure-mode-index="${index}">
+                        <span class="failure-mode-legend-swatch" style="background:${mode.color};"></span>
+                        <span class="failure-mode-legend-label">${shortenFailureModeLabel(mode.name, 48)}</span>
+                        <span class="failure-mode-legend-meta">${meta}</span>
+                    </div>
+                `;
+            }).join('');
+
+            legend.querySelectorAll('.failure-mode-legend-item').forEach(item => {
+                item.addEventListener('click', () => {
+                    const index = Number(item.dataset.failureModeIndex);
+                    const selectedMode = organizedModes[index];
+                    if (options.onClick) {
+                        options.onClick(selectedMode);
+                        return;
+                    }
+                    openFailureModeModal(selectedMode);
+                });
+            });
+
+            return organizedModes;
+        }
+
+        function openFailureModeModal(mode) {
+            const overlay = document.getElementById('failure-mode-overlay');
+            const modal = document.getElementById('failure-mode-modal');
+            const title = document.getElementById('failure-mode-modal-title');
+            const content = document.getElementById('failure-mode-modal-content');
+            if (!overlay || !modal || !title || !content || !mode) {
+                return;
+            }
+
+            title.textContent = `${mode.name} (${mode.value} occurrences, ${mode.percentage}%)`;
+            const items = (mode.occurrences || []).map(occurrence => {
+                if (occurrence.plot_url) {
+                    return `<li><a href="${occurrence.plot_url}" target="_blank" rel="noopener noreferrer">${occurrence.label}</a></li>`;
+                }
+                return `<li>${occurrence.label}</li>`;
+            }).join('');
+            content.innerHTML = `<ul class="failure-mode-modal-list">${items}</ul>`;
+
+            overlay.style.display = 'block';
+            modal.style.display = 'block';
+        }
+
+        function closeFailureModeModal() {
+            const overlay = document.getElementById('failure-mode-overlay');
+            const modal = document.getElementById('failure-mode-modal');
+            if (overlay) {
+                overlay.style.display = 'none';
+            }
+            if (modal) {
+                modal.style.display = 'none';
+            }
+        }
+
+        function filterOccurringPieData(pieData) {
+            const labels = [];
+            const values = [];
+            const colors = [];
+            pieData.labels.forEach((label, index) => {
+                const value = pieData.values[index] || 0;
+                if (value > 0) {
+                    labels.push(label);
+                    values.push(value);
+                    colors.push(pieData.colors[index]);
+                }
+            });
+            const total = values.reduce((sum, value) => sum + value, 0);
+            const percentages = values.map(value =>
+                total > 0 ? (value / total * 100).toFixed(1) : '0.0'
+            );
+            return { labels, values, colors, percentages };
+        }
+
+        function filterOccurringBatchFailures(batchData) {
+            const batches = [];
+            const batchIndices = [];
+            (batchData.batches || []).forEach((batch, index) => {
+                const hasFailure = (batchData.modes || []).some(
+                    mode => (mode.values[index] || 0) > 0
+                );
+                if (hasFailure) {
+                    batches.push(batch);
+                    batchIndices.push(index);
+                }
+            });
+
+            const modes = (batchData.modes || [])
+                .map(mode => {
+                    const values = batchIndices.map(index => mode.values[index] || 0);
+                    return {
+                        name: mode.name,
+                        color: mode.color,
+                        values,
+                        total: values.reduce((sum, value) => sum + value, 0),
+                    };
+                })
+                .filter(mode => mode.total > 0);
+
+            return { batches, modes };
         }
 
         function buildSummaryBottomLegend(itemCount = 2, options = {}) {
@@ -1844,15 +2203,15 @@
             };
         }
 
-        function renderSummaryPlot(elementId, data, layout) {
+        function renderSummaryPlot(elementId, data, layout, chartIds = summaryChartIds) {
             const element = document.getElementById(elementId);
             if (!element) {
                 return;
             }
 
             const height = getSummaryPlotHeight(elementId);
-            if (!summaryChartIds.includes(elementId)) {
-                summaryChartIds.push(elementId);
+            if (!chartIds.includes(elementId)) {
+                chartIds.push(elementId);
             }
 
             Plotly.newPlot(elementId, data, {
@@ -1866,7 +2225,7 @@
         }
 
         function resizeSummaryCharts() {
-            summaryChartIds.forEach((elementId) => {
+            [...summaryChartIds, ...statisticsChartIds].forEach((elementId) => {
                 const element = document.getElementById(elementId);
                 if (!element || !element.querySelector('.js-plotly-plot')) {
                     return;
@@ -2455,6 +2814,173 @@
                 console.error('Error loading production summary:', error);
                 content.innerHTML = '<div class="summary-error">Error loading production summary.</div>';
                 subtitle.textContent = 'Failed to load production statistics.';
+            }
+        }
+
+        let productionStatisticsLoaded = false;
+        let lastFailureModePieModes = [];
+
+        function renderProductionStatisticsCharts(data) {
+            statisticsChartIds = [];
+            const container = document.getElementById('production-statistics-content');
+            container.innerHTML = `
+                <div class="summary-charts-grid">
+                    <div class="summary-chart-card summary-chart-card-statistics-pie">
+                        <div class="summary-chart-title">Failure Modes (Failed Boards)</div>
+                        <div class="summary-chart-subtitle" id="failure-modes-chart-subtitle">Failed Boards: --</div>
+                        <div class="statistics-pie-layout">
+                            <div id="failure-modes-pie-chart" class="summary-chart-plot statistics-pie-plot"></div>
+                            <div id="failure-modes-pie-legend" class="failure-mode-html-legend"></div>
+                        </div>
+                    </div>
+                    <div class="summary-chart-card summary-chart-card-statistics-bar">
+                        <div class="summary-chart-title">Failure Modes by Batch</div>
+                        <div class="statistics-bar-layout">
+                            <div id="failures-by-batch-chart" class="summary-chart-plot statistics-bar-plot"></div>
+                            <div id="failures-by-batch-legend" class="failure-mode-html-legend"></div>
+                        </div>
+                    </div>
+                </div>
+            `;
+
+            const pieModes = organizeFailureModes(
+                getOccurringPieModes(data.failure_modes_pie || { modes: [] })
+            );
+            lastFailureModePieModes = pieModes;
+            const failureSubtitle = document.getElementById('failure-modes-chart-subtitle');
+            if (failureSubtitle) {
+                failureSubtitle.textContent = `Failed Boards: ${data.total_failed_boards || 0}`;
+            }
+
+            const renderCharts = () => {
+                if (!pieModes.length) {
+                    document.getElementById('failure-modes-pie-chart').innerHTML =
+                        '<div class="summary-loading">No failed boards found.</div>';
+                    document.getElementById('failure-modes-pie-legend').innerHTML = '';
+                } else {
+                    renderFailureModeHtmlLegend(pieModes, 'failure-modes-pie-legend', { skipOrganize: true });
+                    renderSummaryPlot('failure-modes-pie-chart', [{
+                        type: 'pie',
+                        labels: pieModes.map(mode => shortenFailureModeLabel(mode.name)),
+                        values: pieModes.map(mode => mode.value),
+                        marker: { colors: pieModes.map(mode => mode.color) },
+                        text: pieModes.map(mode => `${mode.percentage}%`),
+                        textinfo: 'text',
+                        textposition: 'inside',
+                        insidetextorientation: 'radial',
+                        customdata: pieModes.map(mode => buildFailureModeHoverText(mode)),
+                        hovertemplate: (
+                            '<b>%{label}</b><br>' +
+                            'Count: %{value} (%{percent})<br>' +
+                            '%{customdata}<br>' +
+                            '<i>Click slice for full list</i>' +
+                            '<extra></extra>'
+                        ),
+                    }], {
+                        margin: { t: 16, b: 16, l: 16, r: 16 },
+                        showlegend: false,
+                        hoverlabel: {
+                            align: 'left',
+                            bgcolor: '#ffffff',
+                            bordercolor: '#cccccc',
+                            font: { size: 11, color: '#222222' },
+                        },
+                    }, statisticsChartIds);
+
+                    const pieElement = document.getElementById('failure-modes-pie-chart');
+                    if (pieElement && pieElement.removeAllListeners) {
+                        pieElement.removeAllListeners('plotly_click');
+                    }
+                    if (pieElement) {
+                        pieElement.on('plotly_click', (eventData) => {
+                            const pointIndex = eventData.points[0].pointNumber;
+                            openFailureModeModal(lastFailureModePieModes[pointIndex]);
+                        });
+                    }
+                }
+
+                const batchData = filterOccurringBatchFailures(
+                    data.failures_by_batch || { batches: [], modes: [] }
+                );
+                if (!batchData.batches.length || !batchData.modes.length) {
+                    document.getElementById('failures-by-batch-chart').innerHTML =
+                        '<div class="summary-loading">No failure data by batch available.</div>';
+                } else {
+                    const barTraces = batchData.modes.map(mode => ({
+                        x: batchData.batches,
+                        y: mode.values,
+                        name: mode.name,
+                        type: 'bar',
+                        marker: { color: mode.color },
+                        hovertemplate: 'Batch %{x}<br>%{fullData.name}: %{y}<extra></extra>',
+                    }));
+                    const barLayout = buildStatisticsBarPlotLayout();
+                    renderFailureModeHtmlLegend(
+                        organizeFailureModes(batchData.modes),
+                        'failures-by-batch-legend',
+                        {
+                            skipOrganize: true,
+                            showCount: true,
+                        onClick: (mode) => {
+                            const pieMode = lastFailureModePieModes.find(
+                                item => item.name === mode.name
+                            );
+                            if (pieMode) {
+                                openFailureModeModal(pieMode);
+                            }
+                        },
+                    });
+                    renderSummaryPlot('failures-by-batch-chart', barTraces, {
+                        barmode: 'group',
+                        margin: barLayout.margin,
+                        xaxis: {
+                            title: 'Decoded Batch',
+                            dtick: 1,
+                            standoff: 18,
+                        },
+                        yaxis: { title: 'Failure Occurrences', dtick: 1 },
+                        showlegend: false,
+                    }, statisticsChartIds);
+                }
+
+                attachSummaryResizeListener();
+                resizeSummaryCharts();
+            };
+
+            requestAnimationFrame(() => {
+                renderCharts();
+                setTimeout(resizeSummaryCharts, 100);
+                setTimeout(resizeSummaryCharts, 300);
+            });
+        }
+
+        async function loadProductionStatistics(forceReload = false) {
+            if (productionStatisticsLoaded && !forceReload) {
+                return;
+            }
+
+            const content = document.getElementById('production-statistics-content');
+            const subtitle = document.getElementById('production-statistics-subtitle');
+            content.innerHTML = '<div class="summary-loading">Loading charts...</div>';
+
+            try {
+                const response = await fetch('/api/production_statistics');
+                const data = await response.json();
+
+                if (data.error) {
+                    content.innerHTML = `<div class="summary-error">Error: ${data.error}</div>`;
+                    subtitle.textContent = 'Failed to load failure statistics.';
+                    return;
+                }
+
+                subtitle.textContent =
+                    `Failed Boards: ${data.total_failed_boards} (${data.timestamp} UTC)`;
+                renderProductionStatisticsCharts(data);
+                productionStatisticsLoaded = true;
+            } catch (error) {
+                console.error('Error loading production statistics:', error);
+                content.innerHTML = '<div class="summary-error">Error loading production statistics.</div>';
+                subtitle.textContent = 'Failed to load failure statistics.';
             }
         }
 
@@ -3613,6 +4139,21 @@
         benchtestCommentCancel.addEventListener('click', closeBenchtestCommentModal);
         benchtestCommentSubmit.addEventListener('click', submitBenchtestComment);
 
+        const failureModeModal = document.getElementById('failure-mode-modal');
+        const failureModeOverlay = document.getElementById('failure-mode-overlay');
+        const failureModeModalClose = document.getElementById('failure-mode-modal-close');
+        if (failureModeModalClose) {
+            failureModeModalClose.addEventListener('click', closeFailureModeModal);
+        }
+        if (failureModeOverlay) {
+            failureModeOverlay.addEventListener('click', closeFailureModeModal);
+        }
+        if (failureModeModal) {
+            failureModeModal.addEventListener('click', (event) => {
+                event.stopPropagation();
+            });
+        }
+
         // Prevent modal from closing when clicking inside the modal content
         modal.addEventListener('click', (e) => {
             e.stopPropagation();
@@ -3625,6 +4166,9 @@
             }
             if (e.key === 'Escape' && terminalModal.style.display === 'block') {
                 closeTerminalModal();
+            }
+            if (e.key === 'Escape' && failureModeModal && failureModeModal.style.display === 'block') {
+                closeFailureModeModal();
             }
         });
 

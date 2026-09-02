@@ -9,11 +9,13 @@ import re
 
 from production_summary import build_production_summary
 from production_statistics import build_production_statistics
+from burn_in import build_burn_in_overview, build_burn_in_plot_all_slots, build_burn_in_plot_for_slot
 from benchtest_results import get_failed_tests_for_serial
 from production_config import (
     SCHEDULE_CSV_PATH,
     backup_and_save_schedule,
     load_production_config,
+    save_burn_in_config,
     save_production_config,
 )
 from production_schedule import load_calendar_grid, save_calendar_grid
@@ -91,6 +93,7 @@ dashboard_template = "dashboard.html"
 run_script_template = "run_script.html"
 edit_vars_template = "edit_vars.html"
 edit_production_template = "edit_production.html"
+edit_burn_in_template = "edit_burn_in.html"
 
 def load_secrets():
     """Load database credentials from secrets.yaml."""
@@ -416,6 +419,20 @@ def edit_production():
     return render_template(
         edit_production_template,
         config=load_production_config(),
+    )
+
+@app.route('/edit_burn_in')
+def edit_burn_in():
+    if not session.get('logged_in'):
+        return redirect(url_for('login'))
+    blocked = require_full_access()
+    if blocked:
+        return blocked
+
+    from burn_in import _burn_in_config_payload
+    return render_template(
+        edit_burn_in_template,
+        config=_burn_in_config_payload(load_production_config()),
     )
 
 @app.route('/api/brick_wall_data')
@@ -881,6 +898,110 @@ def production_statistics():
 
     except Exception as e:
         print(f"Error fetching production statistics: {e}")
+        return jsonify({'error': str(e)}), 500
+
+def _fetch_daughterboard_rows():
+    conn = get_db_connection()
+    if not conn:
+        return None, 'Database connection failed'
+
+    cursor = conn.cursor(dictionary=True)
+    cursor.execute("""
+        SELECT d.serial_no, d.batch_id, d.db_status, d.burn_in,
+               d.burn_in_start, d.burn_in_stop,
+               d.e_test, d.p_test
+        FROM daughterboard d
+        ORDER BY d.serial_no
+    """)
+    db_rows = cursor.fetchall()
+    cursor.close()
+    conn.close()
+    return db_rows, None
+
+
+@app.route('/api/burn_in')
+def burn_in_overview():
+    if not session.get('logged_in'):
+        return jsonify({'error': 'Not logged in'}), 401
+
+    try:
+        db_rows, error = _fetch_daughterboard_rows()
+        if error:
+            return jsonify({'error': error}), 500
+        return jsonify(build_burn_in_overview(db_rows))
+    except Exception as e:
+        print(f'Error fetching burn-in overview: {e}')
+        return jsonify({'error': str(e)}), 500
+
+
+def _request_wants_recompute():
+    return request.args.get('recompute', '').lower() in ('1', 'true', 'yes')
+
+
+@app.route('/api/burn_in/plot_all')
+def burn_in_plot_all():
+    if not session.get('logged_in'):
+        return jsonify({'error': 'Not logged in'}), 401
+
+    try:
+        db_rows, error = _fetch_daughterboard_rows()
+        if error:
+            return jsonify({'error': error}), 500
+        return jsonify(build_burn_in_plot_all_slots(
+            db_rows,
+            force_recompute=_request_wants_recompute(),
+        ))
+    except Exception as e:
+        print(f'Error fetching all burn-in plots: {e}')
+        return jsonify({'error': str(e)}), 500
+
+
+@app.route('/api/burn_in/plot/<slot_id>')
+def burn_in_plot(slot_id):
+    if not session.get('logged_in'):
+        return jsonify({'error': 'Not logged in'}), 401
+
+    try:
+        db_rows, error = _fetch_daughterboard_rows()
+        if error:
+            return jsonify({'error': error}), 500
+        return jsonify(build_burn_in_plot_for_slot(
+            db_rows,
+            slot_id,
+            force_recompute=_request_wants_recompute(),
+        ))
+    except Exception as e:
+        print(f'Error fetching burn-in plot for {slot_id}: {e}')
+        return jsonify({'error': str(e)}), 500
+
+
+@app.route('/api/burn_in/config', methods=['GET', 'POST'])
+def burn_in_config_api():
+    if not session.get('logged_in'):
+        return jsonify({'error': 'Not logged in'}), 401
+
+    if request.method == 'GET':
+        config = load_production_config()
+        from burn_in import _burn_in_config_payload
+        return jsonify({'success': True, 'config': _burn_in_config_payload(config)})
+
+    blocked = require_full_access()
+    if blocked:
+        return jsonify({'error': 'Not allowed in guest mode'}), 403
+
+    try:
+        data = request.get_json() or {}
+        saved = save_burn_in_config({
+            'burnin_temperature_offset_c': data.get('temperature_offset_c', 0),
+            'burnin_use_profiles': data.get('use_profiles', []),
+            'burnin_activation_energies': data.get('activation_energies', []),
+            'burnin_default_use_profile': data.get('default_use_profile'),
+            'burnin_default_activation_energy_ev': data.get('default_activation_energy_ev'),
+        })
+        from burn_in import _burn_in_config_payload
+        return jsonify({'success': True, 'config': _burn_in_config_payload(saved)})
+    except Exception as e:
+        print(f'Error saving burn-in config: {e}')
         return jsonify({'error': str(e)}), 500
 
 @app.route('/api/production_config', methods=['GET', 'POST'])

@@ -9,7 +9,6 @@ from production_summary import _build_benchtest_maps, _classify_board, decode_se
 BENCHTEST_DRIVE_BASE = 'https://piro-atlas-lab.fysik.su.se/drive/benchtests'
 
 FAILURE_MODE_COLORS = {
-    'DB Status': '#EF553B',
     'E-Test': '#FF6692',
     'P-Test': '#AB63FA',
     'Other Failure': '#FFA15A',
@@ -83,20 +82,6 @@ def _collect_board_failure_occurrences(
     latest_slot = _latest_benchtest_slot(slots)
     occurrences = []
 
-    if row.get('db_status') == 0:
-        occurrences.append({
-            'mode': 'DB Status',
-            'serial': serial,
-            'benchtest_id': latest_slot['benchtest_id'] if latest_slot else None,
-            'slot_name': latest_slot['slot_name'] if latest_slot else None,
-            'measurement': None,
-            'label': _occurrence_label(serial, mode_name='DB Status'),
-            'plot_url': (
-                _benchtest_folder_url(serial, latest_slot['benchtest_id'])
-                if latest_slot else None
-            ),
-        })
-
     if row.get('e_test') == 0:
         occurrences.append({
             'mode': 'E-Test',
@@ -162,6 +147,62 @@ def _collect_board_failure_occurrences(
     return occurrences
 
 
+def _merge_serial_mode_occurrences(occurrences):
+    serial = occurrences[0]['serial']
+    mode = occurrences[0]['mode']
+
+    benchtests = []
+    seen_benchtests = set()
+    for occurrence in sorted(
+        occurrences,
+        key=lambda item: (item.get('benchtest_id') or 0, item.get('slot_name') or ''),
+    ):
+        benchtest_id = occurrence.get('benchtest_id')
+        slot_name = occurrence.get('slot_name')
+        if benchtest_id is None:
+            continue
+        benchtest_key = (benchtest_id, slot_name)
+        if benchtest_key in seen_benchtests:
+            continue
+        seen_benchtests.add(benchtest_key)
+        benchtests.append({
+            'benchtest_id': benchtest_id,
+            'slot_name': slot_name,
+            'label': f'benchtest{benchtest_id}@{slot_name}',
+            'plot_url': occurrence.get('plot_url'),
+            'measurement': occurrence.get('measurement'),
+        })
+
+    if benchtests:
+        benchtest_labels = ', '.join(item['label'] for item in benchtests)
+        label = f'{serial} -> {benchtest_labels}'
+    else:
+        label = occurrences[0].get('label') or _occurrence_label(serial, mode_name=mode)
+
+    merged = {
+        'mode': mode,
+        'serial': serial,
+        'benchtests': benchtests,
+        'measurement': occurrences[0].get('measurement'),
+        'label': label,
+        'plot_url': benchtests[0]['plot_url'] if len(benchtests) == 1 else None,
+    }
+    if len(benchtests) == 1:
+        merged['benchtest_id'] = benchtests[0]['benchtest_id']
+        merged['slot_name'] = benchtests[0]['slot_name']
+    return merged
+
+
+def _merge_occurrences_for_board(occurrences):
+    by_mode = defaultdict(list)
+    for occurrence in occurrences:
+        by_mode[occurrence['mode']].append(occurrence)
+    return [
+        _merge_serial_mode_occurrences(mode_occurrences)
+        for mode_occurrences in by_mode.values()
+    ]
+
+
 def _assign_mode_colors(mode_names):
     colors = dict(FAILURE_MODE_COLORS)
     palette_index = 0
@@ -189,7 +230,10 @@ def build_production_statistics(db_rows, benchtest_rows):
             continue
 
         batch = decoded['batch']
-        for occurrence in _collect_board_failure_occurrences(row, serial_benchtest_slots):
+        board_occurrences = _merge_occurrences_for_board(
+            _collect_board_failure_occurrences(row, serial_benchtest_slots)
+        )
+        for occurrence in board_occurrences:
             mode_occurrences[occurrence['mode']].append(occurrence)
             batch_mode_totals[batch][occurrence['mode']] += 1
 

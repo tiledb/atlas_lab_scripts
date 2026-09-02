@@ -1,3 +1,29 @@
 pretest_offset_days: 2
 post_test_offset_days: 7
 burnin_offset_days: 14
+burnin_temperature_offset_c: 8.0
+burnin_use_profiles:
+- name: ATLAS
+  temperature_c: 25.0
+- name: Lab Table
+  temperature_c: 60.0
+burnin_activation_energies:
+- value: 0.3
+  description: Typical for moisture-induced corrosion or package delamination.
+- value: 0.5
+  description: Standard values used by the military and aerospace industries for
+    general semiconductor hardware when the exact failure mechanism is unknown.
+- value: 0.6
+  description: Standard values used by the military and aerospace industries for
+    general semiconductor hardware when the exact failure mechanism is unknown.
+- value: 0.7
+  description: Common for electromigration in silicon interconnects and 
+    dielectric breakdowns.
+- value: 0.9
+  description: Associated with severe charge-trapping contamination and ionic 
+    impurities.
+- value: 1.0
+  description: Associated with severe charge-trapping contamination and ionic 
+    impurities.
+burnin_default_use_profile: ATLAS
+burnin_default_activation_energy_ev: 0.9

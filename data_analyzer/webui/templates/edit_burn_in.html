@@ -1,0 +1,528 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DBQ Admin - Burn-In Configuration</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            background: #f5f7fa;
+            min-height: 100vh;
+        }
+
+        .navbar {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            padding: 20px 40px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+        }
+
+        .navbar h1 {
+            color: white;
+            font-size: 24px;
+            font-weight: 600;
+        }
+
+        .nav-links {
+            display: flex;
+            gap: 20px;
+        }
+
+        .nav-links a {
+            color: white;
+            text-decoration: none;
+            font-size: 14px;
+            opacity: 0.9;
+        }
+
+        .nav-links a:hover {
+            opacity: 1;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 40px auto;
+            padding: 0 20px 40px;
+        }
+
+        .back-link {
+            display: inline-block;
+            margin-bottom: 20px;
+            color: #667eea;
+            text-decoration: none;
+            font-size: 14px;
+        }
+
+        .back-link:hover {
+            text-decoration: underline;
+        }
+
+        .form-card {
+            background: white;
+            border-radius: 12px;
+            padding: 30px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+            margin-bottom: 30px;
+        }
+
+        .form-card h2 {
+            color: #333;
+            font-size: 24px;
+            margin-bottom: 10px;
+        }
+
+        .help-text {
+            color: #666;
+            font-size: 14px;
+            line-height: 1.5;
+            margin-bottom: 20px;
+        }
+
+        .equation-box {
+            color: #444;
+            background: #f7f8fa;
+            border: 1px solid #e4e8ee;
+            border-radius: 8px;
+            padding: 12px 14px;
+            margin-bottom: 20px;
+            font-size: 13px;
+            font-weight: 700;
+            line-height: 1.5;
+        }
+
+        .config-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+            gap: 16px;
+            margin-bottom: 20px;
+        }
+
+        .config-section-title {
+            display: block;
+            margin-bottom: 10px;
+            color: #333;
+            font-size: 15px;
+            font-weight: 600;
+        }
+
+        .config-field label {
+            display: block;
+            margin-bottom: 8px;
+            color: #333;
+            font-size: 14px;
+            font-weight: 500;
+        }
+
+        .config-field input[type="number"],
+        .config-field input[type="text"],
+        .config-field textarea {
+            width: 100%;
+            padding: 10px 12px;
+            border: 2px solid #e1e5e9;
+            border-radius: 6px;
+            font-size: 14px;
+            font-family: inherit;
+        }
+
+        .config-field textarea {
+            min-height: 72px;
+            resize: vertical;
+        }
+
+        .config-list {
+            display: grid;
+            gap: 10px;
+            margin-bottom: 12px;
+        }
+
+        .config-row {
+            display: grid;
+            grid-template-columns: 1fr 120px auto;
+            gap: 10px;
+            align-items: start;
+        }
+
+        .config-row.energy-row {
+            grid-template-columns: 100px 1fr auto;
+        }
+
+        .default-radio-group {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            margin-top: 12px;
+            padding-top: 12px;
+            border-top: 1px solid #e4e8ee;
+        }
+
+        .default-radio-option {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 14px;
+            color: #444;
+            cursor: pointer;
+        }
+
+        .default-radio-option input {
+            margin: 0;
+        }
+
+        .actions-row {
+            display: flex;
+            gap: 12px;
+            flex-wrap: wrap;
+            align-items: center;
+        }
+
+        .btn {
+            padding: 12px 18px;
+            border: none;
+            border-radius: 6px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+
+        .btn-secondary {
+            background: #eef1f6;
+            color: #444;
+        }
+
+        .btn-danger {
+            background: #fff;
+            border: 1px solid #ffcdd2;
+            color: #c62828;
+        }
+
+        .message-box,
+        .error-box {
+            border-radius: 6px;
+            padding: 15px;
+            margin-bottom: 20px;
+            font-size: 14px;
+            display: none;
+        }
+
+        .message-box {
+            background: #e8f5e9;
+            border: 1px solid #c8e6c9;
+            color: #2e7d32;
+        }
+
+        .error-box {
+            background: #ffebee;
+            border: 1px solid #ffcdd2;
+            color: #c62828;
+        }
+    </style>
+</head>
+<body>
+    <nav class="navbar">
+        <h1>DBQ Admin Panel</h1>
+        <div class="nav-links">
+            <a href="{{ url_for('dashboard') }}">Dashboard</a>
+            <a href="{{ url_for('logout') }}">Logout</a>
+        </div>
+    </nav>
+
+    <div class="container">
+        <a href="{{ url_for('dashboard') }}" class="back-link">← Back to Dashboard</a>
+
+        <div id="message-box" class="message-box"></div>
+        <div id="error-box" class="error-box"></div>
+
+        <div class="form-card">
+            <h2>Burn-In Configuration</h2>
+            <p class="help-text">
+                Configure accelerated aging parameters used by the <strong>Burn In</strong> dashboard tab.
+                The temperature offset is added to InfluxDB <code>Toven</code> before aging is calculated.
+                Edit the <code>T_use</code> profiles and activation energies to control which traces are plotted.
+            </p>
+            <div id="burnin-equation" class="equation-box"></div>
+
+            <form id="burnin-config-form">
+                <div class="config-grid">
+                    <div class="config-field">
+                        <label for="burnin-temperature-offset">Temperature Offset (°C)</label>
+                        <input
+                            type="number"
+                            id="burnin-temperature-offset"
+                            step="0.1"
+                            value="{{ config.temperature_offset_c }}"
+                        >
+                    </div>
+                </div>
+
+                <div class="config-grid">
+                    <div class="config-field">
+                        <span class="config-section-title">T_use Profiles</span>
+                        <div id="burnin-use-profiles-list" class="config-list"></div>
+                        <div id="burnin-default-profile-radios" class="default-radio-group"></div>
+                        <button type="button" class="btn btn-secondary" id="add-burnin-profile-btn">Add T_use Profile</button>
+                    </div>
+                    <div class="config-field">
+                        <span class="config-section-title">Activation Energies (Ea)</span>
+                        <div id="burnin-activation-energies-list" class="config-list"></div>
+                        <div id="burnin-default-energy-radios" class="default-radio-group"></div>
+                        <button type="button" class="btn btn-secondary" id="add-burnin-energy-btn">Add Activation Energy</button>
+                    </div>
+                </div>
+
+                <div class="actions-row">
+                    <button type="submit" class="btn btn-primary">Save Configuration</button>
+                    <button type="button" class="btn btn-secondary" id="reload-burnin-config-btn">Reload</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        let burnInConfig = {{ config | tojson }};
+
+        function escapeHtml(text) {
+            return String(text)
+                .replace(/&/g, '&amp;')
+                .replace(/"/g, '&quot;')
+                .replace(/</g, '&lt;')
+                .replace(/>/g, '&gt;');
+        }
+
+        function showMessage(text, isError = false) {
+            const messageBox = document.getElementById('message-box');
+            const errorBox = document.getElementById('error-box');
+            messageBox.style.display = 'none';
+            errorBox.style.display = 'none';
+
+            if (isError) {
+                errorBox.textContent = text;
+                errorBox.style.display = 'block';
+            } else {
+                messageBox.textContent = text;
+                messageBox.style.display = 'block';
+            }
+        }
+
+        function updateEquation() {
+            const offset = Number(document.getElementById('burnin-temperature-offset')?.value || 0);
+            const equation = document.getElementById('burnin-equation');
+            if (equation) {
+                equation.textContent =
+                    `AF = exp[(Ea / kB) × (1/T_use − 1/T_test)], ` +
+                    `T_test = (Toven + ${offset} °C) converted to K, ` +
+                    'kB = 8.617e-5 eV/K';
+            }
+        }
+
+        function getSelectedDefaultProfile() {
+            const checked = document.querySelector('input[name="burnin-default-profile"]:checked');
+            return checked ? checked.value : null;
+        }
+
+        function getSelectedDefaultEnergy() {
+            const checked = document.querySelector('input[name="burnin-default-energy"]:checked');
+            return checked != null ? Number(checked.value) : null;
+        }
+
+        function renderDefaultProfileRadios(profiles, selectedName) {
+            const container = document.getElementById('burnin-default-profile-radios');
+            if (!profiles.length) {
+                container.innerHTML = '<span class="help-text">Add at least one T_use profile to choose a default.</span>';
+                return;
+            }
+
+            const selected = selectedName && profiles.some(profile => profile.name === selectedName)
+                ? selectedName
+                : profiles[0].name;
+
+            container.innerHTML = `
+                <span class="config-section-title">Default T_use</span>
+                ${profiles.map(profile => `
+                    <label class="default-radio-option">
+                        <input
+                            type="radio"
+                            name="burnin-default-profile"
+                            value="${escapeHtml(profile.name)}"
+                            ${profile.name === selected ? 'checked' : ''}
+                        >
+                        <span>${escapeHtml(profile.name)} (${profile.temperature_c}°C)</span>
+                    </label>
+                `).join('')}
+            `;
+        }
+
+        function renderDefaultEnergyRadios(energies, selectedValue) {
+            const container = document.getElementById('burnin-default-energy-radios');
+            if (!energies.length) {
+                container.innerHTML = '<span class="help-text">Add at least one activation energy to choose a default.</span>';
+                return;
+            }
+
+            const selected = energies.some(energy => energy.value === selectedValue)
+                ? selectedValue
+                : energies[0].value;
+
+            container.innerHTML = `
+                <span class="config-section-title">Default Ea</span>
+                ${energies.map(energy => `
+                    <label class="default-radio-option">
+                        <input
+                            type="radio"
+                            name="burnin-default-energy"
+                            value="${energy.value}"
+                            ${energy.value === selected ? 'checked' : ''}
+                        >
+                        <span>${energy.value} eV${energy.description ? ` — ${escapeHtml(energy.description)}` : ''}</span>
+                    </label>
+                `).join('')}
+            `;
+        }
+
+        function renderProfileRows(profiles) {
+            const previousDefault = getSelectedDefaultProfile();
+            const container = document.getElementById('burnin-use-profiles-list');
+            container.innerHTML = profiles.map((profile, index) => `
+                <div class="config-row" data-profile-index="${index}">
+                    <input type="text" class="burnin-profile-name" value="${escapeHtml(profile.name || '')}" placeholder="Profile name">
+                    <input type="number" class="burnin-profile-temp" step="0.1" value="${profile.temperature_c ?? 25}">
+                    <button type="button" class="btn btn-danger remove-burnin-profile-btn">Remove</button>
+                </div>
+            `).join('');
+
+            container.querySelectorAll('.remove-burnin-profile-btn').forEach(button => {
+                button.addEventListener('click', () => {
+                    const rows = collectProfiles();
+                    const index = Number(button.closest('[data-profile-index]').dataset.profileIndex);
+                    rows.splice(index, 1);
+                    renderProfileRows(rows);
+                });
+            });
+
+            renderDefaultProfileRadios(
+                profiles,
+                previousDefault || burnInConfig.default_use_profile,
+            );
+        }
+
+        function renderEnergyRows(energies) {
+            const previousDefault = getSelectedDefaultEnergy();
+            const container = document.getElementById('burnin-activation-energies-list');
+            container.innerHTML = energies.map((energy, index) => `
+                <div class="config-row energy-row" data-energy-index="${index}">
+                    <input type="number" class="burnin-energy-value" step="0.1" value="${energy.value ?? 0.7}">
+                    <textarea class="burnin-energy-description" placeholder="Description">${escapeHtml(energy.description || '')}</textarea>
+                    <button type="button" class="btn btn-danger remove-burnin-energy-btn">Remove</button>
+                </div>
+            `).join('');
+
+            container.querySelectorAll('.remove-burnin-energy-btn').forEach(button => {
+                button.addEventListener('click', () => {
+                    const rows = collectEnergies();
+                    const index = Number(button.closest('[data-energy-index]').dataset.energyIndex);
+                    rows.splice(index, 1);
+                    renderEnergyRows(rows);
+                });
+            });
+
+            renderDefaultEnergyRadios(
+                energies,
+                previousDefault ?? burnInConfig.default_activation_energy_ev,
+            );
+        }
+
+        function collectProfiles() {
+            return Array.from(document.querySelectorAll('#burnin-use-profiles-list .config-row')).map(row => ({
+                name: row.querySelector('.burnin-profile-name')?.value.trim() || '',
+                temperature_c: Number(row.querySelector('.burnin-profile-temp')?.value || 0),
+            })).filter(profile => profile.name);
+        }
+
+        function collectEnergies() {
+            return Array.from(document.querySelectorAll('#burnin-activation-energies-list .config-row')).map(row => ({
+                value: Number(row.querySelector('.burnin-energy-value')?.value || 0),
+                description: row.querySelector('.burnin-energy-description')?.value.trim() || '',
+            }));
+        }
+
+        function renderConfig(config) {
+            burnInConfig = config;
+            document.getElementById('burnin-temperature-offset').value = config.temperature_offset_c ?? 0;
+            renderProfileRows(config.use_profiles || []);
+            renderEnergyRows(config.activation_energies || []);
+            updateEquation();
+        }
+
+        async function loadConfig() {
+            try {
+                const response = await fetch('/api/burn_in/config');
+                const data = await response.json();
+                if (data.error || !data.success) {
+                    showMessage(data.error || 'Failed to load burn-in configuration.', true);
+                    return;
+                }
+                renderConfig(data.config);
+            } catch (error) {
+                console.error('Error loading burn-in configuration:', error);
+                showMessage('Error loading burn-in configuration.', true);
+            }
+        }
+
+        document.getElementById('add-burnin-profile-btn').addEventListener('click', () => {
+            renderProfileRows(collectProfiles().concat({ name: '', temperature_c: 25 }));
+        });
+
+        document.getElementById('add-burnin-energy-btn').addEventListener('click', () => {
+            renderEnergyRows(collectEnergies().concat({ value: 0.7, description: '' }));
+        });
+
+        document.getElementById('burnin-temperature-offset').addEventListener('input', updateEquation);
+
+        document.getElementById('reload-burnin-config-btn').addEventListener('click', loadConfig);
+
+        document.getElementById('burnin-config-form').addEventListener('submit', async (event) => {
+            event.preventDefault();
+            const payload = {
+                temperature_offset_c: Number(document.getElementById('burnin-temperature-offset').value || 0),
+                use_profiles: collectProfiles(),
+                activation_energies: collectEnergies(),
+                default_use_profile: getSelectedDefaultProfile(),
+                default_activation_energy_ev: getSelectedDefaultEnergy(),
+            };
+
+            try {
+                const response = await fetch('/api/burn_in/config', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload),
+                });
+                const data = await response.json();
+                if (data.error || !data.success) {
+                    showMessage(data.error || 'Failed to save burn-in configuration.', true);
+                    return;
+                }
+                renderConfig(data.config);
+                showMessage('Burn-in configuration saved.');
+            } catch (error) {
+                console.error('Error saving burn-in configuration:', error);
+                showMessage('Error saving burn-in configuration.', true);
+            }
+        });
+
+        renderConfig(burnInConfig);
+    </script>
+</body>
+</html>

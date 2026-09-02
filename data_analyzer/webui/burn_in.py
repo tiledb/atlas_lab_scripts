@@ -13,6 +13,7 @@ MEASUREMENT_NAME = 'Burnin_Oven'
 MAX_PLOT_POINTS = 2500
 SECRETS_YAML_PATH = Path(__file__).parent.parent.parent / 'secrets' / 'secrets.yaml'
 BURN_IN_CACHE_DIR = Path('/var/www/html/drive/production_plots/burn_in')
+DEFAULT_BURN_IN_CACHE_DIR = BURN_IN_CACHE_DIR
 CACHE_VERSION = 2
 BURN_IN_AXIS_TICK_COUNT = 10
 
@@ -273,6 +274,7 @@ def _period_cache_path(
     use_temperature_c,
     activation_energy_ev,
     slot_id=None,
+    config=None,
 ):
     basename = _period_cache_basename(
         burn_in_start,
@@ -281,7 +283,7 @@ def _period_cache_path(
         activation_energy_ev,
         slot_id=slot_id,
     )
-    return BURN_IN_CACHE_DIR / f'{basename}.json'
+    return get_burn_in_cache_dir(config) / f'{basename}.json'
 
 
 def _period_plot_html_path(
@@ -290,6 +292,7 @@ def _period_plot_html_path(
     use_temperature_c,
     activation_energy_ev,
     slot_id=None,
+    config=None,
 ):
     basename = _period_cache_basename(
         burn_in_start,
@@ -298,7 +301,39 @@ def _period_plot_html_path(
         activation_energy_ev,
         slot_id=slot_id,
     )
-    return BURN_IN_CACHE_DIR / f'{basename}.html'
+    return get_burn_in_cache_dir(config) / f'{basename}.html'
+
+
+def get_burn_in_cache_dir(config=None):
+    if config is None:
+        config = load_production_config()
+    cache_dir = str(config.get('burnin_cache_dir', '')).strip()
+    if not cache_dir:
+        cache_dir = str(DEFAULT_BURN_IN_CACHE_DIR)
+    return Path(cache_dir)
+
+
+def clear_burn_in_cache(config=None):
+    cache_dir = get_burn_in_cache_dir(config)
+    if not cache_dir.exists():
+        return {
+            'cache_dir': str(cache_dir),
+            'removed': 0,
+        }
+
+    removed = 0
+    for path in cache_dir.iterdir():
+        if not path.is_file():
+            continue
+        try:
+            path.unlink()
+            removed += 1
+        except OSError as exc:
+            print(f'Error removing burn-in cache file {path}: {exc}')
+    return {
+        'cache_dir': str(cache_dir),
+        'removed': removed,
+    }
 
 
 def _resolve_default_burnin_parameters(config):
@@ -344,6 +379,25 @@ def _compute_aging_hours(series, use_temperature_c, activation_energy_ev):
                 cumulative += af * dt_hours
         aging_hours.append(round(cumulative, 4))
     return aging_hours
+
+
+def _compute_power_on_hours(series, power_field='lvpower'):
+    elapsed_hours = series.get('elapsed_hours') or []
+    power_values = series.get(power_field) or []
+    total = 0.0
+    for index in range(1, len(elapsed_hours)):
+        if power_values[index - 1] == 1:
+            total += elapsed_hours[index] - elapsed_hours[index - 1]
+    return total
+
+
+def _format_avg_af_legend_suffix(aging_hours, power_on_hours):
+    if not aging_hours or not power_on_hours or power_on_hours <= 0:
+        return ''
+    max_aging = aging_hours[-1]
+    if not max_aging:
+        return ''
+    return f', avg AF={max_aging / power_on_hours:.2f}'
 
 
 def _format_burn_in_numeric_tick(value, span):
@@ -447,6 +501,8 @@ def _write_period_plot_html(
     offset = float(config.get('burnin_temperature_offset_c', 0.0))
     aging_hours = _compute_aging_hours(series, t_use_c, ea_ev)
     aging_label = f"{profile['name']} {t_use_c}°C, Ea={ea_ev} eV"
+    power_on_hours = _compute_power_on_hours(series, 'lvpower')
+    avg_af_suffix = _format_avg_af_legend_suffix(aging_hours, power_on_hours)
     title_suffix = f' - {slot_id}' if slot_id else ''
     lv_states = ['ON' if value == 1 else 'OFF' for value in series.get('lvpower', [])]
     toven_values = [value for value in series.get('toven_c', []) if value is not None]
@@ -473,7 +529,7 @@ def _write_period_plot_html(
         x=series['elapsed_hours'],
         y=aging_hours,
         mode='lines',
-        name=f'Accelerated Aging ({aging_label})',
+        name=f'Accelerated Aging ({aging_label}{avg_af_suffix})',
         line=dict(color='#AB63FA', width=2),
     ), row=1, col=1, secondary_y=False)
     fig.add_trace(go.Scatter(
@@ -560,8 +616,10 @@ def _write_period_plot_html(
         t_use_c,
         ea_ev,
         slot_id=slot_id,
+        config=config,
     )
-    BURN_IN_CACHE_DIR.mkdir(parents=True, exist_ok=True)
+    cache_dir = get_burn_in_cache_dir(config)
+    cache_dir.mkdir(parents=True, exist_ok=True)
     fig.write_html(html_path, include_plotlyjs='cdn', full_html=True)
     return html_path.name
 
@@ -573,6 +631,7 @@ def _load_period_cache(
     use_temperature_c,
     activation_energy_ev,
     slot_id=None,
+    config=None,
 ):
     cache_path = _period_cache_path(
         burn_in_start,
@@ -580,6 +639,7 @@ def _load_period_cache(
         use_temperature_c,
         activation_energy_ev,
         slot_id=slot_id,
+        config=config,
     )
     if not cache_path.exists():
         return None
@@ -619,7 +679,6 @@ def _save_period_cache(
     use_temperature_c=None,
     activation_energy_ev=None,
 ):
-    BURN_IN_CACHE_DIR.mkdir(parents=True, exist_ok=True)
     profile, energy = _resolve_default_burnin_parameters(config or {})
     t_use_c = use_temperature_c
     ea_ev = activation_energy_ev
@@ -631,12 +690,15 @@ def _save_period_cache(
     if t_use_c is None or ea_ev is None:
         return None
 
+    cache_dir = get_burn_in_cache_dir(config)
+    cache_dir.mkdir(parents=True, exist_ok=True)
     cache_path = _period_cache_path(
         burn_in_start,
         burn_in_stop,
         t_use_c,
         ea_ev,
         slot_id=slot_id,
+        config=config,
     )
     plot_html = None
     if config is not None:
@@ -665,12 +727,13 @@ def _save_period_cache(
     return plot_html
 
 
-def _clear_period_cache(burn_in_start, burn_in_stop, slot_id=None):
+def _clear_period_cache(burn_in_start, burn_in_stop, slot_id=None, config=None):
+    cache_dir = get_burn_in_cache_dir(config)
     start_text = burn_in_start.strftime('%Y%m%dT%H%M%S')
     stop_text = burn_in_stop.strftime('%Y%m%dT%H%M%S')
     slot_slug = _slot_cache_slug(slot_id)
     pattern = f'{slot_slug}_{start_text}_{stop_text}_*'
-    for path in BURN_IN_CACHE_DIR.glob(pattern):
+    for path in cache_dir.glob(pattern):
         try:
             path.unlink()
         except OSError as exc:
@@ -678,7 +741,7 @@ def _clear_period_cache(burn_in_start, burn_in_stop, slot_id=None):
 
     legacy_stem = f'{start_text}__{stop_text}'
     for suffix in ('.json', '.html'):
-        legacy_path = BURN_IN_CACHE_DIR / f'{legacy_stem}{suffix}'
+        legacy_path = cache_dir / f'{legacy_stem}{suffix}'
         if not legacy_path.exists():
             continue
         try:
@@ -703,7 +766,7 @@ def _fetch_period_series(
     ea_ev = energy['value']
 
     if force_recompute:
-        _clear_period_cache(burn_in_start, burn_in_stop, slot_id=slot_id)
+        _clear_period_cache(burn_in_start, burn_in_stop, slot_id=slot_id, config=config)
     elif not force_recompute:
         cached = _load_period_cache(
             burn_in_start,
@@ -712,6 +775,7 @@ def _fetch_period_series(
             t_use_c,
             ea_ev,
             slot_id=slot_id,
+            config=config,
         )
         if cached:
             return {
@@ -869,8 +933,10 @@ def _find_burn_in_slot(db_rows, slot_id):
 
 
 def _burn_in_config_payload(config):
+    cache_dir = get_burn_in_cache_dir(config)
     return {
         'temperature_offset_c': config['burnin_temperature_offset_c'],
+        'cache_dir': str(cache_dir),
         'use_profiles': config['burnin_use_profiles'],
         'activation_energies': config['burnin_activation_energies'],
         'default_use_profile': config['burnin_default_use_profile'],
@@ -1073,6 +1139,7 @@ def _period_cache_is_available(burn_in_start, burn_in_stop, config, slot_id=None
         profile['temperature_c'],
         energy['value'],
         slot_id=slot_id,
+        config=config,
     ) is not None
 
 

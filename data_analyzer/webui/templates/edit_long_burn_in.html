@@ -1,0 +1,694 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DBQ Admin - Long Burn-In Configuration</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            background: #f5f7fa;
+            min-height: 100vh;
+        }
+        .navbar {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            padding: 20px 40px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+        }
+        .navbar h1 { color: white; font-size: 24px; font-weight: 600; }
+        .nav-links { display: flex; gap: 20px; }
+        .nav-links a { color: white; text-decoration: none; font-size: 14px; opacity: 0.9; }
+        .nav-links a:hover { opacity: 1; }
+        .container { max-width: 1200px; margin: 40px auto; padding: 0 20px 40px; }
+        .back-link { display: inline-block; margin-bottom: 20px; color: #667eea; text-decoration: none; font-size: 14px; }
+        .back-link:hover { text-decoration: underline; }
+        .form-card {
+            background: white;
+            border-radius: 12px;
+            padding: 30px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+            margin-bottom: 30px;
+        }
+        .form-card h2 { color: #333; font-size: 24px; margin-bottom: 10px; }
+        .help-text { color: #666; font-size: 14px; line-height: 1.5; margin-bottom: 20px; }
+        .equation-box {
+            color: #444;
+            background: #f7f8fa;
+            border: 1px solid #e4e8ee;
+            border-radius: 8px;
+            padding: 12px 14px;
+            font-size: 13px;
+            font-weight: 700;
+            line-height: 1.5;
+        }
+        .equation-group {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+        .equation-title {
+            font-size: 12px;
+            font-weight: 600;
+            color: #666;
+            margin-bottom: 6px;
+            text-transform: uppercase;
+            letter-spacing: 0.02em;
+        }
+        .config-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+            gap: 16px;
+            margin-bottom: 20px;
+        }
+        .config-section-title {
+            display: block;
+            margin-bottom: 10px;
+            color: #333;
+            font-size: 15px;
+            font-weight: 600;
+        }
+        .config-field label {
+            display: block;
+            margin-bottom: 8px;
+            color: #333;
+            font-size: 14px;
+            font-weight: 600;
+        }
+        .config-field input, .config-field textarea {
+            width: 100%;
+            padding: 10px 12px;
+            border: 1px solid #d7dbe0;
+            border-radius: 8px;
+            font-size: 14px;
+        }
+        .config-list { display: flex; flex-direction: column; gap: 10px; margin-bottom: 12px; }
+        .config-row {
+            display: grid;
+            grid-template-columns: 1fr 120px auto;
+            gap: 10px;
+            align-items: start;
+        }
+        .energy-row { grid-template-columns: 100px 1fr auto; }
+        .default-radio-group { display: flex; flex-direction: column; gap: 8px; margin-bottom: 12px; }
+        .default-radio-option { display: flex; gap: 8px; align-items: flex-start; font-size: 14px; color: #444; }
+        .actions-row { display: flex; gap: 12px; margin-top: 20px; }
+        .btn {
+            border: none;
+            border-radius: 8px;
+            padding: 10px 16px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+        }
+        .btn-primary { background: #667eea; color: white; }
+        .btn-secondary { background: #eef1f6; color: #333; }
+        .btn-danger { background: #fdecea; color: #c62828; }
+        .message-box, .error-box {
+            display: none;
+            margin-bottom: 16px;
+            padding: 12px 14px;
+            border-radius: 8px;
+            font-size: 14px;
+        }
+        .message-box { background: #e8f5e9; color: #2e7d32; }
+        .error-box { background: #fdecea; color: #c62828; }
+        .source-box {
+            background: #f7f8fa;
+            border: 1px solid #e4e8ee;
+            border-radius: 8px;
+            padding: 12px 14px;
+            margin-bottom: 20px;
+            font-size: 13px;
+            line-height: 1.6;
+            color: #444;
+        }
+    </style>
+</head>
+<body>
+    <nav class="navbar">
+        <h1>DBQ Admin Panel</h1>
+        <div class="nav-links">
+            <a href="{{ url_for('dashboard') }}">Dashboard</a>
+            <a href="{{ url_for('logout') }}">Logout</a>
+        </div>
+    </nav>
+
+    <div class="container">
+        <a href="{{ url_for('dashboard') }}" class="back-link">← Back to Dashboard</a>
+        <div id="message-box" class="message-box"></div>
+        <div id="error-box" class="error-box"></div>
+
+        <div class="form-card">
+            <h2>Long Burn-In Configuration</h2>
+            <p class="help-text">
+                Configure the single-board long burn-in period and accelerated aging parameters for the
+                <strong>Long Burn In</strong> dashboard tab. Telemetry is read from InfluxDB measurement
+                <code>TileBurninTest</code>: environment temperature/humidity and power signals at board level,
+                and FPGA temperatures via tag <code>TileBurninOven &lt;board serial&gt;</code>.
+                The temperature offset is added only to <code>env_temp</code> (environmental aging and env temperature trace).
+                Leave <strong>End Time</strong> empty to use the current time when plots are loaded.
+            </p>
+            <div class="equation-group">
+                <div class="equation-box">
+                    <div class="equation-title">Arrhenius Model (Temperature)</div>
+                    <div id="long-burnin-equation-arrhenius"></div>
+                </div>
+                <div class="equation-box">
+                    <div class="equation-title">Eyring Model (Temperature + Voltage)</div>
+                    <div id="long-burnin-equation-eyring"></div>
+                </div>
+                <div class="equation-box">
+                    <div class="equation-title">Peck's Law (Temperature + Humidity)</div>
+                    <div id="long-burnin-equation-peck"></div>
+                </div>
+            </div>
+            <div id="long-burnin-source" class="source-box"></div>
+
+            <form id="long-burnin-config-form">
+                <div class="config-grid">
+                    <div class="config-field">
+                        <label for="long-burnin-board-serial">Board Serial</label>
+                        <input type="text" id="long-burnin-board-serial" value="{{ config.board_serial }}">
+                    </div>
+                    <div class="config-field">
+                        <label for="long-burnin-start">Start Time</label>
+                        <input type="datetime-local" id="long-burnin-start">
+                    </div>
+                    <div class="config-field">
+                        <label for="long-burnin-stop">End Time (optional)</label>
+                        <input type="datetime-local" id="long-burnin-stop">
+                    </div>
+                    <div class="config-field">
+                        <label for="long-burnin-temperature-offset">Environmental Temperature Offset (°C)</label>
+                        <input type="number" id="long-burnin-temperature-offset" step="0.1" value="{{ config.temperature_offset_c }}">
+                    </div>
+                    <div class="config-field">
+                        <label for="long-burnin-fpga-a-label">FPGA A Tag Value</label>
+                        <input type="text" id="long-burnin-fpga-a-label" value="{{ config.fpga_a_label }}">
+                    </div>
+                    <div class="config-field">
+                        <label for="long-burnin-fpga-b-label">FPGA B Tag Value</label>
+                        <input type="text" id="long-burnin-fpga-b-label" value="{{ config.fpga_b_label }}">
+                    </div>
+                    <div class="config-field">
+                        <label for="long-burnin-v-use">V_use (V)</label>
+                        <input type="number" id="long-burnin-v-use" step="0.1" value="{{ config.v_use_v }}">
+                    </div>
+                    <div class="config-field">
+                        <label for="long-burnin-v-test">V_test (V)</label>
+                        <input type="number" id="long-burnin-v-test" step="0.1" value="{{ config.v_test_v }}">
+                    </div>
+                </div>
+
+                <div class="config-grid">
+                    <div class="config-field">
+                        <span class="config-section-title">Eyring Voltage β Values</span>
+                        <div id="long-burnin-voltage-betas-list" class="config-list"></div>
+                        <div id="long-burnin-default-beta-radios" class="default-radio-group"></div>
+                        <button type="button" class="btn btn-secondary" id="add-long-burnin-beta-btn">Add β Value</button>
+                    </div>
+                    <div class="config-field">
+                        <span class="config-section-title">Peck Humidity Exponent (n)</span>
+                        <div id="long-burnin-peck-exponents-list" class="config-list"></div>
+                        <div id="long-burnin-default-peck-radios" class="default-radio-group"></div>
+                        <button type="button" class="btn btn-secondary" id="add-long-burnin-peck-btn">Add n Value</button>
+                    </div>
+                </div>
+
+                <div class="config-grid">
+                    <div class="config-field">
+                        <span class="config-section-title">Peck RH_use Options (%)</span>
+                        <div id="long-burnin-rh-use-list" class="config-list"></div>
+                        <div id="long-burnin-default-rh-use-radios" class="default-radio-group"></div>
+                        <button type="button" class="btn btn-secondary" id="add-long-burnin-rh-use-btn">Add RH_use Option</button>
+                    </div>
+                </div>
+
+                <div class="config-grid">
+                    <div class="config-field">
+                        <span class="config-section-title">T_use Profiles</span>
+                        <div id="long-burnin-use-profiles-list" class="config-list"></div>
+                        <div id="long-burnin-default-profile-radios" class="default-radio-group"></div>
+                        <button type="button" class="btn btn-secondary" id="add-long-burnin-profile-btn">Add T_use Profile</button>
+                    </div>
+                    <div class="config-field">
+                        <span class="config-section-title">Activation Energies (Ea)</span>
+                        <div id="long-burnin-activation-energies-list" class="config-list"></div>
+                        <div id="long-burnin-default-energy-radios" class="default-radio-group"></div>
+                        <button type="button" class="btn btn-secondary" id="add-long-burnin-energy-btn">Add Activation Energy</button>
+                    </div>
+                </div>
+
+                <div class="actions-row">
+                    <button type="submit" class="btn btn-primary">Save Configuration</button>
+                    <button type="button" class="btn btn-secondary" id="reload-long-burnin-config-btn">Reload</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        let longBurnInConfig = {{ config | tojson }};
+
+        function escapeHtml(text) {
+            return String(text)
+                .replace(/&/g, '&amp;')
+                .replace(/"/g, '&quot;')
+                .replace(/</g, '&lt;')
+                .replace(/>/g, '&gt;');
+        }
+
+        function showMessage(text, isError = false) {
+            const messageBox = document.getElementById('message-box');
+            const errorBox = document.getElementById('error-box');
+            messageBox.style.display = 'none';
+            errorBox.style.display = 'none';
+            if (isError) {
+                errorBox.textContent = text;
+                errorBox.style.display = 'block';
+            } else {
+                messageBox.textContent = text;
+                messageBox.style.display = 'block';
+            }
+        }
+
+        function toDatetimeLocalValue(text) {
+            if (!text) return '';
+            return String(text).replace(' ', 'T').slice(0, 16);
+        }
+
+        function fromDatetimeLocalValue(value) {
+            if (!value) return '';
+            return `${value.replace('T', ' ')}:00`;
+        }
+
+        function normalizeConfigArrows(text) {
+            return String(text || '')
+                .replace(/\u2212/g, '->')
+                .replace(/\u2013/g, '->')
+                .replace(/\u2014/g, '->');
+        }
+
+        function updateEquations() {
+            const vUse = Number(document.getElementById('long-burnin-v-use')?.value || 10);
+            const vTest = Number(document.getElementById('long-burnin-v-test')?.value || 12);
+            const arrhenius = document.getElementById('long-burnin-equation-arrhenius');
+            const eyring = document.getElementById('long-burnin-equation-eyring');
+            const peck = document.getElementById('long-burnin-equation-peck');
+            if (arrhenius) {
+                arrhenius.textContent = 'AF = exp[(Ea / kB) × (1/T_use -> 1/T_test)]';
+            }
+            if (eyring) {
+                eyring.textContent = (
+                    'AF = exp[(Ea / kB) × (1/T_use -> 1/T_test)] × (V_test / V_use)^β, '
+                    + `V_test = ${vTest} V, V_use = ${vUse} V`
+                );
+            }
+            if (peck) {
+                peck.textContent = 'AF = (RH_test / RH_use)^n × exp[(Ea / kB) × (1/T_use -> 1/T_test)]';
+            }
+        }
+
+        function updateSourceBox(config) {
+            const sourceBox = document.getElementById('long-burnin-source');
+            if (!sourceBox) return;
+            const source = config?.influx_source;
+            const tagKey = config?.board_tag_key || '';
+            sourceBox.innerHTML = source?.description
+                ? `<strong>Influx source:</strong> ${escapeHtml(source.description)}<br>` +
+                  `<strong>FPGA tag key:</strong> <code>${escapeHtml(tagKey)}</code>`
+                : 'Influx source details unavailable.';
+        }
+
+        function getSelectedDefaultProfile() {
+            const checked = document.querySelector('input[name="long-burnin-default-profile"]:checked');
+            return checked ? checked.value : null;
+        }
+
+        function getSelectedDefaultEnergy() {
+            const checked = document.querySelector('input[name="long-burnin-default-energy"]:checked');
+            return checked != null ? Number(checked.value) : null;
+        }
+
+        function getSelectedDefaultBeta() {
+            const checked = document.querySelector('input[name="long-burnin-default-beta"]:checked');
+            return checked != null ? Number(checked.value) : null;
+        }
+
+        function getSelectedDefaultPeckExponent() {
+            const checked = document.querySelector('input[name="long-burnin-default-peck"]:checked');
+            return checked != null ? Number(checked.value) : null;
+        }
+
+        function getSelectedDefaultRhUse() {
+            const checked = document.querySelector('input[name="long-burnin-default-rh-use"]:checked');
+            return checked != null ? Number(checked.value) : null;
+        }
+
+        function getLongBurnInOptionShortLabel(description) {
+            if (!description) {
+                return '';
+            }
+            return normalizeConfigArrows(String(description).split('\n')[0].trim());
+        }
+
+        function renderDefaultBetaRadios(betas, selectedValue) {
+            const container = document.getElementById('long-burnin-default-beta-radios');
+            if (!betas.length) {
+                container.innerHTML = '<span class="help-text">Add at least one β value.</span>';
+                return;
+            }
+            const selected = betas.some(item => item.value === selectedValue) ? selectedValue : betas[0].value;
+            container.innerHTML = `
+                <span class="config-section-title">Default β</span>
+                ${betas.map(item => `
+                    <label class="default-radio-option">
+                        <input type="radio" name="long-burnin-default-beta" value="${item.value}"
+                            ${item.value === selected ? 'checked' : ''}>
+                        <span>${item.value}${item.description ? ` -> ${escapeHtml(getLongBurnInOptionShortLabel(item.description))}` : ''}</span>
+                    </label>
+                `).join('')}
+            `;
+        }
+
+        function renderDefaultPeckRadios(exponents, selectedValue) {
+            const container = document.getElementById('long-burnin-default-peck-radios');
+            if (!exponents.length) {
+                container.innerHTML = '<span class="help-text">Add at least one Peck exponent.</span>';
+                return;
+            }
+            const selected = exponents.some(item => item.value === selectedValue) ? selectedValue : exponents[0].value;
+            container.innerHTML = `
+                <span class="config-section-title">Default n</span>
+                ${exponents.map(item => `
+                    <label class="default-radio-option">
+                        <input type="radio" name="long-burnin-default-peck" value="${item.value}"
+                            ${item.value === selected ? 'checked' : ''}>
+                        <span>${item.value}${item.description ? ` -> ${escapeHtml(getLongBurnInOptionShortLabel(item.description))}` : ''}</span>
+                    </label>
+                `).join('')}
+            `;
+        }
+
+        function renderDefaultRhUseRadios(options, selectedValue) {
+            const container = document.getElementById('long-burnin-default-rh-use-radios');
+            if (!options.length) {
+                container.innerHTML = '<span class="help-text">Add at least one RH_use option.</span>';
+                return;
+            }
+            const selected = options.includes(selectedValue) ? selectedValue : options[0];
+            container.innerHTML = `
+                <span class="config-section-title">Default RH_use</span>
+                ${options.map(value => `
+                    <label class="default-radio-option">
+                        <input type="radio" name="long-burnin-default-rh-use" value="${value}"
+                            ${value === selected ? 'checked' : ''}>
+                        <span>${value}%</span>
+                    </label>
+                `).join('')}
+            `;
+        }
+
+        function renderBetaRows(betas) {
+            const previousDefault = getSelectedDefaultBeta();
+            const container = document.getElementById('long-burnin-voltage-betas-list');
+            container.innerHTML = betas.map((item, index) => `
+                <div class="config-row energy-row" data-beta-index="${index}">
+                    <input type="number" class="long-burnin-beta-value" step="0.1" value="${item.value ?? 2}">
+                    <textarea class="long-burnin-beta-description">${escapeHtml(normalizeConfigArrows(item.description || ''))}</textarea>
+                    <button type="button" class="btn btn-danger remove-long-burnin-beta-btn">Remove</button>
+                </div>
+            `).join('');
+            container.querySelectorAll('.remove-long-burnin-beta-btn').forEach(button => {
+                button.addEventListener('click', () => {
+                    const rows = collectBetas();
+                    rows.splice(Number(button.closest('[data-beta-index]').dataset.betaIndex), 1);
+                    renderBetaRows(rows);
+                });
+            });
+            renderDefaultBetaRadios(betas, previousDefault ?? longBurnInConfig.default_voltage_beta);
+        }
+
+        function renderPeckRows(exponents) {
+            const previousDefault = getSelectedDefaultPeckExponent();
+            const container = document.getElementById('long-burnin-peck-exponents-list');
+            container.innerHTML = exponents.map((item, index) => `
+                <div class="config-row energy-row" data-peck-index="${index}">
+                    <input type="number" class="long-burnin-peck-value" step="0.1" value="${item.value ?? 3}">
+                    <textarea class="long-burnin-peck-description">${escapeHtml(normalizeConfigArrows(item.description || ''))}</textarea>
+                    <button type="button" class="btn btn-danger remove-long-burnin-peck-btn">Remove</button>
+                </div>
+            `).join('');
+            container.querySelectorAll('.remove-long-burnin-peck-btn').forEach(button => {
+                button.addEventListener('click', () => {
+                    const rows = collectPeckExponents();
+                    rows.splice(Number(button.closest('[data-peck-index]').dataset.peckIndex), 1);
+                    renderPeckRows(rows);
+                });
+            });
+            renderDefaultPeckRadios(exponents, previousDefault ?? longBurnInConfig.default_peck_exponent);
+        }
+
+        function renderRhUseRows(options) {
+            const previousDefault = getSelectedDefaultRhUse();
+            const container = document.getElementById('long-burnin-rh-use-list');
+            container.innerHTML = options.map((value, index) => `
+                <div class="config-row" data-rh-use-index="${index}">
+                    <input type="number" class="long-burnin-rh-use-value" step="0.1" value="${value}">
+                    <span></span>
+                    <button type="button" class="btn btn-danger remove-long-burnin-rh-use-btn">Remove</button>
+                </div>
+            `).join('');
+            container.querySelectorAll('.remove-long-burnin-rh-use-btn').forEach(button => {
+                button.addEventListener('click', () => {
+                    const rows = collectRhUseOptions();
+                    rows.splice(Number(button.closest('[data-rh-use-index]').dataset.rhUseIndex), 1);
+                    renderRhUseRows(rows);
+                });
+            });
+            renderDefaultRhUseRadios(options, previousDefault ?? longBurnInConfig.default_rh_use_pct);
+        }
+
+        function collectBetas() {
+            return Array.from(document.querySelectorAll('#long-burnin-voltage-betas-list .config-row')).map(row => ({
+                value: Number(row.querySelector('.long-burnin-beta-value')?.value || 0),
+                description: row.querySelector('.long-burnin-beta-description')?.value.trim() || '',
+            }));
+        }
+
+        function collectPeckExponents() {
+            return Array.from(document.querySelectorAll('#long-burnin-peck-exponents-list .config-row')).map(row => ({
+                value: Number(row.querySelector('.long-burnin-peck-value')?.value || 0),
+                description: row.querySelector('.long-burnin-peck-description')?.value.trim() || '',
+            }));
+        }
+
+        function collectRhUseOptions() {
+            return Array.from(document.querySelectorAll('#long-burnin-rh-use-list .config-row'))
+                .map(row => Number(row.querySelector('.long-burnin-rh-use-value')?.value || 0))
+                .filter(value => value > 0);
+        }
+
+        function renderDefaultProfileRadios(profiles, selectedName) {
+            const container = document.getElementById('long-burnin-default-profile-radios');
+            if (!profiles.length) {
+                container.innerHTML = '<span class="help-text">Add at least one T_use profile.</span>';
+                return;
+            }
+            const selected = selectedName && profiles.some(profile => profile.name === selectedName)
+                ? selectedName : profiles[0].name;
+            container.innerHTML = `
+                <span class="config-section-title">Default T_use</span>
+                ${profiles.map(profile => `
+                    <label class="default-radio-option">
+                        <input type="radio" name="long-burnin-default-profile" value="${escapeHtml(profile.name)}"
+                            ${profile.name === selected ? 'checked' : ''}>
+                        <span>${escapeHtml(profile.name)} (${profile.temperature_c}°C)</span>
+                    </label>
+                `).join('')}
+            `;
+        }
+
+        function formatLongBurnInEnergyOption(energy) {
+            const valueLabel = energy.label || `${energy.value} eV`;
+            const description = getLongBurnInOptionShortLabel(energy.description);
+            return description ? `${valueLabel} -> ${description}` : valueLabel;
+        }
+
+        function renderDefaultEnergyRadios(energies, selectedValue) {
+            const container = document.getElementById('long-burnin-default-energy-radios');
+            if (!energies.length) {
+                container.innerHTML = '<span class="help-text">Add at least one activation energy.</span>';
+                return;
+            }
+            const selected = energies.some(energy => energy.value === selectedValue)
+                ? selectedValue : energies[0].value;
+            container.innerHTML = `
+                <span class="config-section-title">Default Ea</span>
+                ${energies.map(energy => `
+                    <label class="default-radio-option">
+                        <input type="radio" name="long-burnin-default-energy" value="${energy.value}"
+                            ${energy.value === selected ? 'checked' : ''}>
+                        <span>${formatLongBurnInEnergyOption(energy)}</span>
+                    </label>
+                `).join('')}
+            `;
+        }
+
+        function renderProfileRows(profiles) {
+            const previousDefault = getSelectedDefaultProfile();
+            const container = document.getElementById('long-burnin-use-profiles-list');
+            container.innerHTML = profiles.map((profile, index) => `
+                <div class="config-row" data-profile-index="${index}">
+                    <input type="text" class="long-burnin-profile-name" value="${escapeHtml(profile.name || '')}">
+                    <input type="number" class="long-burnin-profile-temp" step="0.1" value="${profile.temperature_c ?? 25}">
+                    <button type="button" class="btn btn-danger remove-long-burnin-profile-btn">Remove</button>
+                </div>
+            `).join('');
+            container.querySelectorAll('.remove-long-burnin-profile-btn').forEach(button => {
+                button.addEventListener('click', () => {
+                    const rows = collectProfiles();
+                    rows.splice(Number(button.closest('[data-profile-index]').dataset.profileIndex), 1);
+                    renderProfileRows(rows);
+                });
+            });
+            renderDefaultProfileRadios(profiles, previousDefault || longBurnInConfig.default_use_profile);
+        }
+
+        function renderEnergyRows(energies) {
+            const previousDefault = getSelectedDefaultEnergy();
+            const container = document.getElementById('long-burnin-activation-energies-list');
+            container.innerHTML = energies.map((energy, index) => `
+                <div class="config-row energy-row" data-energy-index="${index}">
+                    <input type="hidden" class="long-burnin-energy-label" value="${escapeHtml(energy.label || '')}">
+                    <input type="number" class="long-burnin-energy-value" step="0.1" value="${energy.value ?? 0.7}">
+                    <textarea class="long-burnin-energy-description">${escapeHtml(normalizeConfigArrows(energy.description || ''))}</textarea>
+                    <button type="button" class="btn btn-danger remove-long-burnin-energy-btn">Remove</button>
+                </div>
+            `).join('');
+            container.querySelectorAll('.remove-long-burnin-energy-btn').forEach(button => {
+                button.addEventListener('click', () => {
+                    const rows = collectEnergies();
+                    rows.splice(Number(button.closest('[data-energy-index]').dataset.energyIndex), 1);
+                    renderEnergyRows(rows);
+                });
+            });
+            renderDefaultEnergyRadios(energies, previousDefault ?? longBurnInConfig.default_activation_energy_ev);
+        }
+
+        function collectProfiles() {
+            return Array.from(document.querySelectorAll('#long-burnin-use-profiles-list .config-row')).map(row => ({
+                name: row.querySelector('.long-burnin-profile-name')?.value.trim() || '',
+                temperature_c: Number(row.querySelector('.long-burnin-profile-temp')?.value || 0),
+            })).filter(profile => profile.name);
+        }
+
+        function collectEnergies() {
+            return Array.from(document.querySelectorAll('#long-burnin-activation-energies-list .config-row')).map(row => ({
+                value: Number(row.querySelector('.long-burnin-energy-value')?.value || 0),
+                label: row.querySelector('.long-burnin-energy-label')?.value.trim() || '',
+                description: row.querySelector('.long-burnin-energy-description')?.value.trim() || '',
+            }));
+        }
+
+        function renderConfig(config) {
+            longBurnInConfig = config;
+            document.getElementById('long-burnin-board-serial').value = config.board_serial || '';
+            document.getElementById('long-burnin-start').value = toDatetimeLocalValue(config.period_start);
+            document.getElementById('long-burnin-stop').value = config.period_stop_is_now
+                ? '' : toDatetimeLocalValue(config.period_stop);
+            document.getElementById('long-burnin-temperature-offset').value = config.temperature_offset_c ?? 0;
+            document.getElementById('long-burnin-fpga-a-label').value = config.fpga_a_label || 'KU FPGA A';
+            document.getElementById('long-burnin-fpga-b-label').value = config.fpga_b_label || 'KU FPGA B';
+            document.getElementById('long-burnin-v-use').value = config.v_use_v ?? 10;
+            document.getElementById('long-burnin-v-test').value = config.v_test_v ?? 12;
+            renderProfileRows(config.use_profiles || []);
+            renderEnergyRows(config.activation_energies || []);
+            renderBetaRows(config.voltage_betas || []);
+            renderPeckRows(config.peck_exponents || []);
+            renderRhUseRows(config.rh_use_options || []);
+            updateEquations();
+            updateSourceBox(config);
+        }
+
+        async function loadConfig() {
+            try {
+                const response = await fetch('/api/long_burn_in/config');
+                const data = await response.json();
+                if (data.error || !data.success) {
+                    showMessage(data.error || 'Failed to load configuration.', true);
+                    return;
+                }
+                renderConfig(data.config);
+            } catch (error) {
+                showMessage('Error loading configuration.', true);
+            }
+        }
+
+        document.getElementById('add-long-burnin-profile-btn').addEventListener('click', () => {
+            renderProfileRows(collectProfiles().concat({ name: '', temperature_c: 25 }));
+        });
+        document.getElementById('add-long-burnin-energy-btn').addEventListener('click', () => {
+            renderEnergyRows(collectEnergies().concat({ value: 0.7, description: '' }));
+        });
+        document.getElementById('add-long-burnin-beta-btn').addEventListener('click', () => {
+            renderBetaRows(collectBetas().concat({ value: 2.0, description: '' }));
+        });
+        document.getElementById('add-long-burnin-peck-btn').addEventListener('click', () => {
+            renderPeckRows(collectPeckExponents().concat({ value: 3.0, description: '' }));
+        });
+        document.getElementById('add-long-burnin-rh-use-btn').addEventListener('click', () => {
+            renderRhUseRows(collectRhUseOptions().concat(10));
+        });
+        document.getElementById('long-burnin-v-use').addEventListener('input', updateEquations);
+        document.getElementById('long-burnin-v-test').addEventListener('input', updateEquations);
+        document.getElementById('reload-long-burnin-config-btn').addEventListener('click', loadConfig);
+        document.getElementById('long-burnin-config-form').addEventListener('submit', async (event) => {
+            event.preventDefault();
+            const payload = {
+                board_serial: document.getElementById('long-burnin-board-serial').value.trim(),
+                period_start: fromDatetimeLocalValue(document.getElementById('long-burnin-start').value),
+                period_stop: fromDatetimeLocalValue(document.getElementById('long-burnin-stop').value),
+                fpga_a_label: document.getElementById('long-burnin-fpga-a-label').value.trim(),
+                fpga_b_label: document.getElementById('long-burnin-fpga-b-label').value.trim(),
+                temperature_offset_c: Number(document.getElementById('long-burnin-temperature-offset').value || 0),
+                use_profiles: collectProfiles(),
+                activation_energies: collectEnergies(),
+                default_use_profile: getSelectedDefaultProfile(),
+                default_activation_energy_ev: getSelectedDefaultEnergy(),
+                v_use_v: Number(document.getElementById('long-burnin-v-use').value || 10),
+                v_test_v: Number(document.getElementById('long-burnin-v-test').value || 12),
+                voltage_betas: collectBetas(),
+                default_voltage_beta: getSelectedDefaultBeta(),
+                peck_exponents: collectPeckExponents(),
+                default_peck_exponent: getSelectedDefaultPeckExponent(),
+                rh_use_options: collectRhUseOptions(),
+                default_rh_use_pct: getSelectedDefaultRhUse(),
+            };
+            try {
+                const response = await fetch('/api/long_burn_in/config', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload),
+                });
+                const data = await response.json();
+                if (data.error || !data.success) {
+                    showMessage(data.error || 'Failed to save configuration.', true);
+                    return;
+                }
+                renderConfig(data.config);
+                showMessage('Long burn-in configuration saved.');
+            } catch (error) {
+                showMessage('Error saving configuration.', true);
+            }
+        });
+
+        renderConfig(longBurnInConfig);
+    </script>
+</body>
+</html>

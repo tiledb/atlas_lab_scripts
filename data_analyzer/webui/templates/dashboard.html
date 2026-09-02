@@ -1666,19 +1666,23 @@
 
         .burn-in-parameter {
             display: flex;
-            flex-direction: column;
-            gap: 6px;
+            flex-direction: row;
+            align-items: center;
+            gap: 12px;
         }
 
         .burn-in-parameter label {
+            flex: 0 0 auto;
+            min-width: 4.5rem;
             font-size: 13px;
             font-weight: 600;
             color: #555;
         }
 
         .burn-in-parameter select {
-            width: 100%;
-            max-width: 520px;
+            flex: 1 1 auto;
+            width: auto;
+            max-width: none;
             padding: 8px 10px;
             border: 1px solid #d7dbe0;
             border-radius: 6px;
@@ -1866,6 +1870,7 @@
             <button class="tab" data-tab="production-summary" onclick="switchTab('production-summary', this)">Production Summary</button>
             <button class="tab" data-tab="production-statistics" onclick="switchTab('production-statistics', this)">Production Statistics</button>
             <button class="tab" data-tab="burn-in" onclick="switchTab('burn-in', this)">Burn In</button>
+            <button class="tab" data-tab="long-burn-in" onclick="switchTab('long-burn-in', this)">Long Burn In</button>
         </div>
 
         <div id="brick-wall" class="tab-content active">
@@ -1989,6 +1994,18 @@
             </div>
         </div>
 
+        <div id="long-burn-in" class="tab-content">
+            <div class="production-summary-section">
+                <div class="production-summary-header">
+                    <h3>Long Burn In</h3>
+                    <p id="long-burn-in-subtitle">Loading long burn-in analysis...</p>
+                </div>
+                <div id="long-burn-in-content">
+                    <div class="summary-loading">Loading long burn-in data...</div>
+                </div>
+            </div>
+        </div>
+
         {% if not session.get('guest_mode') %}
         <div id="advanced-options" class="tab-content">
             <div class="cards-grid">
@@ -2019,6 +2036,12 @@
                     <div class="card-icon">🔥</div>
                     <h3>Burn-In Configuration</h3>
                     <p>Configure temperature offset, T_use profiles, and activation energies for accelerated aging plots.</p>
+                </a>
+
+                <a href="{{ url_for('edit_long_burn_in') }}" class="card">
+                    <div class="card-icon">⏳</div>
+                    <h3>Long Burn-In Configuration</h3>
+                    <p>Configure board serial, period, FPGA tags, and aging parameters for the Long Burn In tab.</p>
                 </a>
             </div>
         </div>
@@ -2200,6 +2223,8 @@
                 loadProductionStatistics();
             } else if (tabId === 'burn-in') {
                 loadBurnIn();
+            } else if (tabId === 'long-burn-in') {
+                loadLongBurnIn();
             }
         }
 
@@ -3680,6 +3705,33 @@
             return aging;
         }
 
+        function computeSeriesPowerOnHours(series, powerField) {
+            const elapsedHours = series.elapsed_hours || [];
+            const powerValues = series[powerField] || [];
+            let total = 0;
+            for (let index = 1; index < elapsedHours.length; index += 1) {
+                if (powerValues[index - 1] === 1) {
+                    total += elapsedHours[index] - elapsedHours[index - 1];
+                }
+            }
+            return total;
+        }
+
+        function computeAverageAccelerationFactor(agingSeries, powerOnHours) {
+            const maxAging = agingSeries?.length ? agingSeries[agingSeries.length - 1] : 0;
+            if (!powerOnHours || powerOnHours <= 0 || !maxAging) {
+                return null;
+            }
+            return maxAging / powerOnHours;
+        }
+
+        function formatLegendAverageAf(avgAf) {
+            if (avgAf == null || !Number.isFinite(avgAf)) {
+                return '';
+            }
+            return `, avg AF=${avgAf.toFixed(2)}`;
+        }
+
         function getBurnInActiveConfig() {
             if (burnInAllSlotsMode && lastBurnInAllSlotsData?.config) {
                 return lastBurnInAllSlotsData.config;
@@ -3783,6 +3835,8 @@
 
             const series = lastBurnInPlotData.series;
             const agingHours = computeBurnInAging(series, profile.temperature_c, energy.value);
+            const powerOnHours = computeSeriesPowerOnHours(series, 'lvpower');
+            const avgAf = computeAverageAccelerationFactor(agingHours, powerOnHours);
             const totalAging = agingHours.length ? agingHours[agingHours.length - 1] : 0;
             const offset = lastBurnInPlotData.config.temperature_offset_c ?? 0;
             const agingLabel = `${profile.name} ${profile.temperature_c}°C, Ea=${energy.value} eV`;
@@ -3812,7 +3866,7 @@
                 {
                     x: series.elapsed_hours,
                     y: agingHours,
-                    name: `Accelerated Aging (${agingLabel})`,
+                    name: `Accelerated Aging (${agingLabel}${formatLegendAverageAf(avgAf)})`,
                     type: 'scatter',
                     mode: 'lines',
                     line: { color: '#AB63FA', width: 2.2 },
@@ -3872,11 +3926,13 @@
                     profile.temperature_c,
                     energy.value,
                 );
+                const powerOnHours = computeSeriesPowerOnHours(slot.series, 'lvpower');
+                const avgAf = computeAverageAccelerationFactor(agingHours, powerOnHours);
                 agingSeriesList.push(agingHours);
                 traces.push({
                     x: slot.series.elapsed_hours,
                     y: agingHours,
-                    name: `${slot.slot_id} Aging`,
+                    name: `${slot.slot_id} Aging${formatLegendAverageAf(avgAf)}`,
                     type: 'scatter',
                     mode: 'lines',
                     line: { color, width: 2.2 },
@@ -4119,11 +4175,11 @@
                         <div class="burn-in-chart-panel">
                             <div id="burn-in-equation" class="burn-in-equation"></div>
                             <div class="burn-in-parameter">
-                                <label for="burn-in-use-profile-select">T_use</label>
+                                <label for="burn-in-use-profile-select">T_use:</label>
                                 <select id="burn-in-use-profile-select"></select>
                             </div>
                             <div class="burn-in-parameter">
-                                <label for="burn-in-energy-select">Ea</label>
+                                <label for="burn-in-energy-select">Ea:</label>
                                 <select id="burn-in-energy-select"></select>
                             </div>
                         </div>
@@ -4346,6 +4402,731 @@
                 console.error('Error loading burn-in overview:', error);
                 content.innerHTML = '<div class="summary-error">Error loading burn-in analysis.</div>';
                 subtitle.textContent = 'Failed to load burn-in analysis.';
+            }
+        }
+
+        let longBurnInLoaded = false;
+        let lastLongBurnInPlotData = null;
+        const LONG_BURN_IN_PLOT_HEIGHT = 600;
+        const LONG_BURN_IN_COLORS = {
+            env: '#636EFA',
+            fpgaA: '#EF553B',
+            fpgaB: '#00CC96',
+            hum: '#AB63FA',
+            powerState: '#19D3F3',
+            powerGood: '#FFA15A',
+        };
+
+        function getLongBurnInPlotWidth(plotElementId = 'long-burn-in-plot-arrhenius') {
+            const element = document.getElementById(plotElementId);
+            return element?.clientWidth || element?.offsetWidth || undefined;
+        }
+
+        function computeLongBurnInArrheniusFactor(temperatureC, useTemperatureC, activationEnergyEv) {
+            const tTestK = temperatureC + 273.15;
+            const tUseK = useTemperatureC + 273.15;
+            return Math.exp(
+                (activationEnergyEv / BURN_IN_BOLTZMANN_EV_K)
+                * ((1 / tUseK) - (1 / tTestK))
+            );
+        }
+
+        function computeLongBurnInModelFactor(series, index, temperatureC, model, params) {
+            if (temperatureC == null) {
+                return 0;
+            }
+            const arrhenius = computeLongBurnInArrheniusFactor(
+                temperatureC,
+                params.useTemperatureC,
+                params.activationEnergyEv,
+            );
+            if (model === 'arrhenius') {
+                return arrhenius;
+            }
+            if (model === 'eyring') {
+                const vUse = params.vUseV;
+                const vTest = params.vTestV;
+                if (!vUse || !vTest) {
+                    return 0;
+                }
+                return arrhenius * ((vTest / vUse) ** params.beta);
+            }
+            if (model === 'peck') {
+                const rhTest = series.env_hum?.[index];
+                const rhUse = params.rhUsePct;
+                if (rhTest == null || rhTest <= 0 || !rhUse) {
+                    return 0;
+                }
+                return ((rhTest / rhUse) ** params.peckExponent) * arrhenius;
+            }
+            return 0;
+        }
+
+        function computeLongBurnInAgingWithModel(series, temperatureKey, model, params) {
+            const aging = [];
+            let cumulative = 0;
+            const temperatures = series[temperatureKey] || [];
+            for (let index = 0; index < series.elapsed_hours.length; index += 1) {
+                if (
+                    index > 0
+                    && series.power_on[index - 1] === 1
+                    && temperatures[index] != null
+                ) {
+                    const dtHours = series.elapsed_hours[index] - series.elapsed_hours[index - 1];
+                    const af = computeLongBurnInModelFactor(
+                        series,
+                        index,
+                        temperatures[index],
+                        model,
+                        params,
+                    );
+                    cumulative += af * dtHours;
+                }
+                aging.push(Number(cumulative.toFixed(4)));
+            }
+            return aging;
+        }
+
+        function computeLongBurnInAging(series, temperatureKey, useTemperatureC, activationEnergyEv) {
+            return computeLongBurnInAgingWithModel(series, temperatureKey, 'arrhenius', {
+                useTemperatureC,
+                activationEnergyEv,
+            });
+        }
+
+        const LONG_BURN_IN_MAIN_Y_DOMAIN = [0.38, 1];
+        const LONG_BURN_IN_POWER_STATE_Y_DOMAIN = [0.2, 0.34];
+        const LONG_BURN_IN_POWER_GOOD_Y_DOMAIN = [0, 0.16];
+
+        function buildLongBurnInPowerTrace(series, fieldName, options = {}) {
+            const states = (series[fieldName] || []).map(value => (value === 1 ? 'ON' : 'OFF'));
+            return {
+                x: series.elapsed_hours,
+                y: series[fieldName],
+                name: options.name || fieldName,
+                type: 'scatter',
+                mode: 'lines',
+                line: { color: options.color || '#19D3F3', width: 2, shape: 'hv' },
+                xaxis: options.xaxis || 'x2',
+                yaxis: options.yaxis || 'y3',
+                showlegend: options.showlegend !== false,
+                customdata: states,
+                hovertemplate: `Elapsed: %{x:.2f} h<br>${options.name || fieldName}: %{customdata}<extra></extra>`,
+            };
+        }
+
+        function formatLongBurnInEnergyOption(energy) {
+            const valueLabel = energy.label || `${energy.value} eV`;
+            const description = getLongBurnInOptionShortLabel(energy.description);
+            return description ? `${valueLabel} -> ${description}` : valueLabel;
+        }
+
+        function buildLongBurnInChartLayout(
+            axisRanges,
+            legendItemCount = 8,
+            plotElementId = 'long-burn-in-plot-arrhenius',
+            options = {},
+        ) {
+            const height = LONG_BURN_IN_PLOT_HEIGHT;
+            const width = getLongBurnInPlotWidth(plotElementId);
+            const legendRows = Math.max(1, Math.ceil(legendItemCount / 4));
+            const legendHeightPx = legendRows * 24;
+            const marginBottom = (
+                38
+                + BURN_IN_XAXIS_TITLE_STANDOFF
+                + 18
+                + BURN_IN_LEGEND_GAP_PX
+                + legendHeightPx
+                + 6
+            );
+            const legendY = -((BURN_IN_LEGEND_GAP_PX + legendHeightPx) / Math.max(height, 1));
+            const layout = {
+                autosize: false,
+                width,
+                height,
+                margin: { t: 48, r: 90, b: marginBottom, l: 120 },
+                hovermode: 'x unified',
+                legend: {
+                    orientation: 'h',
+                    x: 0.5,
+                    xanchor: 'center',
+                    y: legendY,
+                    yanchor: 'top',
+                },
+                xaxis: { domain: [0, 1], anchor: 'y', showticklabels: false },
+                xaxis2: {
+                    domain: [0, 1],
+                    anchor: 'y3',
+                    matches: 'x',
+                    showticklabels: false,
+                },
+                xaxis3: {
+                    domain: [0, 1],
+                    anchor: 'y4',
+                    matches: 'x',
+                    title: { text: 'Elapsed Time (hours)', standoff: BURN_IN_XAXIS_TITLE_STANDOFF },
+                },
+                yaxis: {
+                    domain: LONG_BURN_IN_MAIN_Y_DOMAIN,
+                    title: { text: 'Accelerated Aging', standoff: 12 },
+                },
+                yaxis2: {
+                    domain: LONG_BURN_IN_MAIN_Y_DOMAIN,
+                    title: { text: options.rightAxisTitle || 'Temperature (°C)', standoff: 12 },
+                    overlaying: 'y',
+                    side: 'right',
+                },
+                yaxis3: {
+                    domain: LONG_BURN_IN_POWER_STATE_Y_DOMAIN,
+                    anchor: 'x2',
+                    title: { text: 'power_state', standoff: 8 },
+                    tickmode: 'array',
+                    tickvals: [0, 1],
+                    ticktext: ['OFF', 'ON'],
+                    range: [-0.05, 1.05],
+                    fixedrange: true,
+                },
+                yaxis4: {
+                    domain: LONG_BURN_IN_POWER_GOOD_Y_DOMAIN,
+                    anchor: 'x3',
+                    title: { text: 'power_good', standoff: 8 },
+                    tickmode: 'array',
+                    tickvals: [0, 1],
+                    ticktext: ['OFF', 'ON'],
+                    range: [-0.05, 1.05],
+                    fixedrange: true,
+                },
+            };
+            if (axisRanges) {
+                Object.assign(layout.xaxis, axisRanges.xaxis);
+                Object.assign(layout.xaxis2, axisRanges.xaxis2);
+                Object.assign(layout.xaxis3, axisRanges.xaxis3);
+                Object.assign(layout.yaxis, axisRanges.yaxis);
+                Object.assign(layout.yaxis2, axisRanges.yaxis2);
+            }
+            return layout;
+        }
+
+        function computeLongBurnInAxisRanges(series, agingSeriesList, options = {}) {
+            let maxElapsed = series.elapsed_hours?.length
+                ? series.elapsed_hours[series.elapsed_hours.length - 1] : 0;
+            let maxAging = 0;
+            agingSeriesList.forEach((aging) => {
+                if (aging.length) maxAging = Math.max(maxAging, aging[aging.length - 1]);
+            });
+            let minTemperature = Infinity;
+            let maxTemperature = -Infinity;
+            ['env_temp_c', 'fpga_a_temp_c', 'fpga_b_temp_c'].forEach((key) => {
+                (series[key] || []).forEach((value) => {
+                    if (value != null) {
+                        minTemperature = Math.min(minTemperature, value);
+                        maxTemperature = Math.max(maxTemperature, value);
+                    }
+                });
+            });
+            if (options.includeHumidity) {
+                (series.env_hum || []).forEach((value) => {
+                    if (value != null) {
+                        minTemperature = Math.min(minTemperature, value);
+                        maxTemperature = Math.max(maxTemperature, value);
+                    }
+                });
+            }
+            if (!Number.isFinite(minTemperature)) minTemperature = 0;
+            if (!Number.isFinite(maxTemperature)) maxTemperature = 100;
+            const ranges = buildBurnInAxisRanges({
+                maxElapsed,
+                maxAging,
+                minTemperature,
+                maxTemperature,
+            });
+            return {
+                xaxis: ranges.xaxis,
+                xaxis2: ranges.xaxis2,
+                xaxis3: ranges.xaxis2,
+                yaxis: ranges.yaxis,
+                yaxis2: ranges.yaxis2,
+            };
+        }
+
+        function getLatestLongBurnInHumidity(series) {
+            const values = series?.env_hum || [];
+            for (let index = values.length - 1; index >= 0; index -= 1) {
+                if (values[index] != null) {
+                    return values[index];
+                }
+            }
+            return null;
+        }
+
+        function updateLongBurnInCacheBadge(data) {
+            const controls = document.getElementById('long-burn-in-cache-controls');
+            if (!controls) return;
+            controls.classList.toggle('visible', Boolean(data?.cached));
+        }
+
+        function setLongBurnInRecomputeEnabled(enabled) {
+            const button = document.getElementById('long-burn-in-recompute-btn');
+            if (button) button.disabled = !enabled;
+        }
+
+        function getLongBurnInOptionShortLabel(description) {
+            if (!description) {
+                return '';
+            }
+            return String(description).split('\n')[0].trim();
+        }
+
+        function setupLongBurnInParameterSelects(config) {
+            const profileSelect = document.getElementById('long-burn-in-use-profile-select');
+            const energySelect = document.getElementById('long-burn-in-energy-select');
+            const betaSelect = document.getElementById('long-burn-in-beta-select');
+            const rhUseSelect = document.getElementById('long-burn-in-rh-use-select');
+            const peckSelect = document.getElementById('long-burn-in-peck-exponent-select');
+            const profiles = config?.use_profiles || [];
+            const energies = config?.activation_energies || [];
+            const betas = config?.voltage_betas || [];
+            const rhOptions = config?.rh_use_options || [];
+            const peckExponents = config?.peck_exponents || [];
+
+            if (profileSelect) {
+                profileSelect.innerHTML = profiles.map(profile => `
+                    <option value="${profile.name}">${profile.name} (${profile.temperature_c}°C)</option>
+                `).join('');
+                if (config?.default_use_profile) profileSelect.value = config.default_use_profile;
+                profileSelect.onchange = renderLongBurnInAllCharts;
+            }
+            if (energySelect) {
+                energySelect.innerHTML = energies.map(energy => `
+                    <option value="${energy.value}">${formatLongBurnInEnergyOption(energy)}</option>
+                `).join('');
+                if (config?.default_activation_energy_ev != null) {
+                    energySelect.value = String(config.default_activation_energy_ev);
+                }
+                energySelect.onchange = renderLongBurnInAllCharts;
+            }
+            if (betaSelect) {
+                betaSelect.innerHTML = betas.map(item => {
+                    const label = getLongBurnInOptionShortLabel(item.description);
+                    return `<option value="${item.value}">β = ${item.value}${label ? ` -> ${label}` : ''}</option>`;
+                }).join('');
+                if (config?.default_voltage_beta != null) {
+                    betaSelect.value = String(config.default_voltage_beta);
+                }
+                betaSelect.onchange = renderLongBurnInAllCharts;
+            }
+            if (rhUseSelect) {
+                rhUseSelect.innerHTML = rhOptions.map(value => `
+                    <option value="${value}">${value}%</option>
+                `).join('');
+                if (config?.default_rh_use_pct != null) {
+                    rhUseSelect.value = String(config.default_rh_use_pct);
+                }
+                rhUseSelect.onchange = renderLongBurnInAllCharts;
+            }
+            if (peckSelect) {
+                peckSelect.innerHTML = peckExponents.map(item => {
+                    const label = getLongBurnInOptionShortLabel(item.description);
+                    return `<option value="${item.value}">n = ${item.value}${label ? ` -> ${label}` : ''}</option>`;
+                }).join('');
+                if (config?.default_peck_exponent != null) {
+                    peckSelect.value = String(config.default_peck_exponent);
+                }
+                peckSelect.onchange = renderLongBurnInAllCharts;
+            }
+        }
+
+        function getSelectedLongBurnInProfile() {
+            const select = document.getElementById('long-burn-in-use-profile-select');
+            const profiles = lastLongBurnInPlotData?.config?.use_profiles || [];
+            if (!select || !profiles.length) return profiles[0] || null;
+            return profiles.find(profile => profile.name === select.value) || profiles[0];
+        }
+
+        function getSelectedLongBurnInEnergy() {
+            const select = document.getElementById('long-burn-in-energy-select');
+            const energies = lastLongBurnInPlotData?.config?.activation_energies || [];
+            if (!select || !energies.length) return energies[0] || null;
+            const selectedValue = Number(select.value);
+            return energies.find(energy => energy.value === selectedValue) || energies[0];
+        }
+
+        function getSelectedLongBurnInBeta() {
+            const select = document.getElementById('long-burn-in-beta-select');
+            const betas = lastLongBurnInPlotData?.config?.voltage_betas || [];
+            if (!select || !betas.length) return betas[0]?.value ?? 2;
+            const selectedValue = Number(select.value);
+            return betas.find(item => item.value === selectedValue)?.value ?? betas[0].value;
+        }
+
+        function getSelectedLongBurnInRhUse() {
+            const select = document.getElementById('long-burn-in-rh-use-select');
+            const options = lastLongBurnInPlotData?.config?.rh_use_options || [];
+            if (!select || !options.length) return options[0] ?? 10;
+            const selectedValue = Number(select.value);
+            return options.includes(selectedValue) ? selectedValue : options[0];
+        }
+
+        function getSelectedLongBurnInPeckExponent() {
+            const select = document.getElementById('long-burn-in-peck-exponent-select');
+            const exponents = lastLongBurnInPlotData?.config?.peck_exponents || [];
+            if (!select || !exponents.length) return exponents[0]?.value ?? 3;
+            const selectedValue = Number(select.value);
+            return exponents.find(item => item.value === selectedValue)?.value ?? exponents[0].value;
+        }
+
+        function buildLongBurnInSharedModelParams(profile, energy) {
+            return {
+                useTemperatureC: profile.temperature_c,
+                activationEnergyEv: energy.value,
+            };
+        }
+
+        function computeLongBurnInModelAgingBundle(series, model, modelParams) {
+            return {
+                agingEnv: computeLongBurnInAgingWithModel(series, 'env_temp_c', model, modelParams),
+                agingFpgaA: computeLongBurnInAgingWithModel(series, 'fpga_a_temp_c', model, modelParams),
+                agingFpgaB: computeLongBurnInAgingWithModel(series, 'fpga_b_temp_c', model, modelParams),
+            };
+        }
+
+        function renderLongBurnInModelPlot({
+            plotId,
+            series,
+            config,
+            model,
+            modelParams,
+            agingLabel,
+            axisRanges,
+            agingBundle = null,
+            includeHumidity = false,
+        }) {
+            const offset = config.temperature_offset_c ?? 0;
+            const aging = agingBundle || computeLongBurnInModelAgingBundle(series, model, modelParams);
+            const { agingEnv, agingFpgaA, agingFpgaB } = aging;
+            const powerOnHours = computeSeriesPowerOnHours(series, 'power_on');
+            const avgAfEnv = computeAverageAccelerationFactor(agingEnv, powerOnHours);
+            const avgAfFpgaA = computeAverageAccelerationFactor(agingFpgaA, powerOnHours);
+            const avgAfFpgaB = computeAverageAccelerationFactor(agingFpgaB, powerOnHours);
+            const traces = [
+                {
+                    x: series.elapsed_hours, y: agingEnv, name: `Env Aging (${agingLabel}${formatLegendAverageAf(avgAfEnv)})`,
+                    type: 'scatter', mode: 'lines', line: { color: LONG_BURN_IN_COLORS.env, width: 2.2 }, yaxis: 'y',
+                },
+                {
+                    x: series.elapsed_hours, y: agingFpgaA, name: `${config.fpga_a_label} Aging${formatLegendAverageAf(avgAfFpgaA)}`,
+                    type: 'scatter', mode: 'lines', line: { color: LONG_BURN_IN_COLORS.fpgaA, width: 2.2 }, yaxis: 'y',
+                },
+                {
+                    x: series.elapsed_hours, y: agingFpgaB, name: `${config.fpga_b_label} Aging${formatLegendAverageAf(avgAfFpgaB)}`,
+                    type: 'scatter', mode: 'lines', line: { color: LONG_BURN_IN_COLORS.fpgaB, width: 2.2 }, yaxis: 'y',
+                },
+                {
+                    x: series.elapsed_hours, y: series.env_temp_c, name: `Env Temperature (+${offset}°C)`,
+                    type: 'scatter', mode: 'lines', line: { color: LONG_BURN_IN_COLORS.env, width: 2, dash: 'dot' }, yaxis: 'y2',
+                },
+                {
+                    x: series.elapsed_hours, y: series.fpga_a_temp_c, name: `${config.fpga_a_label} Temp`,
+                    type: 'scatter', mode: 'lines', line: { color: LONG_BURN_IN_COLORS.fpgaA, width: 2, dash: 'dot' }, yaxis: 'y2',
+                },
+                {
+                    x: series.elapsed_hours, y: series.fpga_b_temp_c, name: `${config.fpga_b_label} Temp`,
+                    type: 'scatter', mode: 'lines', line: { color: LONG_BURN_IN_COLORS.fpgaB, width: 2, dash: 'dot' }, yaxis: 'y2',
+                },
+            ];
+            if (includeHumidity) {
+                traces.push({
+                    x: series.elapsed_hours,
+                    y: series.env_hum,
+                    name: 'Env Humidity',
+                    type: 'scatter',
+                    mode: 'lines',
+                    line: { color: LONG_BURN_IN_COLORS.hum, width: 1.8, dash: 'dashdot' },
+                    yaxis: 'y2',
+                });
+            }
+            traces.push(
+                buildLongBurnInPowerTrace(series, 'power_state', {
+                    name: 'power_state',
+                    color: LONG_BURN_IN_COLORS.powerState,
+                    xaxis: 'x2',
+                    yaxis: 'y3',
+                }),
+                buildLongBurnInPowerTrace(series, 'power_good', {
+                    name: 'power_good',
+                    color: LONG_BURN_IN_COLORS.powerGood,
+                    xaxis: 'x3',
+                    yaxis: 'y4',
+                }),
+            );
+
+            Plotly.newPlot(plotId, traces, buildLongBurnInChartLayout(
+                axisRanges,
+                includeHumidity ? 9 : 8,
+                plotId,
+                {
+                    rightAxisTitle: includeHumidity
+                        ? 'Temperature (°C) / Humidity (%)'
+                        : 'Temperature (°C)',
+                },
+            ), {
+                responsive: true,
+                displayModeBar: true,
+            });
+
+            return { agingEnv, agingFpgaA, agingFpgaB };
+        }
+
+        function renderLongBurnInAllCharts() {
+            if (!lastLongBurnInPlotData?.series) return;
+
+            const profile = getSelectedLongBurnInProfile();
+            const energy = getSelectedLongBurnInEnergy();
+            if (!profile || !energy) {
+                ['long-burn-in-plot-arrhenius', 'long-burn-in-plot-eyring', 'long-burn-in-plot-peck'].forEach((plotId) => {
+                    const plotElement = document.getElementById(plotId);
+                    if (plotElement) {
+                        plotElement.innerHTML = '<div class="summary-error">No T_use or activation energy configuration found.</div>';
+                    }
+                });
+                return;
+            }
+
+            const series = lastLongBurnInPlotData.series;
+            const config = lastLongBurnInPlotData.config;
+            const offset = config.temperature_offset_c ?? 0;
+            const latestHumidity = getLatestLongBurnInHumidity(series);
+            const sharedParams = buildLongBurnInSharedModelParams(profile, energy);
+            const arrheniusLabel = `${profile.name} ${profile.temperature_c}°C, Ea=${energy.value} eV`;
+            const beta = getSelectedLongBurnInBeta();
+            const eyringLabel = `${arrheniusLabel}, β=${beta}, V=${config.v_test_v}/${config.v_use_v} V`;
+            const rhUse = getSelectedLongBurnInRhUse();
+            const peckExponent = getSelectedLongBurnInPeckExponent();
+            const peckLabel = `${arrheniusLabel}, RH_use=${rhUse}%, n=${peckExponent}`;
+
+            const arrheniusAging = computeLongBurnInModelAgingBundle(series, 'arrhenius', sharedParams);
+            const arrheniusAxisRanges = computeLongBurnInAxisRanges(series, [
+                arrheniusAging.agingEnv,
+                arrheniusAging.agingFpgaA,
+                arrheniusAging.agingFpgaB,
+            ]);
+            renderLongBurnInModelPlot({
+                plotId: 'long-burn-in-plot-arrhenius',
+                series,
+                config,
+                model: 'arrhenius',
+                modelParams: sharedParams,
+                agingLabel: arrheniusLabel,
+                axisRanges: arrheniusAxisRanges,
+                agingBundle: arrheniusAging,
+            });
+
+            const eyringParams = {
+                ...sharedParams,
+                beta,
+                vUseV: config.v_use_v,
+                vTestV: config.v_test_v,
+            };
+            const eyringAging = computeLongBurnInModelAgingBundle(series, 'eyring', eyringParams);
+            renderLongBurnInModelPlot({
+                plotId: 'long-burn-in-plot-eyring',
+                series,
+                config,
+                model: 'eyring',
+                modelParams: eyringParams,
+                agingLabel: eyringLabel,
+                axisRanges: computeLongBurnInAxisRanges(series, [
+                    eyringAging.agingEnv,
+                    eyringAging.agingFpgaA,
+                    eyringAging.agingFpgaB,
+                ]),
+                agingBundle: eyringAging,
+            });
+
+            const peckParams = {
+                ...sharedParams,
+                rhUsePct: rhUse,
+                peckExponent,
+            };
+            const peckAging = computeLongBurnInModelAgingBundle(series, 'peck', peckParams);
+            renderLongBurnInModelPlot({
+                plotId: 'long-burn-in-plot-peck',
+                series,
+                config,
+                model: 'peck',
+                modelParams: peckParams,
+                agingLabel: peckLabel,
+                axisRanges: computeLongBurnInAxisRanges(series, [
+                    peckAging.agingEnv,
+                    peckAging.agingFpgaA,
+                    peckAging.agingFpgaB,
+                ], { includeHumidity: true }),
+                agingBundle: peckAging,
+                includeHumidity: true,
+            });
+
+            const meta = document.getElementById('long-burn-in-meta');
+            if (meta) {
+                meta.innerHTML = `
+                    <span><strong>Board:</strong> ${lastLongBurnInPlotData.board_serial}</span>
+                    <span><strong>Start:</strong> ${lastLongBurnInPlotData.period_start}</span>
+                    <span><strong>Stop:</strong> ${lastLongBurnInPlotData.period_stop}</span>
+                    <span><strong>Duration:</strong> ${lastLongBurnInPlotData.duration_hours} h</span>
+                    <span><strong>Env offset:</strong> ${offset} °C</span>
+                    <span><strong>Env humidity:</strong> ${latestHumidity != null ? `${latestHumidity} %` : '—'}</span>
+                    <span><strong>Tag:</strong> ${config.board_tag_key}</span>
+                    <span><strong>Arrhenius aging (env / A / B):</strong> ${arrheniusAging.agingEnv.at(-1) || 0} / ${arrheniusAging.agingFpgaA.at(-1) || 0} / ${arrheniusAging.agingFpgaB.at(-1) || 0} h</span>
+                    <span><strong>Eyring aging (env / A / B):</strong> ${eyringAging.agingEnv.at(-1) || 0} / ${eyringAging.agingFpgaA.at(-1) || 0} / ${eyringAging.agingFpgaB.at(-1) || 0} h</span>
+                    <span><strong>Peck aging (env / A / B):</strong> ${peckAging.agingEnv.at(-1) || 0} / ${peckAging.agingFpgaA.at(-1) || 0} / ${peckAging.agingFpgaB.at(-1) || 0} h</span>
+                `;
+            }
+
+            updateLongBurnInCacheBadge(lastLongBurnInPlotData);
+            setLongBurnInRecomputeEnabled(true);
+        }
+
+        function renderLongBurnInPlotChart() {
+            renderLongBurnInAllCharts();
+        }
+
+        function renderLongBurnInPanel(overview) {
+            const container = document.getElementById('long-burn-in-content');
+            if (overview.period_error) {
+                container.innerHTML = `<div class="summary-error">${overview.period_error}</div>`;
+                return;
+            }
+            container.innerHTML = `
+                <div class="summary-charts-grid">
+                    <div class="summary-chart-card summary-chart-card-burn-in">
+                        <div class="summary-chart-title">Long Burn-In Analysis</div>
+                        <div class="burn-in-chart-panel">
+                            <div class="burn-in-parameter">
+                                <label for="long-burn-in-use-profile-select">T_use:</label>
+                                <select id="long-burn-in-use-profile-select"></select>
+                            </div>
+                            <div class="burn-in-parameter">
+                                <label for="long-burn-in-energy-select">Ea:</label>
+                                <select id="long-burn-in-energy-select"></select>
+                            </div>
+                        </div>
+                        <div class="burn-in-plot-panel">
+                            <div id="long-burn-in-meta" class="burn-in-meta"></div>
+                            <div class="burn-in-plot-wrapper">
+                                <div id="long-burn-in-cache-controls" class="burn-in-cache-controls">
+                                    <span class="burn-in-cache-label">Cached</span>
+                                    <button type="button" id="long-burn-in-recompute-btn" class="burn-in-recompute-btn">Recompute</button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="summary-chart-card summary-chart-card-burn-in">
+                        <div class="summary-chart-title">Arrhenius Model (Temperature)</div>
+                        <div class="burn-in-chart-panel">
+                            <div id="long-burn-in-equation-arrhenius" class="burn-in-equation"></div>
+                        </div>
+                        <div id="long-burn-in-plot-arrhenius" class="summary-chart-plot burn-in-plot"></div>
+                    </div>
+                    <div class="summary-chart-card summary-chart-card-burn-in">
+                        <div class="summary-chart-title">Eyring Model (Temperature + Voltage)</div>
+                        <div class="burn-in-chart-panel">
+                            <div id="long-burn-in-equation-eyring" class="burn-in-equation"></div>
+                            <div class="burn-in-parameter">
+                                <label for="long-burn-in-beta-select">β:</label>
+                                <select id="long-burn-in-beta-select"></select>
+                            </div>
+                        </div>
+                        <div id="long-burn-in-plot-eyring" class="summary-chart-plot burn-in-plot"></div>
+                    </div>
+                    <div class="summary-chart-card summary-chart-card-burn-in">
+                        <div class="summary-chart-title">Peck's Law (Temperature + Humidity)</div>
+                        <div class="burn-in-chart-panel">
+                            <div id="long-burn-in-equation-peck" class="burn-in-equation"></div>
+                            <div class="burn-in-parameter">
+                                <label for="long-burn-in-rh-use-select">RH_use:</label>
+                                <select id="long-burn-in-rh-use-select"></select>
+                            </div>
+                            <div class="burn-in-parameter">
+                                <label for="long-burn-in-peck-exponent-select">n:</label>
+                                <select id="long-burn-in-peck-exponent-select"></select>
+                            </div>
+                        </div>
+                        <div id="long-burn-in-plot-peck" class="summary-chart-plot burn-in-plot"></div>
+                    </div>
+                </div>
+            `;
+            const arrheniusEquation = document.getElementById('long-burn-in-equation-arrhenius');
+            const eyringEquation = document.getElementById('long-burn-in-equation-eyring');
+            const peckEquation = document.getElementById('long-burn-in-equation-peck');
+            if (arrheniusEquation) arrheniusEquation.textContent = overview.equation_arrhenius || overview.equation || '';
+            if (eyringEquation) eyringEquation.textContent = overview.equation_eyring || '';
+            if (peckEquation) peckEquation.textContent = overview.equation_peck || '';
+            document.getElementById('long-burn-in-recompute-btn')
+                ?.addEventListener('click', () => loadLongBurnInPlot(true));
+            setupLongBurnInParameterSelects(overview);
+            lastLongBurnInPlotData = { config: overview };
+            loadLongBurnInPlot(false);
+        }
+
+        async function loadLongBurnInPlot(recompute = false) {
+            const plotIds = ['long-burn-in-plot-arrhenius', 'long-burn-in-plot-eyring', 'long-burn-in-plot-peck'];
+            if (!document.getElementById(plotIds[0])) return;
+            setLongBurnInRecomputeEnabled(false);
+            updateLongBurnInCacheBadge(null);
+            const influxConfig = lastLongBurnInPlotData?.config || { influx_source: null };
+            const loadingHtml = buildBurnInInfluxPollHtml(influxConfig);
+            plotIds.forEach((plotId) => {
+                const plotElement = document.getElementById(plotId);
+                if (plotElement) plotElement.innerHTML = loadingHtml;
+            });
+            try {
+                const response = await fetch(`/api/long_burn_in/plot${recompute ? '?recompute=1' : ''}`);
+                const data = await response.json();
+                if (data.error || !data.success) {
+                    const errorHtml = `<div class="summary-error">${data.error || 'Failed to load long burn-in plot.'}</div>`;
+                    plotIds.forEach((plotId) => {
+                        const plotElement = document.getElementById(plotId);
+                        if (plotElement) plotElement.innerHTML = errorHtml;
+                    });
+                    return;
+                }
+                lastLongBurnInPlotData = data;
+                const arrheniusEquation = document.getElementById('long-burn-in-equation-arrhenius');
+                const eyringEquation = document.getElementById('long-burn-in-equation-eyring');
+                const peckEquation = document.getElementById('long-burn-in-equation-peck');
+                if (arrheniusEquation) {
+                    arrheniusEquation.textContent = data.config?.equation_arrhenius || data.config?.equation || '';
+                }
+                if (eyringEquation) eyringEquation.textContent = data.config?.equation_eyring || '';
+                if (peckEquation) peckEquation.textContent = data.config?.equation_peck || '';
+                setupLongBurnInParameterSelects(data.config);
+                renderLongBurnInAllCharts();
+            } catch (error) {
+                plotIds.forEach((plotId) => {
+                    const plotElement = document.getElementById(plotId);
+                    if (plotElement) plotElement.innerHTML = '<div class="summary-error">Error loading long burn-in plot.</div>';
+                });
+            }
+        }
+
+        async function loadLongBurnIn(forceReload = false) {
+            if (longBurnInLoaded && !forceReload) return;
+            const content = document.getElementById('long-burn-in-content');
+            const subtitle = document.getElementById('long-burn-in-subtitle');
+            content.innerHTML = '<div class="summary-loading">Loading long burn-in configuration...</div>';
+            try {
+                const response = await fetch('/api/long_burn_in');
+                const data = await response.json();
+                if (data.error || !data.success) {
+                    content.innerHTML = `<div class="summary-error">Error: ${data.error || 'Failed to load long burn-in analysis.'}</div>`;
+                    subtitle.textContent = 'Failed to load long burn-in analysis.';
+                    return;
+                }
+                subtitle.textContent = `Board ${data.board_serial} · ${data.period_start} → ${data.period_stop}`;
+                renderLongBurnInPanel(data);
+                longBurnInLoaded = true;
+            } catch (error) {
+                content.innerHTML = '<div class="summary-error">Error loading long burn-in analysis.</div>';
+                subtitle.textContent = 'Failed to load long burn-in analysis.';
             }
         }
 

@@ -11,11 +11,13 @@ from production_summary import build_production_summary
 from production_statistics import build_production_statistics
 from burn_in import build_burn_in_overview, build_burn_in_plot_all_slots, build_burn_in_plot_for_slot
 from benchtest_results import get_failed_tests_for_serial
+from long_burn_in import build_long_burn_in_overview, build_long_burn_in_plot
 from production_config import (
     SCHEDULE_CSV_PATH,
     backup_and_save_schedule,
     load_production_config,
     save_burn_in_config,
+    save_long_burn_in_config,
     save_production_config,
 )
 from production_schedule import load_calendar_grid, save_calendar_grid
@@ -94,6 +96,7 @@ run_script_template = "run_script.html"
 edit_vars_template = "edit_vars.html"
 edit_production_template = "edit_production.html"
 edit_burn_in_template = "edit_burn_in.html"
+edit_long_burn_in_template = "edit_long_burn_in.html"
 
 def load_secrets():
     """Load database credentials from secrets.yaml."""
@@ -433,6 +436,20 @@ def edit_burn_in():
     return render_template(
         edit_burn_in_template,
         config=_burn_in_config_payload(load_production_config()),
+    )
+
+@app.route('/edit_long_burn_in')
+def edit_long_burn_in():
+    if not session.get('logged_in'):
+        return redirect(url_for('login'))
+    blocked = require_full_access()
+    if blocked:
+        return blocked
+
+    from long_burn_in import _config_payload
+    return render_template(
+        edit_long_burn_in_template,
+        config=_config_payload(load_production_config()),
     )
 
 @app.route('/api/brick_wall_data')
@@ -993,6 +1010,7 @@ def burn_in_config_api():
         data = request.get_json() or {}
         saved = save_burn_in_config({
             'burnin_temperature_offset_c': data.get('temperature_offset_c', 0),
+            'burnin_cache_dir': data.get('cache_dir', ''),
             'burnin_use_profiles': data.get('use_profiles', []),
             'burnin_activation_energies': data.get('activation_energies', []),
             'burnin_default_use_profile': data.get('default_use_profile'),
@@ -1003,6 +1021,97 @@ def burn_in_config_api():
     except Exception as e:
         print(f'Error saving burn-in config: {e}')
         return jsonify({'error': str(e)}), 500
+
+
+@app.route('/api/burn_in/cache/clear', methods=['POST'])
+def clear_burn_in_cache_api():
+    if not session.get('logged_in'):
+        return jsonify({'error': 'Not logged in'}), 401
+
+    blocked = require_full_access()
+    if blocked:
+        return jsonify({'error': 'Not allowed in guest mode'}), 403
+
+    try:
+        from burn_in import clear_burn_in_cache
+
+        data = request.get_json(silent=True) or {}
+        config = load_production_config()
+        cache_dir = str(data.get('cache_dir', '')).strip()
+        if cache_dir:
+            config = {**config, 'burnin_cache_dir': cache_dir}
+        result = clear_burn_in_cache(config)
+        return jsonify({'success': True, **result})
+    except Exception as e:
+        print(f'Error clearing burn-in cache: {e}')
+        return jsonify({'error': str(e)}), 500
+
+
+@app.route('/api/long_burn_in')
+def long_burn_in_overview():
+    if not session.get('logged_in'):
+        return jsonify({'error': 'Not logged in'}), 401
+
+    try:
+        return jsonify(build_long_burn_in_overview())
+    except Exception as e:
+        print(f'Error fetching long burn-in overview: {e}')
+        return jsonify({'error': str(e)}), 500
+
+
+@app.route('/api/long_burn_in/plot')
+def long_burn_in_plot():
+    if not session.get('logged_in'):
+        return jsonify({'error': 'Not logged in'}), 401
+
+    try:
+        return jsonify(build_long_burn_in_plot(force_recompute=_request_wants_recompute()))
+    except Exception as e:
+        print(f'Error fetching long burn-in plot: {e}')
+        return jsonify({'error': str(e)}), 500
+
+
+@app.route('/api/long_burn_in/config', methods=['GET', 'POST'])
+def long_burn_in_config_api():
+    if not session.get('logged_in'):
+        return jsonify({'error': 'Not logged in'}), 401
+
+    if request.method == 'GET':
+        from long_burn_in import _config_payload
+        return jsonify({'success': True, 'config': _config_payload(load_production_config())})
+
+    blocked = require_full_access()
+    if blocked:
+        return jsonify({'error': 'Not allowed in guest mode'}), 403
+
+    try:
+        data = request.get_json() or {}
+        saved = save_long_burn_in_config({
+            'long_burnin_board_serial': data.get('board_serial', ''),
+            'long_burnin_start': data.get('period_start', ''),
+            'long_burnin_stop': data.get('period_stop', ''),
+            'long_burnin_fpga_a_label': data.get('fpga_a_label', 'KU FPGA A'),
+            'long_burnin_fpga_b_label': data.get('fpga_b_label', 'KU FPGA B'),
+            'long_burnin_temperature_offset_c': data.get('temperature_offset_c', 0),
+            'long_burnin_use_profiles': data.get('use_profiles', []),
+            'long_burnin_activation_energies': data.get('activation_energies', []),
+            'long_burnin_default_use_profile': data.get('default_use_profile'),
+            'long_burnin_default_activation_energy_ev': data.get('default_activation_energy_ev'),
+            'long_burnin_v_use_v': data.get('v_use_v'),
+            'long_burnin_v_test_v': data.get('v_test_v'),
+            'long_burnin_voltage_betas': data.get('voltage_betas'),
+            'long_burnin_default_voltage_beta': data.get('default_voltage_beta'),
+            'long_burnin_rh_use_options': data.get('rh_use_options'),
+            'long_burnin_default_rh_use_pct': data.get('default_rh_use_pct'),
+            'long_burnin_peck_exponents': data.get('peck_exponents'),
+            'long_burnin_default_peck_exponent': data.get('default_peck_exponent'),
+        })
+        from long_burn_in import _config_payload
+        return jsonify({'success': True, 'config': _config_payload(saved)})
+    except Exception as e:
+        print(f'Error saving long burn-in config: {e}')
+        return jsonify({'error': str(e)}), 500
+
 
 @app.route('/api/production_config', methods=['GET', 'POST'])
 def production_config():

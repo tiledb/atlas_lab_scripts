@@ -252,6 +252,7 @@
                 Configure accelerated aging parameters used by the <strong>Burn In</strong> dashboard tab.
                 The temperature offset is added to InfluxDB <code>Toven</code> before aging is calculated.
                 Edit the <code>T_use</code> profiles and activation energies to control which traces are plotted.
+                Cached plot data is stored as JSON/HTML files under the configured cache folder.
             </p>
             <div id="burnin-equation" class="equation-box"></div>
 
@@ -264,6 +265,15 @@
                             id="burnin-temperature-offset"
                             step="0.1"
                             value="{{ config.temperature_offset_c }}"
+                        >
+                    </div>
+                    <div class="config-field">
+                        <label for="burnin-cache-dir">Cache Folder Path</label>
+                        <input
+                            type="text"
+                            id="burnin-cache-dir"
+                            value="{{ config.cache_dir }}"
+                            placeholder="/var/www/html/drive/production_plots/burn_in"
                         >
                     </div>
                 </div>
@@ -286,6 +296,7 @@
                 <div class="actions-row">
                     <button type="submit" class="btn btn-primary">Save Configuration</button>
                     <button type="button" class="btn btn-secondary" id="reload-burnin-config-btn">Reload</button>
+                    <button type="button" class="btn btn-danger" id="clear-burnin-cache-btn">Clean Cache</button>
                 </div>
             </form>
         </div>
@@ -317,14 +328,17 @@
             }
         }
 
+        function normalizeConfigArrows(text) {
+            return String(text || '')
+                .replace(/\u2212/g, '->')
+                .replace(/\u2013/g, '->')
+                .replace(/\u2014/g, '->');
+        }
+
         function updateEquation() {
-            const offset = Number(document.getElementById('burnin-temperature-offset')?.value || 0);
             const equation = document.getElementById('burnin-equation');
             if (equation) {
-                equation.textContent =
-                    `AF = exp[(Ea / kB) × (1/T_use − 1/T_test)], ` +
-                    `T_test = (Toven + ${offset} °C) converted to K, ` +
-                    'kB = 8.617e-5 eV/K';
+                equation.textContent = 'AF = exp[(Ea / kB) × (1/T_use -> 1/T_test)]';
             }
         }
 
@@ -386,7 +400,7 @@
                             value="${energy.value}"
                             ${energy.value === selected ? 'checked' : ''}
                         >
-                        <span>${energy.value} eV${energy.description ? ` — ${escapeHtml(energy.description)}` : ''}</span>
+                        <span>${energy.value} eV${energy.description ? ` -> ${escapeHtml(normalizeConfigArrows(energy.description))}` : ''}</span>
                     </label>
                 `).join('')}
             `;
@@ -424,7 +438,7 @@
             container.innerHTML = energies.map((energy, index) => `
                 <div class="config-row energy-row" data-energy-index="${index}">
                     <input type="number" class="burnin-energy-value" step="0.1" value="${energy.value ?? 0.7}">
-                    <textarea class="burnin-energy-description" placeholder="Description">${escapeHtml(energy.description || '')}</textarea>
+                    <textarea class="burnin-energy-description" placeholder="Description">${escapeHtml(normalizeConfigArrows(energy.description || ''))}</textarea>
                     <button type="button" class="btn btn-danger remove-burnin-energy-btn">Remove</button>
                 </div>
             `).join('');
@@ -461,6 +475,7 @@
         function renderConfig(config) {
             burnInConfig = config;
             document.getElementById('burnin-temperature-offset').value = config.temperature_offset_c ?? 0;
+            document.getElementById('burnin-cache-dir').value = config.cache_dir || '';
             renderProfileRows(config.use_profiles || []);
             renderEnergyRows(config.activation_energies || []);
             updateEquation();
@@ -489,14 +504,45 @@
             renderEnergyRows(collectEnergies().concat({ value: 0.7, description: '' }));
         });
 
-        document.getElementById('burnin-temperature-offset').addEventListener('input', updateEquation);
 
         document.getElementById('reload-burnin-config-btn').addEventListener('click', loadConfig);
+
+        document.getElementById('clear-burnin-cache-btn').addEventListener('click', async () => {
+            const cacheDir = document.getElementById('burnin-cache-dir').value.trim()
+                || burnInConfig.cache_dir
+                || '';
+            const confirmed = window.confirm(
+                `Delete all files in the burn-in cache folder?\n\n${cacheDir || '(configured cache path)'}`,
+            );
+            if (!confirmed) {
+                return;
+            }
+
+            try {
+                const response = await fetch('/api/burn_in/cache/clear', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        cache_dir: document.getElementById('burnin-cache-dir').value.trim(),
+                    }),
+                });
+                const data = await response.json();
+                if (data.error || !data.success) {
+                    showMessage(data.error || 'Failed to clean burn-in cache.', true);
+                    return;
+                }
+                showMessage(`Removed ${data.removed} file(s) from ${data.cache_dir}.`);
+            } catch (error) {
+                console.error('Error cleaning burn-in cache:', error);
+                showMessage('Error cleaning burn-in cache.', true);
+            }
+        });
 
         document.getElementById('burnin-config-form').addEventListener('submit', async (event) => {
             event.preventDefault();
             const payload = {
                 temperature_offset_c: Number(document.getElementById('burnin-temperature-offset').value || 0),
+                cache_dir: document.getElementById('burnin-cache-dir').value.trim(),
                 use_profiles: collectProfiles(),
                 activation_energies: collectEnergies(),
                 default_use_profile: getSelectedDefaultProfile(),

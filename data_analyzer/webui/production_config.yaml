@@ -2,6 +2,7 @@ pretest_offset_days: 2
 post_test_offset_days: 7
 burnin_offset_days: 14
 burnin_temperature_offset_c: 8.0
+burnin_cache_dir: /var/www/html/drive/production_plots/burn_in
 burnin_use_profiles:
 - name: ATLAS
   temperature_c: 25.0
@@ -9,21 +10,98 @@ burnin_use_profiles:
   temperature_c: 60.0
 burnin_activation_energies:
 - value: 0.3
+  label: ''
   description: Typical for moisture-induced corrosion or package delamination.
 - value: 0.5
+  label: ''
   description: Standard values used by the military and aerospace industries for
     general semiconductor hardware when the exact failure mechanism is unknown.
 - value: 0.6
+  label: ''
   description: Standard values used by the military and aerospace industries for
     general semiconductor hardware when the exact failure mechanism is unknown.
 - value: 0.7
+  label: ''
   description: Common for electromigration in silicon interconnects and 
     dielectric breakdowns.
 - value: 0.9
+  label: ''
   description: Associated with severe charge-trapping contamination and ionic 
     impurities.
 - value: 1.0
+  label: ''
   description: Associated with severe charge-trapping contamination and ionic 
     impurities.
 burnin_default_use_profile: ATLAS
 burnin_default_activation_energy_ev: 0.9
+long_burnin_board_serial: '1101037'
+long_burnin_start: '2026-08-22 00:00:00'
+long_burnin_stop: ''
+long_burnin_fpga_a_label: KU FPGA A
+long_burnin_fpga_b_label: KU FPGA B
+long_burnin_temperature_offset_c: 8.0
+long_burnin_use_profiles:
+- name: ATLAS
+  temperature_c: 25.0
+- name: Lab Table
+  temperature_c: 60.0
+long_burnin_activation_energies:
+- value: 0.3
+  label: 0.3 eV
+  description: Moisture damage and ungluing.
+- value: 0.5
+  label: 0.5 eV
+  description: Military default for unknown defects.
+- value: 0.7
+  label: 0.7 eV
+  description: Silicon wire wear and dielectric break.
+- value: 0.9
+  label: 0.9 eV
+  description: Trapped charges and chemical contamination.
+- value: 1.0
+  label: 1.0 eV
+  description: Higher Trapped charges + chemical contamination.
+long_burnin_default_use_profile: ATLAS
+long_burnin_default_activation_energy_ev: 0.9
+long_burnin_v_use_v: 10.0
+long_burnin_v_test_v: 12.0
+long_burnin_voltage_betas:
+- value: 2.0
+  description: "Multi-layer ceramic capacitors (MLCCs)\nInsulation resistance degradation,
+    dielectric breakdown, and oxygen vacancy migration (β = 1.5->3.0)."
+- value: 4.0
+  description: "Aluminum electrolytic capacitors\nElectrolyte vaporization and internal
+    pressure buildup leading to seal rupture (β = 3.0->5.0)."
+- value: 3.5
+  description: "Solid tantalum capacitors\nSelf-healing failure breakdown and localized
+    manganese dioxide (MnO₂) reduction (β = 3.0->4.0)."
+- value: 6.0
+  description: "Thin-film transistors & optoelectronics\nHot carrier injection (HCI)
+    and gate-oxide breakdown in older or wider semiconductor nodes (β = 5.0->7.0)."
+- value: 10.0
+  description: "Ultra-thin gate dielectrics (modern ICs)\nTime-dependent dielectric
+    breakdown (TDDB) in advanced microscopic silicon structures, where voltage stress
+    is highly non-linear (β = 10.0+)."
+long_burnin_default_voltage_beta: 2.0
+long_burnin_rh_use_options:
+- 5.0
+- 10.0
+- 15.0
+long_burnin_default_rh_use_pct: 10.0
+long_burnin_peck_exponents:
+- value: 2.0
+  description: "Hermetically sealed & ruggedized modules\nPackage delamination or
+    moisture ingress along the lead-frame interfaces of robust industrial packages
+    (n = 2.0->2.5)."
+- value: 2.66
+  description: "Aluminum metallization / bare die\nPeck's baseline for temperature-humidity
+    accelerated testing of aluminum corrosion and galvanic corrosion of bare internal
+    wiring (n = 2.66)."
+- value: 3.0
+  description: "Consumer plastics & liquid crystal displays\nGeneral standard for
+    electronics epoxy packaging; commonly 0.7 eV for LCDs (n = 3.0)."
+- value: 4.5
+  description: "Military & aerospace hardware (MIL-HDBK-217F)\nStrict baseline for
+    temperature and humidity stress factors on electronic components; captures aggressive
+    multi-layer circuit board insulation degradation (n = 4.5)."
+long_burnin_default_peck_exponent: 3.0

@@ -212,6 +212,7 @@
             padding: 15px;
             margin-top: 15px;
             box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+            position: relative;
         }
 
         .brick-wall-section h3 {
@@ -1436,6 +1437,38 @@
             flex-direction: column;
             min-height: 0;
             overflow: hidden;
+            position: relative;
+        }
+
+        .has-show-cached {
+            position: relative;
+        }
+
+        .show-cached-btn {
+            position: absolute;
+            right: 10px;
+            bottom: 10px;
+            z-index: 8;
+            padding: 6px 11px;
+            border-radius: 6px;
+            border: 1px solid rgba(255, 255, 255, 0.35);
+            background: rgba(35, 40, 48, 0.38);
+            color: #fff;
+            font-size: 12px;
+            font-weight: 600;
+            text-decoration: none;
+            opacity: 0.28;
+            transition: opacity 0.15s ease, background 0.15s ease;
+            pointer-events: auto;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.12);
+        }
+
+        .show-cached-btn:hover,
+        .show-cached-btn:focus-visible {
+            opacity: 1;
+            background: rgba(35, 40, 48, 0.72);
+            color: #fff;
+            outline: none;
         }
 
         .summary-chart-card.summary-chart-card-pie {
@@ -1545,6 +1578,7 @@
         .burn-in-plot {
             width: 100%;
             height: 600px;
+            position: relative;
         }
 
         .burn-in-plot-wrapper {
@@ -1634,12 +1668,19 @@
             margin-top: 12px;
             padding-top: 8px;
             border-top: 1px solid #e4e8ee;
-            font-size: 13px;
+            font-size: 12px;
             color: #555;
+            width: 100%;
+            overflow-x: auto;
         }
 
         .burn-in-slot-list-item {
-            padding: 8px 0;
+            padding: 6px 0;
+            white-space: nowrap;
+            font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+            font-size: 12px;
+            color: #333;
+            line-height: 1.45;
         }
 
         .burn-in-slot-list-item + .burn-in-slot-list-item {
@@ -1866,7 +1907,6 @@
 
         <div class="tabs">
             <button class="tab active" data-tab="brick-wall" onclick="switchTab('brick-wall', this)">Production Brick Wall</button>
-            <button class="tab" data-tab="brick-wall-filters" onclick="switchTab('brick-wall-filters', this)">Production Brick Wall Filters</button>
             <button class="tab" data-tab="production-summary" onclick="switchTab('production-summary', this)">Production Summary</button>
             <button class="tab" data-tab="production-statistics" onclick="switchTab('production-statistics', this)">Production Statistics</button>
             <button class="tab" data-tab="burn-in" onclick="switchTab('burn-in', this)">Burn In</button>
@@ -1894,14 +1934,6 @@
             </div>
             <div class="brick-wall-section">
                 <div class="brick-wall-container" id="brick-wall-container">
-                    <div class="loading">Loading brick wall data...</div>
-                </div>
-            </div>
-        </div>
-
-        <div id="brick-wall-filters" class="tab-content">
-            <div class="brick-wall-section">
-                <div class="brick-wall-container" id="brick-wall-filters-container">
                     <div class="loading">Loading brick wall data...</div>
                 </div>
             </div>
@@ -2178,6 +2210,73 @@
         const MAX_BRICK_WALL_BATCH = 13;
         const BURN_IN_PLOT_HEIGHT = 600;
 
+        function filesystemCacheToWebUrl(cacheDir, filename) {
+            if (!filename) {
+                return null;
+            }
+            if (/^https?:\/\//i.test(filename)) {
+                return filename.replace('://tileqa.', '://');
+            }
+            if (filename.startsWith('/drive/')) {
+                return `https://piro-atlas-lab.fysik.su.se${filename}`;
+            }
+            const dir = String(cacheDir || '').trim();
+            const htmlRoot = '/var/www/html';
+            if (dir.startsWith(htmlRoot)) {
+                const webDir = dir.slice(htmlRoot.length).replace(/\/$/, '') || '';
+                return `https://piro-atlas-lab.fysik.su.se${webDir}/${filename}`.replace(
+                    /([^:]\/)\/+/g,
+                    '$1',
+                );
+            }
+            if (dir.startsWith('/drive/')) {
+                return `https://piro-atlas-lab.fysik.su.se${dir.replace(/\/$/, '')}/${filename}`;
+            }
+            return null;
+        }
+
+        function buildCachedPlotUrl(folder, filename, cacheDir = null) {
+            if (!filename) {
+                return null;
+            }
+            const fromDir = filesystemCacheToWebUrl(cacheDir, filename);
+            if (fromDir) {
+                return fromDir.replace('://tileqa.', '://');
+            }
+            if (/^https?:\/\//i.test(filename)) {
+                return filename.replace('://tileqa.', '://');
+            }
+            if (filename.startsWith('/')) {
+                return `https://piro-atlas-lab.fysik.su.se${filename}`.replace('://tileqa.', '://');
+            }
+            return `https://piro-atlas-lab.fysik.su.se/drive/production_plots/${folder}/${filename}`;
+        }
+
+        function attachShowCachedButton(hostEl, url) {
+            if (!hostEl) {
+                return;
+            }
+            let btn = hostEl.querySelector(':scope > .show-cached-btn');
+            if (!url) {
+                hostEl.classList.remove('has-show-cached');
+                if (btn) {
+                    btn.remove();
+                }
+                return;
+            }
+            hostEl.classList.add('has-show-cached');
+            if (!btn) {
+                btn = document.createElement('a');
+                btn.className = 'show-cached-btn';
+                btn.target = '_blank';
+                btn.rel = 'noopener noreferrer';
+                btn.textContent = 'Show Cached';
+                hostEl.appendChild(btn);
+            }
+            btn.href = url;
+            btn.title = 'Open cached HTML plot in a new tab';
+        }
+
         function switchTab(tabId, clickedElement = null) {
             const tabContents = document.querySelectorAll('.tab-content');
             tabContents.forEach(content => {
@@ -2212,9 +2311,7 @@
             selectedContent.style.transform = 'translateY(0)';
 
             if (tabId === 'brick-wall') {
-                loadBrickWall('brick-wall-container', 10, true);
-            } else if (tabId === 'brick-wall-filters') {
-                loadBrickWall('brick-wall-filters-container', 6, false).then(() => {
+                loadBrickWall('brick-wall-container', 10, true).then(() => {
                     applyFilters();
                 });
             } else if (tabId === 'production-summary') {
@@ -3273,6 +3370,13 @@
 
             attachChartLabelListeners();
             attachSummaryResizeListener();
+            const summaryCacheUrl = buildCachedPlotUrl(
+                'production_summary',
+                data.plot_html || 'production_summary_latest.html',
+            );
+            container.querySelectorAll('.summary-chart-card').forEach((card) => {
+                attachShowCachedButton(card, summaryCacheUrl);
+            });
             requestAnimationFrame(() => {
                 resizeSummaryCharts();
                 setTimeout(resizeSummaryCharts, 100);
@@ -3300,6 +3404,9 @@
 
                 subtitle.textContent =
                     `Total Boards: ${data.total_boards}, Post-Burn-In Pass Rate: ${data.post_burnin_pass_rate}% (${data.timestamp} UTC)`;
+                if (data.cache_fallback && data.cached_at) {
+                    subtitle.textContent += ` · Cached: ${data.cached_at}`;
+                }
                 renderProductionSummaryCharts(data);
                 productionSummaryLoaded = true;
             } catch (error) {
@@ -3514,8 +3621,7 @@
 
         function buildBurnInLvPowerTrace(series, options = {}) {
             const states = (series.lvpower || []).map(value => (value === 1 ? 'ON' : 'OFF'));
-            const slotPrefix = options.slotPrefix ? `${options.slotPrefix}<br>` : '';
-            return {
+            const trace = {
                 x: series.elapsed_hours,
                 y: series.lvpower,
                 name: options.name || 'LVPower',
@@ -3530,18 +3636,24 @@
                 yaxis: 'y3',
                 legendgroup: options.legendgroup,
                 showlegend: options.showlegend !== false,
-                customdata: states,
-                hovertemplate: (
-                    `${slotPrefix}Elapsed: %{x:.2f} h<br>LVPower: %{customdata}<extra></extra>`
-                ),
+                customdata: (series.elapsed_hours || []).map((timeHours, index) => ([
+                    formatBurnInHoursDaysTick(timeHours || 0),
+                    states[index] || 'OFF',
+                ])),
+                hovertemplate: 'Time: %{customdata[0]}  ·  LVPower: %{customdata[1]}<extra></extra>',
             };
+            if (options.hoverinfo) {
+                trace.hoverinfo = options.hoverinfo;
+            }
+            return trace;
         }
 
-        function buildBurnInChartLayout(legendItemCount, axisRanges = null) {
+        function buildBurnInChartLayout(legendItemCount, axisRanges = null, options = {}) {
             const height = BURN_IN_PLOT_HEIGHT;
             const width = getBurnInPlotWidth();
-            const legendRows = Math.max(1, Math.ceil(legendItemCount / 4));
-            const legendRowHeight = 24;
+            const itemsPerRow = Math.max(1, options.legendItemsPerRow || 4);
+            const legendRows = Math.max(1, Math.ceil(legendItemCount / itemsPerRow));
+            const legendRowHeight = options.legendRowHeight || 24;
             const legendHeightPx = legendRows * legendRowHeight;
             const xAxisTicksPx = 38;
             const xAxisTitlePx = 18;
@@ -3562,12 +3674,25 @@
                 height,
                 margin: { t: 48, r: 80, b: marginBottom, l: 120 },
                 hovermode: 'x unified',
+                hoverlabel: {
+                    namelength: -1,
+                    align: 'left',
+                    bgcolor: 'rgba(255,255,255,0.96)',
+                    bordercolor: '#c5cdd8',
+                    font: {
+                        size: 12,
+                        family: 'ui-monospace, SFMono-Regular, Menlo, Consolas, monospace',
+                        color: '#222',
+                    },
+                },
                 legend: {
                     orientation: 'h',
                     x: 0.5,
                     xanchor: 'center',
                     y: legendY,
                     yanchor: 'top',
+                    tracegroupgap: 8,
+                    font: { size: 11 },
                 },
                 xaxis: {
                     domain: [0, 1],
@@ -3667,16 +3792,38 @@
                 return;
             }
 
+            const profile = getSelectedBurnInProfile();
+            const energy = getSelectedBurnInEnergy();
             const slots = lastBurnInAllSlotsData.slots || [];
             listElement.style.display = 'block';
             listElement.innerHTML = slots.map(slot => {
                 const boardLabels = (slot.boards || [])
                     .map(board => String(board.serial))
                     .join(', ');
+                let agingText = '—';
+                let afText = '—';
+                let timeText = formatBurnInHoursDaysTick(slot.duration_hours || 0);
+                if (profile && energy && slot.series?.elapsed_hours?.length) {
+                    const agingHours = computeBurnInAging(
+                        slot.series,
+                        profile.temperature_c,
+                        energy.value,
+                    );
+                    const powerOnHours = computeSeriesPowerOnHours(slot.series, 'lvpower');
+                    const avgAf = computeAverageAccelerationFactor(agingHours, powerOnHours);
+                    const totalAging = agingHours.length ? agingHours[agingHours.length - 1] : 0;
+                    const elapsed = slot.series.elapsed_hours[slot.series.elapsed_hours.length - 1] || 0;
+                    timeText = formatBurnInHoursDaysTick(elapsed);
+                    agingText = formatBurnInHoursDaysTick(totalAging);
+                    afText = formatAverageAfValue(avgAf);
+                }
                 return `
                     <div class="burn-in-slot-list-item">
-                        <div class="burn-in-slot-list-title">${slot.slot_id}</div>
-                        <div class="burn-in-slot-list-boards">${boardLabels || '—'}</div>
+                        ${slot.slot_id}
+                        &nbsp;·&nbsp; Time: ${timeText}
+                        &nbsp;·&nbsp; Aging: ${agingText}
+                        &nbsp;·&nbsp; AF: ${afText}
+                        &nbsp;·&nbsp; Boards: ${boardLabels || '—'}
                     </div>
                 `;
             }).join('');
@@ -3730,6 +3877,24 @@
                 return '';
             }
             return `, avg AF=${avgAf.toFixed(2)}`;
+        }
+
+        function formatAverageAfValue(avgAf) {
+            if (avgAf == null || !Number.isFinite(avgAf)) {
+                return '—';
+            }
+            return avgAf.toFixed(2);
+        }
+
+        function buildBurnInHoverCustomdata(elapsedHours, agingHours, avgAf) {
+            const afText = formatAverageAfValue(avgAf);
+            const elapsed = elapsedHours || [];
+            const aging = agingHours || [];
+            return elapsed.map((timeHours, index) => ([
+                formatBurnInHoursDaysTick(timeHours || 0),
+                formatBurnInHoursDaysTick(aging[index] || 0),
+                afText,
+            ]));
         }
 
         function getBurnInActiveConfig() {
@@ -3871,10 +4036,10 @@
                     mode: 'lines',
                     line: { color: '#AB63FA', width: 2.2 },
                     yaxis: 'y',
+                    customdata: buildBurnInHoverCustomdata(series.elapsed_hours, agingHours, avgAf),
                     hovertemplate: (
-                        'Elapsed: %{x:.2f} h<br>' +
-                        `Aging (${agingLabel}): %{y:.2f} h` +
-                        '<extra></extra>'
+                        'Time: %{customdata[0]}  ·  Aging: %{customdata[1]}  ·  AF: %{customdata[2]}'
+                        + '<extra></extra>'
                     ),
                 },
                 {
@@ -3885,7 +4050,10 @@
                     mode: 'lines',
                     line: { color: '#EF553B', width: 2.2 },
                     yaxis: 'y2',
-                    hovertemplate: 'Elapsed: %{x:.2f} h<br>Toven: %{y:.2f} °C<extra></extra>',
+                    customdata: (series.elapsed_hours || []).map(timeHours => [
+                        formatBurnInHoursDaysTick(timeHours || 0),
+                    ]),
+                    hovertemplate: 'Time: %{customdata[0]}  ·  Toven: %{y:.2f} °C<extra></extra>',
                 },
                 buildBurnInLvPowerTrace(series, {
                     name: 'LVPower',
@@ -3898,6 +4066,16 @@
             renderBurnInSlotsList();
             updateBurnInCacheBadge(lastBurnInPlotData);
             setBurnInRecomputeEnabled(true);
+            const plotWrapper = document.querySelector('#burn-in .burn-in-plot-wrapper')
+                || document.getElementById('burn-in-plot')?.parentElement;
+            attachShowCachedButton(
+                plotWrapper,
+                buildCachedPlotUrl(
+                    'burn_in',
+                    lastBurnInPlotData.plot_html,
+                    lastBurnInPlotData.config?.cache_dir,
+                ),
+            );
         }
 
         function renderBurnInAllSlotsChart() {
@@ -3928,21 +4106,35 @@
                 );
                 const powerOnHours = computeSeriesPowerOnHours(slot.series, 'lvpower');
                 const avgAf = computeAverageAccelerationFactor(agingHours, powerOnHours);
+                const elapsedHours = slot.series.elapsed_hours || [];
+                const totalElapsed = elapsedHours.length ? elapsedHours[elapsedHours.length - 1] : 0;
+                const totalAging = agingHours.length ? agingHours[agingHours.length - 1] : 0;
+                const legendTime = formatBurnInHoursDaysTick(totalElapsed || 0);
+                const legendAging = formatBurnInHoursDaysTick(totalAging || 0);
+                const legendAf = formatAverageAfValue(avgAf);
                 agingSeriesList.push(agingHours);
                 traces.push({
                     x: slot.series.elapsed_hours,
                     y: agingHours,
-                    name: `${slot.slot_id} Aging${formatLegendAverageAf(avgAf)}`,
+                    name: (
+                        `${slot.slot_id}`
+                        + ` · Time: ${legendTime}`
+                        + ` · Aging: ${legendAging}`
+                        + ` · AF: ${legendAf}`
+                    ),
                     type: 'scatter',
                     mode: 'lines',
                     line: { color, width: 2.2 },
                     yaxis: 'y',
                     legendgroup: slot.slot_id,
+                    customdata: buildBurnInHoverCustomdata(
+                        slot.series.elapsed_hours,
+                        agingHours,
+                        avgAf,
+                    ),
                     hovertemplate: (
-                        `Slot: ${slot.slot_id}<br>` +
-                        'Elapsed: %{x:.2f} h<br>' +
-                        'Aging: %{y:.2f} h' +
-                        '<extra></extra>'
+                        'Time: %{customdata[0]}  ·  Aging: %{customdata[1]}  ·  AF: %{customdata[2]}'
+                        + '<extra></extra>'
                     ),
                 });
                 traces.push({
@@ -3954,19 +4146,15 @@
                     line: { color, width: 2.2, dash: 'dot' },
                     yaxis: 'y2',
                     legendgroup: slot.slot_id,
-                    hovertemplate: (
-                        `Slot: ${slot.slot_id}<br>` +
-                        'Elapsed: %{x:.2f} h<br>' +
-                        `Toven: %{y:.2f} °C` +
-                        '<extra></extra>'
-                    ),
+                    hoverinfo: 'skip',
+                    showlegend: false,
                 });
                 traces.push(buildBurnInLvPowerTrace(slot.series, {
                     name: `${slot.slot_id} LVPower`,
                     color,
                     legendgroup: slot.slot_id,
                     showlegend: false,
-                    slotPrefix: `Slot: ${slot.slot_id}`,
+                    hoverinfo: 'skip',
                 }));
             });
 
@@ -3987,11 +4175,15 @@
             }
 
             Plotly.newPlot('burn-in-plot', traces, buildBurnInChartLayout(
-                slots.length * 2,
+                slots.length,
                 computeBurnInAxisRangesFromData(
                     slots.map(slot => slot.series),
                     agingSeriesList,
                 ),
+                {
+                    legendItemsPerRow: 1,
+                    legendRowHeight: 22,
+                },
             ), {
                 responsive: true,
                 displayModeBar: true,
@@ -3999,6 +4191,16 @@
             renderBurnInSlotsList();
             updateBurnInCacheBadge(lastBurnInAllSlotsData);
             setBurnInRecomputeEnabled(true);
+            const plotWrapper = document.querySelector('#burn-in .burn-in-plot-wrapper')
+                || document.getElementById('burn-in-plot')?.parentElement;
+            attachShowCachedButton(
+                plotWrapper,
+                buildCachedPlotUrl(
+                    'burn_in',
+                    lastBurnInAllSlotsData.plot_html || 'burn_in_all_slots_latest.html',
+                    lastBurnInAllSlotsData.config?.cache_dir,
+                ),
+            );
         }
 
         function renderProductionStatisticsCharts(data) {
@@ -4510,8 +4712,11 @@
                 xaxis: options.xaxis || 'x2',
                 yaxis: options.yaxis || 'y3',
                 showlegend: options.showlegend !== false,
-                customdata: states,
-                hovertemplate: `Elapsed: %{x:.2f} h<br>${options.name || fieldName}: %{customdata}<extra></extra>`,
+                customdata: (series.elapsed_hours || []).map((timeHours, index) => ([
+                    formatBurnInHoursDaysTick(timeHours || 0),
+                    states[index] || 'OFF',
+                ])),
+                hovertemplate: `Time: %{customdata[0]}  ·  ${options.name || fieldName}: %{customdata[1]}<extra></extra>`,
             };
         }
 
@@ -4546,6 +4751,17 @@
                 height,
                 margin: { t: 48, r: 90, b: marginBottom, l: 120 },
                 hovermode: 'x unified',
+                hoverlabel: {
+                    namelength: -1,
+                    align: 'left',
+                    bgcolor: 'rgba(255,255,255,0.96)',
+                    bordercolor: '#c5cdd8',
+                    font: {
+                        size: 12,
+                        family: 'ui-monospace, SFMono-Regular, Menlo, Consolas, monospace',
+                        color: '#222',
+                    },
+                },
                 legend: {
                     orientation: 'h',
                     x: 0.5,
@@ -4810,28 +5026,76 @@
             const avgAfFpgaB = computeAverageAccelerationFactor(agingFpgaB, powerOnHours);
             const traces = [
                 {
-                    x: series.elapsed_hours, y: agingEnv, name: `Env Aging (${agingLabel}${formatLegendAverageAf(avgAfEnv)})`,
-                    type: 'scatter', mode: 'lines', line: { color: LONG_BURN_IN_COLORS.env, width: 2.2 }, yaxis: 'y',
+                    x: series.elapsed_hours,
+                    y: agingEnv,
+                    name: `Env Aging${formatLegendAverageAf(avgAfEnv)}`,
+                    type: 'scatter',
+                    mode: 'lines',
+                    line: { color: LONG_BURN_IN_COLORS.env, width: 2.2 },
+                    yaxis: 'y',
+                    customdata: buildBurnInHoverCustomdata(series.elapsed_hours, agingEnv, avgAfEnv),
+                    hovertemplate: 'Time: %{customdata[0]}  ·  Aging: %{customdata[1]}  ·  AF: %{customdata[2]}<extra></extra>',
                 },
                 {
-                    x: series.elapsed_hours, y: agingFpgaA, name: `${config.fpga_a_label} Aging${formatLegendAverageAf(avgAfFpgaA)}`,
-                    type: 'scatter', mode: 'lines', line: { color: LONG_BURN_IN_COLORS.fpgaA, width: 2.2 }, yaxis: 'y',
+                    x: series.elapsed_hours,
+                    y: agingFpgaA,
+                    name: `${config.fpga_a_label} Aging${formatLegendAverageAf(avgAfFpgaA)}`,
+                    type: 'scatter',
+                    mode: 'lines',
+                    line: { color: LONG_BURN_IN_COLORS.fpgaA, width: 2.2 },
+                    yaxis: 'y',
+                    customdata: buildBurnInHoverCustomdata(series.elapsed_hours, agingFpgaA, avgAfFpgaA),
+                    hovertemplate: 'Time: %{customdata[0]}  ·  Aging: %{customdata[1]}  ·  AF: %{customdata[2]}<extra></extra>',
                 },
                 {
-                    x: series.elapsed_hours, y: agingFpgaB, name: `${config.fpga_b_label} Aging${formatLegendAverageAf(avgAfFpgaB)}`,
-                    type: 'scatter', mode: 'lines', line: { color: LONG_BURN_IN_COLORS.fpgaB, width: 2.2 }, yaxis: 'y',
+                    x: series.elapsed_hours,
+                    y: agingFpgaB,
+                    name: `${config.fpga_b_label} Aging${formatLegendAverageAf(avgAfFpgaB)}`,
+                    type: 'scatter',
+                    mode: 'lines',
+                    line: { color: LONG_BURN_IN_COLORS.fpgaB, width: 2.2 },
+                    yaxis: 'y',
+                    customdata: buildBurnInHoverCustomdata(series.elapsed_hours, agingFpgaB, avgAfFpgaB),
+                    hovertemplate: 'Time: %{customdata[0]}  ·  Aging: %{customdata[1]}  ·  AF: %{customdata[2]}<extra></extra>',
                 },
                 {
-                    x: series.elapsed_hours, y: series.env_temp_c, name: `Env Temperature (+${offset}°C)`,
-                    type: 'scatter', mode: 'lines', line: { color: LONG_BURN_IN_COLORS.env, width: 2, dash: 'dot' }, yaxis: 'y2',
+                    x: series.elapsed_hours,
+                    y: series.env_temp_c,
+                    name: `Env Temp (+${offset}°C)`,
+                    type: 'scatter',
+                    mode: 'lines',
+                    line: { color: LONG_BURN_IN_COLORS.env, width: 2, dash: 'dot' },
+                    yaxis: 'y2',
+                    customdata: (series.elapsed_hours || []).map(timeHours => [
+                        formatBurnInHoursDaysTick(timeHours || 0),
+                    ]),
+                    hovertemplate: 'Time: %{customdata[0]}  ·  Temp: %{y:.2f} °C<extra></extra>',
                 },
                 {
-                    x: series.elapsed_hours, y: series.fpga_a_temp_c, name: `${config.fpga_a_label} Temp`,
-                    type: 'scatter', mode: 'lines', line: { color: LONG_BURN_IN_COLORS.fpgaA, width: 2, dash: 'dot' }, yaxis: 'y2',
+                    x: series.elapsed_hours,
+                    y: series.fpga_a_temp_c,
+                    name: `${config.fpga_a_label} Temp`,
+                    type: 'scatter',
+                    mode: 'lines',
+                    line: { color: LONG_BURN_IN_COLORS.fpgaA, width: 2, dash: 'dot' },
+                    yaxis: 'y2',
+                    customdata: (series.elapsed_hours || []).map(timeHours => [
+                        formatBurnInHoursDaysTick(timeHours || 0),
+                    ]),
+                    hovertemplate: 'Time: %{customdata[0]}  ·  Temp: %{y:.2f} °C<extra></extra>',
                 },
                 {
-                    x: series.elapsed_hours, y: series.fpga_b_temp_c, name: `${config.fpga_b_label} Temp`,
-                    type: 'scatter', mode: 'lines', line: { color: LONG_BURN_IN_COLORS.fpgaB, width: 2, dash: 'dot' }, yaxis: 'y2',
+                    x: series.elapsed_hours,
+                    y: series.fpga_b_temp_c,
+                    name: `${config.fpga_b_label} Temp`,
+                    type: 'scatter',
+                    mode: 'lines',
+                    line: { color: LONG_BURN_IN_COLORS.fpgaB, width: 2, dash: 'dot' },
+                    yaxis: 'y2',
+                    customdata: (series.elapsed_hours || []).map(timeHours => [
+                        formatBurnInHoursDaysTick(timeHours || 0),
+                    ]),
+                    hovertemplate: 'Time: %{customdata[0]}  ·  Temp: %{y:.2f} °C<extra></extra>',
                 },
             ];
             if (includeHumidity) {
@@ -4843,6 +5107,10 @@
                     mode: 'lines',
                     line: { color: LONG_BURN_IN_COLORS.hum, width: 1.8, dash: 'dashdot' },
                     yaxis: 'y2',
+                    customdata: (series.elapsed_hours || []).map(timeHours => [
+                        formatBurnInHoursDaysTick(timeHours || 0),
+                    ]),
+                    hovertemplate: 'Time: %{customdata[0]}  ·  RH: %{y:.1f} %<extra></extra>',
                 });
             }
             traces.push(
@@ -4983,6 +5251,19 @@
 
             updateLongBurnInCacheBadge(lastLongBurnInPlotData);
             setLongBurnInRecomputeEnabled(true);
+            const longBurnInCacheUrl = buildCachedPlotUrl(
+                'long_burn_in',
+                lastLongBurnInPlotData.plot_html,
+            );
+            [
+                'long-burn-in-plot-arrhenius',
+                'long-burn-in-plot-eyring',
+                'long-burn-in-plot-peck',
+            ].forEach((plotId) => {
+                const plotEl = document.getElementById(plotId);
+                const host = plotEl?.closest('.summary-chart-card') || plotEl;
+                attachShowCachedButton(host, longBurnInCacheUrl);
+            });
         }
 
         function renderLongBurnInPlotChart() {
@@ -5536,10 +5817,19 @@
                 wrapper.appendChild(content);
                 container.appendChild(wrapper);
 
-                // Populate component lots filters if this is the filters tab
-                if (containerId === 'brick-wall-filters-container') {
+                // Populate filter controls for the merged brick wall tab
+                if (containerId === 'brick-wall-container') {
                     populateComponentLotsFilters(data);
                     populateBenchtestFilters(data);
+                    applyFilters();
+                    const section = container.closest('.brick-wall-section') || container;
+                    attachShowCachedButton(
+                        section,
+                        buildCachedPlotUrl(
+                            'production_brick_wall',
+                            data.plot_html || 'production_brick_wall_latest.html',
+                        ),
+                    );
                 }
 
             } catch (error) {
@@ -5790,7 +6080,9 @@
 
         // Load brick wall on page load
         document.addEventListener('DOMContentLoaded', () => {
-            loadBrickWall('brick-wall-container', 10, true);
+            loadBrickWall('brick-wall-container', 10, true).then(() => {
+                applyFilters();
+            });
         });
 
         // Filter functionality
@@ -5804,7 +6096,7 @@
         };
 
         function applyFilters() {
-            const bricks = document.querySelectorAll('#brick-wall-filters-container .brick');
+            const bricks = document.querySelectorAll('#brick-wall-container .brick');
             bricks.forEach(brick => {
                 const serial = brick.dataset.serial;
                 if (!serial) return; // Skip placeholder bricks
@@ -6702,9 +6994,6 @@
                 targetBrick.classList.add('highlighted');
             }
         }
-
-        // Load brick wall on page load
-        document.addEventListener('DOMContentLoaded', loadBrickWall);
     </script>
 </body>
 

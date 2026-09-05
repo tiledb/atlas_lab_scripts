@@ -456,10 +456,29 @@ def edit_long_burn_in():
 def brick_wall_data():
     if not session.get('logged_in'):
         return jsonify({'error': 'Not logged in'}), 401
+
+    from brick_wall_cache import load_brick_wall_cache, save_brick_wall_cache
+
+    def _cache_fallback_response(reason):
+        cached = load_brick_wall_cache()
+        if not cached:
+            return None
+        return jsonify({
+            'success': True,
+            'boards_by_batch': cached.get('boards_by_batch') or {},
+            'cached': True,
+            'cached_at': cached.get('cached_at'),
+            'plot_html': cached.get('plot_html') or 'production_brick_wall_latest.html',
+            'cache_fallback': True,
+            'cache_fallback_reason': reason,
+        })
     
     try:
         conn = get_db_connection()
         if not conn:
+            fallback = _cache_fallback_response('Database connection failed')
+            if fallback:
+                return fallback
             return jsonify({'error': 'Database connection failed'}), 500
         
         cursor = conn.cursor(dictionary=True)
@@ -728,14 +747,31 @@ def brick_wall_data():
         
         cursor.close()
         conn.close()
+
+        cache_info = save_brick_wall_cache(boards_by_batch)
         
         return jsonify({
             'success': True,
-            'boards_by_batch': boards_by_batch
+            'boards_by_batch': boards_by_batch,
+            'cached': False,
+            'cached_at': cache_info.get('cached_at'),
+            'plot_html': cache_info.get('latest_html'),
         })
         
     except Exception as e:
         print(f"Error fetching brick wall data: {e}")
+        from brick_wall_cache import load_brick_wall_cache
+        cached = load_brick_wall_cache()
+        if cached:
+            return jsonify({
+                'success': True,
+                'boards_by_batch': cached.get('boards_by_batch') or {},
+                'cached': True,
+                'cached_at': cached.get('cached_at'),
+                'plot_html': cached.get('plot_html') or 'production_brick_wall_latest.html',
+                'cache_fallback': True,
+                'cache_fallback_reason': str(e),
+            })
         return jsonify({'error': str(e)}), 500
 
 @app.route('/api/add_comment', methods=['POST'])
@@ -838,9 +874,28 @@ def production_summary():
     if not session.get('logged_in'):
         return jsonify({'error': 'Not logged in'}), 401
 
+    from production_summary_cache import (
+        load_production_summary_cache,
+        save_production_summary_cache,
+    )
+
+    def _cache_fallback_response(reason):
+        cached = load_production_summary_cache()
+        if not cached:
+            return None
+        payload = dict(cached)
+        payload['cached'] = True
+        payload['cache_fallback'] = True
+        payload['cache_fallback_reason'] = reason
+        payload['plot_html'] = payload.get('plot_html') or 'production_summary_latest.html'
+        return jsonify(payload)
+
     try:
         conn = get_db_connection()
         if not conn:
+            fallback = _cache_fallback_response('Database connection failed')
+            if fallback:
+                return fallback
             return jsonify({'error': 'Database connection failed'}), 500
 
         cursor = conn.cursor(dictionary=True)
@@ -869,10 +924,18 @@ def production_summary():
         cursor.close()
         conn.close()
 
-        return jsonify(build_production_summary(db_rows, benchtest_rows))
+        summary = build_production_summary(db_rows, benchtest_rows)
+        cache_info = save_production_summary_cache(summary)
+        summary['cached'] = False
+        summary['cached_at'] = cache_info.get('cached_at')
+        summary['plot_html'] = cache_info.get('latest_html')
+        return jsonify(summary)
 
     except Exception as e:
         print(f"Error fetching production summary: {e}")
+        fallback = _cache_fallback_response(str(e))
+        if fallback:
+            return fallback
         return jsonify({'error': str(e)}), 500
 
 @app.route('/api/production_statistics')

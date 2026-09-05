@@ -309,10 +309,32 @@ def _build_time_series(env_points, fpga_a_points, fpga_b_points, period_start, c
 
 
 def _compute_aging_hours(series, temperature_key, use_temperature_c, activation_energy_ev):
+    return _compute_model_aging_hours(
+        series,
+        temperature_key,
+        'arrhenius',
+        use_temperature_c=use_temperature_c,
+        activation_energy_ev=activation_energy_ev,
+    )
+
+
+def _compute_model_aging_hours(
+    series,
+    temperature_key,
+    model,
+    use_temperature_c,
+    activation_energy_ev,
+    v_test_v=12.0,
+    v_use_v=10.0,
+    beta=2.0,
+    rh_use_pct=10.0,
+    peck_exponent=3.0,
+):
     cumulative = 0.0
     aging_hours = []
     elapsed_hours = series.get('elapsed_hours') or []
     temperatures = series.get(temperature_key) or []
+    humidity = series.get('env_hum') or []
     power_on = series.get('power_on') or []
 
     for index, elapsed in enumerate(elapsed_hours):
@@ -323,11 +345,31 @@ def _compute_aging_hours(series, temperature_key, use_temperature_c, activation_
         ):
             dt_hours = elapsed - elapsed_hours[index - 1]
             if dt_hours > 0:
-                cumulative += acceleration_factor(
-                    temperatures[index],
-                    use_temperature_c,
-                    activation_energy_ev,
-                ) * dt_hours
+                if model == 'eyring':
+                    af = eyring_acceleration_factor(
+                        temperatures[index],
+                        use_temperature_c,
+                        activation_energy_ev,
+                        v_test_v,
+                        v_use_v,
+                        beta,
+                    )
+                elif model == 'peck':
+                    af = peck_acceleration_factor(
+                        temperatures[index],
+                        use_temperature_c,
+                        activation_energy_ev,
+                        humidity[index] if index < len(humidity) else None,
+                        rh_use_pct,
+                        peck_exponent,
+                    )
+                else:
+                    af = acceleration_factor(
+                        temperatures[index],
+                        use_temperature_c,
+                        activation_energy_ev,
+                    )
+                cumulative += af * dt_hours
         aging_hours.append(round(cumulative, 4))
     return aging_hours
 
@@ -350,6 +392,11 @@ def _cache_basename(board_serial, start_dt, stop_dt, use_temperature_c, activati
 def _cache_path(board_serial, start_dt, stop_dt, use_temperature_c, activation_energy_ev):
     basename = _cache_basename(board_serial, start_dt, stop_dt, use_temperature_c, activation_energy_ev)
     return LONG_BURN_IN_CACHE_DIR / f'{basename}.json'
+
+
+def _plot_html_path(board_serial, start_dt, stop_dt, use_temperature_c, activation_energy_ev):
+    basename = _cache_basename(board_serial, start_dt, stop_dt, use_temperature_c, activation_energy_ev)
+    return LONG_BURN_IN_CACHE_DIR / f'{basename}.html'
 
 
 def _load_cache(board_serial, start_dt, stop_dt, temperature_offset_c, use_temperature_c, activation_energy_ev):
@@ -381,6 +428,182 @@ def _load_cache(board_serial, start_dt, stop_dt, temperature_offset_c, use_tempe
     return cached
 
 
+def _write_long_burn_in_plot_html(
+    board_serial,
+    start_dt,
+    stop_dt,
+    series,
+    config,
+    use_temperature_c,
+    activation_energy_ev,
+    cached_at=None,
+):
+    try:
+        import plotly.graph_objects as go
+        from plotly.subplots import make_subplots
+        from plotly.io import to_html
+    except ImportError as exc:
+        print(f'Plotly not available for long burn-in HTML export: {exc}')
+        return None
+
+    offset = float(config.get('long_burnin_temperature_offset_c', 0.0))
+    fpga_a_label = config.get('long_burnin_fpga_a_label', 'KU FPGA A')
+    fpga_b_label = config.get('long_burnin_fpga_b_label', 'KU FPGA B')
+    v_test_v = float(config.get('long_burnin_v_test_v', 12.0))
+    v_use_v = float(config.get('long_burnin_v_use_v', 10.0))
+    beta = float(config.get('long_burnin_default_voltage_beta', 2.0))
+    rh_use_pct = float(config.get('long_burnin_default_rh_use_pct', 10.0))
+    peck_exponent = float(config.get('long_burnin_default_peck_exponent', 3.0))
+    profile_name = config.get('long_burnin_default_use_profile') or 'T_use'
+    cached_stamp = cached_at or datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+
+    model_specs = [
+        {
+            'title': 'Arrhenius Model (Temperature)',
+            'model': 'arrhenius',
+            'params': {},
+            'include_humidity': False,
+        },
+        {
+            'title': (
+                f'Eyring Model (Temperature + Voltage), '
+                f'β={beta:g}, V={v_test_v:g}/{v_use_v:g} V'
+            ),
+            'model': 'eyring',
+            'params': {
+                'v_test_v': v_test_v,
+                'v_use_v': v_use_v,
+                'beta': beta,
+            },
+            'include_humidity': False,
+        },
+        {
+            'title': (
+                f"Peck's Law (Temperature + Humidity), "
+                f'RH_use={rh_use_pct:g}%, n={peck_exponent:g}'
+            ),
+            'model': 'peck',
+            'params': {
+                'rh_use_pct': rh_use_pct,
+                'peck_exponent': peck_exponent,
+            },
+            'include_humidity': True,
+        },
+    ]
+
+    figures_html = []
+    for spec in model_specs:
+        aging_env = _compute_model_aging_hours(
+            series, 'env_temp_c', spec['model'], use_temperature_c, activation_energy_ev, **spec['params'],
+        )
+        aging_a = _compute_model_aging_hours(
+            series, 'fpga_a_temp_c', spec['model'], use_temperature_c, activation_energy_ev, **spec['params'],
+        )
+        aging_b = _compute_model_aging_hours(
+            series, 'fpga_b_temp_c', spec['model'], use_temperature_c, activation_energy_ev, **spec['params'],
+        )
+        fig = make_subplots(
+            rows=3,
+            cols=1,
+            shared_xaxes=True,
+            vertical_spacing=0.05,
+            row_heights=[0.62, 0.19, 0.19],
+            specs=[[{'secondary_y': True}], [{}], [{}]],
+        )
+        fig.add_trace(go.Scatter(
+            x=series['elapsed_hours'], y=aging_env, mode='lines',
+            name=f'Env Aging ({profile_name} {use_temperature_c:g}°C, Ea={activation_energy_ev:g} eV)',
+            line=dict(color='#636EFA', width=2),
+        ), row=1, col=1, secondary_y=False)
+        fig.add_trace(go.Scatter(
+            x=series['elapsed_hours'], y=aging_a, mode='lines',
+            name=f'{fpga_a_label} Aging',
+            line=dict(color='#EF553B', width=2),
+        ), row=1, col=1, secondary_y=False)
+        fig.add_trace(go.Scatter(
+            x=series['elapsed_hours'], y=aging_b, mode='lines',
+            name=f'{fpga_b_label} Aging',
+            line=dict(color='#00CC96', width=2),
+        ), row=1, col=1, secondary_y=False)
+        fig.add_trace(go.Scatter(
+            x=series['elapsed_hours'], y=series['env_temp_c'], mode='lines',
+            name=f'Env Temperature (+{offset:g}°C)',
+            line=dict(color='#636EFA', width=1.8, dash='dot'),
+        ), row=1, col=1, secondary_y=True)
+        fig.add_trace(go.Scatter(
+            x=series['elapsed_hours'], y=series['fpga_a_temp_c'], mode='lines',
+            name=f'{fpga_a_label} Temp',
+            line=dict(color='#EF553B', width=1.8, dash='dot'),
+        ), row=1, col=1, secondary_y=True)
+        fig.add_trace(go.Scatter(
+            x=series['elapsed_hours'], y=series['fpga_b_temp_c'], mode='lines',
+            name=f'{fpga_b_label} Temp',
+            line=dict(color='#00CC96', width=1.8, dash='dot'),
+        ), row=1, col=1, secondary_y=True)
+        if spec['include_humidity']:
+            fig.add_trace(go.Scatter(
+                x=series['elapsed_hours'], y=series.get('env_hum'), mode='lines',
+                name='Env Humidity',
+                line=dict(color='#AB63FA', width=1.6, dash='dashdot'),
+            ), row=1, col=1, secondary_y=True)
+        fig.add_trace(go.Scatter(
+            x=series['elapsed_hours'], y=series['power_state'], mode='lines',
+            name='power_state', line=dict(color='#19D3F3', width=2, shape='hv'),
+        ), row=2, col=1)
+        fig.add_trace(go.Scatter(
+            x=series['elapsed_hours'], y=series['power_good'], mode='lines',
+            name='power_good', line=dict(color='#FFA15A', width=2, shape='hv'),
+        ), row=3, col=1)
+        fig.update_layout(
+            title=spec['title'],
+            height=700,
+            margin=dict(t=60, r=80, b=90, l=100),
+            hovermode='x unified',
+            legend=dict(orientation='h', yanchor='top', y=-0.12, x=0.5, xanchor='center'),
+        )
+        fig.update_yaxes(title_text='Accelerated Aging', row=1, col=1, secondary_y=False)
+        fig.update_yaxes(
+            title_text='Temperature (°C) / Humidity (%)' if spec['include_humidity'] else 'Temperature (°C)',
+            row=1, col=1, secondary_y=True,
+        )
+        fig.update_yaxes(title_text='power_state', tickvals=[0, 1], ticktext=['OFF', 'ON'], range=[-0.05, 1.05], row=2, col=1)
+        fig.update_yaxes(title_text='power_good', tickvals=[0, 1], ticktext=['OFF', 'ON'], range=[-0.05, 1.05], row=3, col=1)
+        fig.update_xaxes(title_text='Elapsed Time (hours)', row=3, col=1)
+        figures_html.append(to_html(fig, include_plotlyjs=('cdn' if not figures_html else False), full_html=False))
+
+    from plot_cache import cache_banner_html
+    html = (
+        '<!DOCTYPE html><html><head><meta charset="utf-8">'
+        f'<title>Long Burn-In {board_serial}</title></head><body>'
+        f'{cache_banner_html(cached_stamp)}'
+        f'<h2 style="font-family:sans-serif;margin:16px;">'
+        f'Long Burn-In Board {board_serial} · '
+        f'{start_dt:%Y-%m-%d %H:%M:%S} → {stop_dt:%Y-%m-%d %H:%M:%S}'
+        f'</h2>'
+        + ''.join(figures_html)
+        + '</body></html>'
+    )
+    LONG_BURN_IN_CACHE_DIR.mkdir(parents=True, exist_ok=True)
+    html_path = _plot_html_path(board_serial, start_dt, stop_dt, use_temperature_c, activation_energy_ev)
+    html_path.write_text(html, encoding='utf-8')
+    return html_path.name
+
+
+def _clear_board_cache(board_serial):
+    LONG_BURN_IN_CACHE_DIR.mkdir(parents=True, exist_ok=True)
+    pattern = f'longburnin{board_serial}_*'
+    for path in LONG_BURN_IN_CACHE_DIR.glob(pattern):
+        try:
+            path.unlink()
+        except OSError as exc:
+            print(f'Error clearing long burn-in cache {path}: {exc}')
+
+
+def _clear_cache(board_serial, start_dt, stop_dt):
+    # Keep signature for callers; clear all cache files for this board.
+    _clear_board_cache(board_serial)
+
+
 def _save_cache(
     board_serial,
     start_dt,
@@ -390,32 +613,99 @@ def _save_cache(
     activation_energy_ev,
     series,
     totals,
+    config=None,
 ):
     LONG_BURN_IN_CACHE_DIR.mkdir(parents=True, exist_ok=True)
+    _clear_board_cache(board_serial)
     cache_path = _cache_path(board_serial, start_dt, stop_dt, use_temperature_c, activation_energy_ev)
+    cached_at = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+    plot_html = None
+    if config is not None:
+        try:
+            plot_html = _write_long_burn_in_plot_html(
+                board_serial,
+                start_dt,
+                stop_dt,
+                series,
+                config,
+                use_temperature_c,
+                activation_energy_ev,
+                cached_at=cached_at,
+            )
+        except Exception as exc:
+            print(f'Error writing long burn-in HTML plot: {exc}')
+            plot_html = None
     payload = {
         'version': CACHE_VERSION,
         'board_serial': str(board_serial),
         'period_start': start_dt.strftime('%Y-%m-%d %H:%M:%S'),
         'period_stop': stop_dt.strftime('%Y-%m-%d %H:%M:%S'),
         'temperature_offset_c': temperature_offset_c,
-        'cached_at': datetime.now().strftime('%Y-%m-%d %H:%M:%S'),
+        'cached_at': cached_at,
         'series': series,
         'totals': totals,
     }
+    if plot_html:
+        payload['plot_html'] = plot_html
     cache_path.write_text(json.dumps(payload), encoding='utf-8')
-    return cache_path.name
+    return cache_path.name, plot_html
 
 
-def _clear_cache(board_serial, start_dt, stop_dt):
-    start_text = start_dt.strftime('%Y%m%dT%H%M%S')
-    stop_text = stop_dt.strftime('%Y%m%dT%H%M%S')
-    pattern = f'longburnin{board_serial}_{start_text}_{stop_text}_*'
-    for path in LONG_BURN_IN_CACHE_DIR.glob(pattern):
-        try:
-            path.unlink()
-        except OSError as exc:
-            print(f'Error clearing long burn-in cache {path}: {exc}')
+def _ensure_plot_html(
+    board_serial,
+    start_dt,
+    stop_dt,
+    series,
+    config,
+    use_temperature_c,
+    activation_energy_ev,
+    cached_at=None,
+):
+    html_path = _plot_html_path(board_serial, start_dt, stop_dt, use_temperature_c, activation_energy_ev)
+    if html_path.exists():
+        from plot_cache import inject_cache_banner
+        inject_cache_banner(html_path, cached_at)
+        return html_path.name
+    try:
+        return _write_long_burn_in_plot_html(
+            board_serial,
+            start_dt,
+            stop_dt,
+            series,
+            config,
+            use_temperature_c,
+            activation_energy_ev,
+            cached_at=cached_at,
+        )
+    except Exception as exc:
+        print(f'Error ensuring long burn-in HTML plot: {exc}')
+        return None
+
+
+def _cache_fallback_result(cached, config=None, use_temperature_c=None, activation_energy_ev=None):
+    plot_html = cached.get('plot_html')
+    if config is not None and cached.get('series') and use_temperature_c is not None and activation_energy_ev is not None:
+        start_dt = datetime.strptime(cached['period_start'], '%Y-%m-%d %H:%M:%S')
+        stop_dt = datetime.strptime(cached['period_stop'], '%Y-%m-%d %H:%M:%S')
+        plot_html = _ensure_plot_html(
+            cached.get('board_serial'),
+            start_dt,
+            stop_dt,
+            cached['series'],
+            config,
+            use_temperature_c,
+            activation_energy_ev,
+            cached_at=cached.get('cached_at'),
+        )
+    return {
+        'success': True,
+        'series': cached['series'],
+        'totals': cached['totals'],
+        'cached': True,
+        'cached_at': cached.get('cached_at'),
+        'plot_html': plot_html,
+        'cache_fallback': True,
+    }
 
 
 def _resolve_default_parameters(config):
@@ -492,16 +782,19 @@ def _fetch_series(config, influx_client=None, force_recompute=False):
 
     if force_recompute:
         _clear_cache(board_serial, start_dt, stop_dt)
-    else:
+
+    def _try_cache_fallback(reason):
         cached = _load_cache(board_serial, start_dt, stop_dt, temperature_offset, t_use_c, ea_ev)
         if cached:
-            return {
-                'success': True,
-                'series': cached['series'],
-                'totals': cached['totals'],
-                'cached': True,
-                'cached_at': cached.get('cached_at'),
-            }
+            result = _cache_fallback_result(
+                cached,
+                config=config,
+                use_temperature_c=t_use_c,
+                activation_energy_ev=ea_ev,
+            )
+            result['cache_fallback_reason'] = reason
+            return result
+        return None
 
     client = influx_client
     owns_client = False
@@ -510,6 +803,9 @@ def _fetch_series(config, influx_client=None, force_recompute=False):
             client = get_influx_client()
             owns_client = True
         except Exception as exc:
+            fallback = _try_cache_fallback(str(exc))
+            if fallback:
+                return fallback
             return {'success': False, 'error': str(exc)}
 
     try:
@@ -521,6 +817,9 @@ def _fetch_series(config, influx_client=None, force_recompute=False):
             client, start_dt, stop_dt, board_serial, fpga_b_label,
         )
     except Exception as exc:
+        fallback = _try_cache_fallback(f'InfluxDB query failed: {exc}')
+        if fallback:
+            return fallback
         return {'success': False, 'error': f'InfluxDB query failed: {exc}'}
     finally:
         if owns_client and client is not None:
@@ -531,6 +830,9 @@ def _fetch_series(config, influx_client=None, force_recompute=False):
 
     series = _build_time_series(env_points, fpga_a_points, fpga_b_points, start_dt, config)
     if not series['point_count']:
+        fallback = _try_cache_fallback('No live telemetry found')
+        if fallback:
+            return fallback
         return {
             'success': False,
             'error': (
@@ -544,7 +846,7 @@ def _fetch_series(config, influx_client=None, force_recompute=False):
         'elapsed_hours': series['total_elapsed_hours'],
         'raw_point_count': series['point_count'],
     }
-    _save_cache(
+    _, plot_html = _save_cache(
         board_serial,
         start_dt,
         stop_dt,
@@ -553,6 +855,7 @@ def _fetch_series(config, influx_client=None, force_recompute=False):
         ea_ev,
         downsampled,
         totals,
+        config=config,
     )
     return {
         'success': True,
@@ -560,6 +863,7 @@ def _fetch_series(config, influx_client=None, force_recompute=False):
         'totals': totals,
         'cached': False,
         'cached_at': datetime.now().strftime('%Y-%m-%d %H:%M:%S'),
+        'plot_html': plot_html,
     }
 
 
@@ -608,5 +912,7 @@ def build_long_burn_in_plot(influx_client=None, force_recompute=False):
         'totals': period_result['totals'],
         'cached': period_result.get('cached', False),
         'cached_at': period_result.get('cached_at'),
+        'plot_html': period_result.get('plot_html'),
+        'cache_fallback': period_result.get('cache_fallback', False),
         'config': _config_payload(config),
     }

@@ -621,6 +621,193 @@ def _write_period_plot_html(
     cache_dir = get_burn_in_cache_dir(config)
     cache_dir.mkdir(parents=True, exist_ok=True)
     fig.write_html(html_path, include_plotlyjs='cdn', full_html=True)
+    from plot_cache import inject_cache_banner
+    inject_cache_banner(html_path, datetime.now())
+    return html_path.name
+
+
+ALL_SLOTS_HTML_NAME = 'burn_in_all_slots_latest.html'
+SLOT_PLOT_COLORS = (
+    '#636EFA', '#EF553B', '#00CC96', '#AB63FA', '#FFA15A', '#19D3F3',
+    '#FF6692', '#B6E880', '#FF97FF', '#FECB52', '#7A5195', '#BC5090',
+)
+
+
+def _write_all_slots_plot_html(slot_payloads, config, cached_at=None):
+    try:
+        import plotly.graph_objects as go
+        from plotly.subplots import make_subplots
+    except ImportError as exc:
+        print(f'Plotly not available for burn-in all-slots HTML export: {exc}')
+        return None
+
+    profile, energy = _resolve_default_burnin_parameters(config)
+    if not profile or not energy:
+        return None
+
+    t_use_c = float(profile['temperature_c'])
+    ea_ev = float(energy['value'])
+    offset = float(config.get('burnin_temperature_offset_c', 0.0))
+    aging_label = f"{profile['name']} {t_use_c}°C, Ea={ea_ev} eV"
+
+    fig = make_subplots(
+        rows=2,
+        cols=1,
+        shared_xaxes=True,
+        vertical_spacing=0.06,
+        row_heights=[0.72, 0.28],
+        specs=[[{'secondary_y': True}], [{}]],
+    )
+
+    max_elapsed = 0.0
+    max_aging = 0.0
+    min_temperature = None
+    max_temperature = None
+
+    for index, slot in enumerate(slot_payloads or []):
+        series = slot.get('series') or {}
+        if not series.get('elapsed_hours'):
+            continue
+        color = SLOT_PLOT_COLORS[index % len(SLOT_PLOT_COLORS)]
+        slot_id = slot.get('slot_id') or f'slot_{index}'
+        aging_hours = _compute_aging_hours(series, t_use_c, ea_ev)
+        power_on_hours = _compute_power_on_hours(series, 'lvpower')
+        avg_af_suffix = _format_avg_af_legend_suffix(aging_hours, power_on_hours)
+        lv_states = ['ON' if value == 1 else 'OFF' for value in series.get('lvpower', [])]
+
+        fig.add_trace(go.Scatter(
+            x=series['elapsed_hours'],
+            y=aging_hours,
+            mode='lines',
+            name=f'{slot_id} Aging{avg_af_suffix}',
+            line=dict(color=color, width=2.2),
+            legendgroup=slot_id,
+            hovertemplate=(
+                f'Slot: {slot_id}<br>'
+                'Elapsed: %{x:.2f} h<br>'
+                'Aging: %{y:.2f} h'
+                '<extra></extra>'
+            ),
+        ), row=1, col=1, secondary_y=False)
+        fig.add_trace(go.Scatter(
+            x=series['elapsed_hours'],
+            y=series.get('toven_c'),
+            mode='lines',
+            name=f'{slot_id} Temp',
+            line=dict(color=color, width=2.2, dash='dot'),
+            legendgroup=slot_id,
+            hovertemplate=(
+                f'Slot: {slot_id}<br>'
+                'Elapsed: %{x:.2f} h<br>'
+                'Toven: %{y:.2f} °C'
+                '<extra></extra>'
+            ),
+        ), row=1, col=1, secondary_y=True)
+        fig.add_trace(go.Scatter(
+            x=series['elapsed_hours'],
+            y=series.get('lvpower'),
+            mode='lines',
+            name=f'{slot_id} LVPower',
+            line=dict(color=color, width=2, shape='hv'),
+            legendgroup=slot_id,
+            showlegend=False,
+            customdata=lv_states,
+            hovertemplate=(
+                f'Slot: {slot_id}<br>'
+                'Elapsed: %{x:.2f} h<br>'
+                'LVPower: %{customdata}<extra></extra>'
+            ),
+        ), row=2, col=1)
+
+        if series['elapsed_hours']:
+            max_elapsed = max(max_elapsed, series['elapsed_hours'][-1] or 0.0)
+        if aging_hours:
+            max_aging = max(max_aging, aging_hours[-1] or 0.0)
+        for value in series.get('toven_c') or []:
+            if value is None:
+                continue
+            min_temperature = value if min_temperature is None else min(min_temperature, value)
+            max_temperature = value if max_temperature is None else max(max_temperature, value)
+
+    if min_temperature is None:
+        min_temperature = 0.0
+    if max_temperature is None:
+        max_temperature = 100.0
+
+    axis_ticks = _build_burn_in_axis_tick_config(
+        max_elapsed,
+        max_aging,
+        min_temperature,
+        max_temperature,
+    )
+    fig.update_layout(
+        title=f'Burn-In All Slots ({aging_label}, Toven + {offset:g}°C)',
+        height=700,
+        margin=dict(t=60, r=80, b=120, l=120),
+        hovermode='x unified',
+        legend=dict(
+            orientation='h',
+            yanchor='top',
+            y=-0.22,
+            x=0.5,
+            xanchor='center',
+        ),
+    )
+    fig.update_yaxes(
+        title_text='Accelerated Aging',
+        range=axis_ticks['aging_range'],
+        tickmode='array',
+        tickvals=axis_ticks['aging_tickvals'],
+        ticktext=axis_ticks['aging_ticktext'],
+        automargin=True,
+        row=1,
+        col=1,
+        secondary_y=False,
+    )
+    fig.update_yaxes(
+        title_text='Oven Temperature (°C)',
+        range=axis_ticks['temp_range'],
+        tickmode='array',
+        tickvals=axis_ticks['temp_tickvals'],
+        ticktext=axis_ticks['temp_ticktext'],
+        row=1,
+        col=1,
+        secondary_y=True,
+    )
+    fig.update_yaxes(
+        title_text='LVPower',
+        tickmode='array',
+        tickvals=[0, 1],
+        ticktext=['OFF', 'ON'],
+        range=[-0.05, 1.05],
+        row=2,
+        col=1,
+    )
+    fig.update_xaxes(
+        title_text='Elapsed Time (hours)',
+        range=axis_ticks['x_range'],
+        tickmode='array',
+        tickvals=axis_ticks['x_tickvals'],
+        ticktext=axis_ticks['x_ticktext'],
+        row=2,
+        col=1,
+    )
+    fig.update_xaxes(
+        range=axis_ticks['x_range'],
+        tickmode='array',
+        tickvals=axis_ticks['x_tickvals'],
+        ticktext=axis_ticks['x_ticktext'],
+        showticklabels=False,
+        row=1,
+        col=1,
+    )
+
+    cache_dir = get_burn_in_cache_dir(config)
+    cache_dir.mkdir(parents=True, exist_ok=True)
+    html_path = cache_dir / ALL_SLOTS_HTML_NAME
+    fig.write_html(html_path, include_plotlyjs='cdn', full_html=True)
+    from plot_cache import inject_cache_banner
+    inject_cache_banner(html_path, cached_at or datetime.now())
     return html_path.name
 
 
@@ -692,6 +879,7 @@ def _save_period_cache(
 
     cache_dir = get_burn_in_cache_dir(config)
     cache_dir.mkdir(parents=True, exist_ok=True)
+    _clear_slot_cache(slot_id=slot_id, config=config)
     cache_path = _period_cache_path(
         burn_in_start,
         burn_in_stop,
@@ -702,22 +890,27 @@ def _save_period_cache(
     )
     plot_html = None
     if config is not None:
-        plot_html = _write_period_plot_html(
-            burn_in_start,
-            burn_in_stop,
-            series,
-            config,
-            slot_id=slot_id,
-            use_temperature_c=t_use_c,
-            activation_energy_ev=ea_ev,
-        )
+        try:
+            plot_html = _write_period_plot_html(
+                burn_in_start,
+                burn_in_stop,
+                series,
+                config,
+                slot_id=slot_id,
+                use_temperature_c=t_use_c,
+                activation_energy_ev=ea_ev,
+            )
+        except Exception as exc:
+            print(f'Error writing burn-in HTML plot: {exc}')
+            plot_html = None
 
+    cached_at = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
     payload = {
         'version': CACHE_VERSION,
         'burn_in_start': burn_in_start.strftime('%Y-%m-%d %H:%M:%S'),
         'burn_in_stop': burn_in_stop.strftime('%Y-%m-%d %H:%M:%S'),
         'temperature_offset_c': temperature_offset_c,
-        'cached_at': datetime.now().strftime('%Y-%m-%d %H:%M:%S'),
+        'cached_at': cached_at,
         'series': series,
         'totals': totals,
     }
@@ -727,27 +920,21 @@ def _save_period_cache(
     return plot_html
 
 
-def _clear_period_cache(burn_in_start, burn_in_stop, slot_id=None, config=None):
+def _clear_slot_cache(slot_id=None, config=None):
     cache_dir = get_burn_in_cache_dir(config)
-    start_text = burn_in_start.strftime('%Y%m%dT%H%M%S')
-    stop_text = burn_in_stop.strftime('%Y%m%dT%H%M%S')
+    if not cache_dir.exists():
+        return
     slot_slug = _slot_cache_slug(slot_id)
-    pattern = f'{slot_slug}_{start_text}_{stop_text}_*'
-    for path in cache_dir.glob(pattern):
+    for path in cache_dir.glob(f'{slot_slug}_*'):
         try:
             path.unlink()
         except OSError as exc:
             print(f'Error clearing burn-in cache {path}: {exc}')
 
-    legacy_stem = f'{start_text}__{stop_text}'
-    for suffix in ('.json', '.html'):
-        legacy_path = cache_dir / f'{legacy_stem}{suffix}'
-        if not legacy_path.exists():
-            continue
-        try:
-            legacy_path.unlink()
-        except OSError as exc:
-            print(f'Error clearing legacy burn-in cache {legacy_path}: {exc}')
+
+def _clear_period_cache(burn_in_start, burn_in_stop, slot_id=None, config=None):
+    # Clear all cached files for this slot before regenerating.
+    _clear_slot_cache(slot_id=slot_id, config=config)
 
 
 def _fetch_period_series(
@@ -778,13 +965,39 @@ def _fetch_period_series(
             config=config,
         )
         if cached:
+            plot_html = cached.get('plot_html')
+            html_path = _period_plot_html_path(
+                burn_in_start,
+                burn_in_stop,
+                t_use_c,
+                ea_ev,
+                slot_id=slot_id,
+                config=config,
+            )
+            try:
+                if not html_path.exists():
+                    plot_html = _write_period_plot_html(
+                        burn_in_start,
+                        burn_in_stop,
+                        cached['series'],
+                        config,
+                        slot_id=slot_id,
+                        use_temperature_c=t_use_c,
+                        activation_energy_ev=ea_ev,
+                    )
+                else:
+                    from plot_cache import inject_cache_banner
+                    inject_cache_banner(html_path, cached.get('cached_at'))
+                    plot_html = html_path.name
+            except Exception as exc:
+                print(f'Error ensuring burn-in HTML plot: {exc}')
             return {
                 'success': True,
                 'series': cached['series'],
                 'totals': cached['totals'],
                 'cached': True,
                 'cached_at': cached.get('cached_at'),
-                'plot_html': cached.get('plot_html'),
+                'plot_html': plot_html,
             }
 
     client = influx_client
@@ -1117,12 +1330,20 @@ def build_burn_in_plot_all_slots(db_rows, influx_client=None, force_recompute=Fa
             'errors': errors,
         }
 
+    plot_html = None
+    try:
+        plot_html = _write_all_slots_plot_html(slot_payloads, config)
+    except Exception as exc:
+        print(f'Error writing burn-in all-slots HTML plot: {exc}')
+        plot_html = None
+
     return {
         'success': True,
         'mode': 'all_slots',
         'slots': slot_payloads,
         'errors': errors,
         'cached': all_cached,
+        'plot_html': plot_html,
         'config': _burn_in_config_payload(config),
     }
 

@@ -71,8 +71,8 @@ CIS_Linearity:
   lg_center_mean: [4, 7]
 
 CIS:
-  hg_center: [5, 8]
-  lg_center: [5, 8]
+  hg_center: [4.5, 8]
+  lg_center: [4.5, 8]
 
 Integrator_Linearity:
   maxdev: [0, 600]

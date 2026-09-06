@@ -221,11 +221,27 @@
             margin-bottom: 20px;
         }
 
-        .brick-wall-wrapper {
+        .brick-wall-layout {
             display: flex;
             flex-direction: row;
-            gap: 10px;
             align-items: flex-start;
+            gap: 14px;
+        }
+
+        .brick-wall-main {
+            flex: 1 1 auto;
+            min-width: 0;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .brick-wall-wrapper {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            align-items: stretch;
+            position: relative;
         }
 
         .brick-wall-container {
@@ -236,17 +252,69 @@
             background: #f8f9fa;
             border-radius: 8px;
             overflow-x: auto;
+            position: relative;
         }
 
         .brick-wall-content {
             display: flex;
             flex-direction: row;
             gap: 6px;
+            position: relative;
+            overflow: hidden; /* clip green row guides at the right Y-axis */
         }
 
-        .brick-wall-wrapper {
+        .heatmap-overlays-panel {
+            flex: 0 0 190px;
+            background: #f9f9f9;
+            border: 1px solid #e4e8ee;
+            border-radius: 8px;
+            padding: 12px;
+            align-self: flex-start;
+        }
+
+        .heatmap-overlays-title {
+            font-size: 13px;
+            font-weight: 700;
+            color: #333;
+            margin-bottom: 10px;
+        }
+
+        .heatmap-overlays-list {
             display: flex;
             flex-direction: column;
+            gap: 8px;
+        }
+
+        .heatmap-overlay-option {
+            display: flex;
+            align-items: flex-start;
+            gap: 8px;
+            font-size: 12px;
+            color: #444;
+            cursor: pointer;
+            line-height: 1.35;
+        }
+
+        .heatmap-overlay-option input {
+            margin-top: 2px;
+            flex: 0 0 auto;
+        }
+
+        .heatmap-overlay-hint {
+            margin-top: 10px;
+            font-size: 11px;
+            color: #888;
+            line-height: 1.4;
+        }
+
+        @media (max-width: 900px) {
+            .brick-wall-layout {
+                flex-direction: column;
+            }
+            .heatmap-overlays-panel {
+                flex: 1 1 auto;
+                width: 100%;
+            }
         }
 
         .y-axis-column {
@@ -278,16 +346,18 @@
             content: '';
             position: absolute;
             left: 100%;
-            right: -1000px;
+            width: 100vw;
             top: 7.5px;
             height: 1px;
             background: #8fff80;
             z-index: 0;
+            pointer-events: none;
         }
 
         .y-axis-right .y-axis-label.with-line::after {
-            left: -1000px;
+            left: auto;
             right: 100%;
+            width: 100vw;
         }
 
         .batch-column {
@@ -307,6 +377,62 @@
 
         .brick-wall-container {
             position: relative;
+        }
+
+        .brick-wall-legend {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 5px;
+            margin-top: 0px;
+            padding: 5px;
+            background: #f9f9f9;
+            border-radius: 4px;
+            font-size: 11px;
+            color: #666;
+        }
+
+        .brick-wall-legend.heatmap-legend {
+            flex-direction: column;
+            align-items: stretch;
+            gap: 8px;
+            min-width: 220px;
+            max-width: 420px;
+        }
+
+        .heatmap-legend-title {
+            font-weight: 700;
+            color: #333;
+            font-size: 12px;
+        }
+
+        .heatmap-legend-bar {
+            height: 14px;
+            border-radius: 3px;
+            border: 1px solid rgba(0,0,0,0.12);
+            /* Match interpolateHeatmapColor stops (plasma-like, no gray) */
+            background: linear-gradient(90deg, #0d0887, #7e03a8, #cc4778, #f89540, #f0f921);
+        }
+
+        .heatmap-legend-na .legend-color {
+            background: #ffffff !important;
+            border: 1px dashed #666;
+            box-sizing: border-box;
+        }
+
+        .heatmap-legend-scale {
+            display: flex;
+            justify-content: space-between;
+            font-size: 11px;
+            color: #555;
+            font-variant-numeric: tabular-nums;
+        }
+
+        .heatmap-legend-na {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            font-size: 11px;
+            color: #666;
         }
 
         .batch-label {
@@ -351,18 +477,6 @@
             z-index: 2;
             pointer-events: none;
             border-radius: 2px;
-        }
-
-        .brick-wall-legend {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 5px;
-            margin-top: 0px;
-            padding: 5px;
-            background: #f9f9f9;
-            border-radius: 4px;
-            font-size: 11px;
-            color: #666;
         }
 
         .legend-item {
@@ -445,6 +559,12 @@
         .brick.filtered-out {
             opacity: 0.2;
             filter: grayscale(100%);
+        }
+
+        /* Heatmap mode: keep true colors so filtered bricks don't look like "No data" */
+        #brick-wall-container.heatmap-active .brick.filtered-out {
+            opacity: 0.28;
+            filter: none;
         }
 
         .filter-subgroup {
@@ -8322,6 +8442,280 @@
             }
         }
 
+        let brickWallHeatmapMode = null;
+        const BRICK_WALL_HEATMAP_OPTIONS = [
+            { id: 'total_hours_tested', label: 'total hours tested' },
+            { id: 'total_benchtests', label: 'total benchtests' },
+            { id: 'total_failed_benchtests', label: 'total failed benchtests' },
+            { id: 'total_passed_benchtests', label: 'total passed benchtests' },
+            { id: 'total_burnin_time', label: 'total burnin time' },
+            { id: 'total_comments', label: 'total amount of comments' },
+        ];
+
+        function parseBoardDateTime(value) {
+            if (value == null || value === '') return null;
+            if (value instanceof Date) {
+                return Number.isNaN(value.getTime()) ? null : value;
+            }
+            let text = String(value).trim();
+            if (!text) return null;
+            // Normalize "YYYY-MM-DD HH:MM:SS(.ffffff)" → ISO-ish
+            if (/^\d{4}-\d{2}-\d{2} /.test(text)) {
+                text = text.replace(' ', 'T');
+            }
+            // Trim oversized fractional seconds (JS Date often rejects >3 digits)
+            text = text.replace(/(\.\d{3})\d+/, '$1');
+            const parsed = new Date(text);
+            return Number.isNaN(parsed.getTime()) ? null : parsed;
+        }
+
+        function durationSecondsFromRange(start, stop) {
+            const startDate = parseBoardDateTime(start);
+            const stopDate = parseBoardDateTime(stop);
+            if (!startDate || !stopDate) return null;
+            return Math.max(0, (stopDate - startDate) / 1000);
+        }
+
+        function getBoardHeatmapMetrics(board) {
+            const benchtests = board.benchtests || [];
+            let testedSeconds = 0;
+            let passedBenchtests = 0;
+            let failedBenchtests = 0;
+            benchtests.forEach((bt) => {
+                const pass = Number(bt.test_pass);
+                if (pass === 1) passedBenchtests += 1;
+                else if (pass === 0) failedBenchtests += 1;
+
+                let seconds = null;
+                if (bt.test_length_seconds != null && bt.test_length_seconds !== '') {
+                    const parsed = Number(bt.test_length_seconds);
+                    if (Number.isFinite(parsed) && parsed >= 0) {
+                        seconds = parsed;
+                    }
+                }
+                if (seconds == null) {
+                    seconds = durationSecondsFromRange(bt.test_start, bt.test_stop);
+                }
+                if (seconds != null) {
+                    testedSeconds += seconds;
+                }
+            });
+
+            const burninSeconds = durationSecondsFromRange(board.burn_in_start, board.burn_in_stop);
+
+            return {
+                total_hours_tested: testedSeconds / 3600,
+                total_benchtests: benchtests.length,
+                total_failed_benchtests: failedBenchtests,
+                total_passed_benchtests: passedBenchtests,
+                total_burnin_time: burninSeconds == null ? null : burninSeconds / 3600,
+                total_comments: Array.isArray(board.comments) ? board.comments.length : 0,
+            };
+        }
+
+        function getBrickStatusColor(board) {
+            const status = board.db_status;
+            const e_test = board.e_test;
+            const p_test = board.p_test;
+            const has_benchtest = board.has_benchtest;
+            const has_sfp_data = board.a0 && board.a1 && board.b0 && board.b1;
+            const has_post_burnin_test = board.has_post_burnin_test;
+
+            if ((status === 0 || e_test === 0 || p_test === 0) && has_benchtest) {
+                return '#EF553B';
+            }
+            if (status === 0 && !has_benchtest) {
+                return '#FECB52';
+            }
+            if (status === null || e_test === null || p_test === null) {
+                return '#FECB52';
+            }
+            if (!has_sfp_data) {
+                return '#90EE90';
+            }
+            if (status === 1 && e_test === 1 && p_test === 1 && !has_post_burnin_test) {
+                return '#FF9800';
+            }
+            if (status === 1 && e_test === 1 && p_test === 1 && has_post_burnin_test) {
+                return '#00CC96';
+            }
+            return '#EF553B';
+        }
+
+        function interpolateHeatmapColor(t) {
+            // Plasma-like scale (purple → magenta → orange → yellow). Avoids gray so
+            // it won't be confused with the "No data" swatch.
+            const stops = [
+                [0, [13, 8, 135]],
+                [0.25, [126, 3, 168]],
+                [0.5, [204, 71, 120]],
+                [0.75, [248, 149, 64]],
+                [1, [240, 249, 33]],
+            ];
+            const x = Math.max(0, Math.min(1, t));
+            let i = 0;
+            while (i < stops.length - 2 && x > stops[i + 1][0]) i += 1;
+            const [t0, c0] = stops[i];
+            const [t1, c1] = stops[i + 1];
+            const u = t1 === t0 ? 0 : (x - t0) / (t1 - t0);
+            const rgb = c0.map((v, idx) => Math.round(v + (c1[idx] - v) * u));
+            return `rgb(${rgb[0]}, ${rgb[1]}, ${rgb[2]})`;
+        }
+
+        function formatHeatmapValue(mode, value) {
+            if (value == null || !Number.isFinite(value)) return 'N/A';
+            if (
+                mode === 'total_benchtests'
+                || mode === 'total_failed_benchtests'
+                || mode === 'total_passed_benchtests'
+                || mode === 'total_comments'
+            ) {
+                return String(Math.round(value));
+            }
+            if (value >= 100) return `${value.toFixed(0)} h`;
+            if (value >= 10) return `${value.toFixed(1)} h`;
+            if (value >= 1) return `${value.toFixed(2)} h`;
+            return `${(value * 60).toFixed(1)} min`;
+        }
+
+        function renderBrickWallStatusLegend(legend) {
+            legend.className = 'brick-wall-legend';
+            legend.innerHTML = '';
+            const legendItems = [
+                { color: '#00CC96', label: 'Passed (Post-Burn-In)' },
+                { color: '#FF9800', label: 'Passed (Pre-Burn-In Only)' },
+                { color: '#EF553B', label: 'Failed' },
+                { color: '#FECB52', label: 'No Test' },
+                { color: '#90EE90', label: 'Missing SFP Data', emoji: '&#128245;' },
+                { color: '#e0e0e0', label: 'Not Burned In', emoji: '&#128219;' },
+            ];
+            legendItems.forEach((item) => {
+                const legendItem = document.createElement('div');
+                legendItem.className = 'legend-item';
+                const legendColor = document.createElement('div');
+                legendColor.className = 'legend-color';
+                legendColor.style.background = item.color;
+                if (item.emoji) legendColor.innerHTML = item.emoji;
+                const legendLabel = document.createElement('span');
+                legendLabel.textContent = item.label;
+                legendItem.appendChild(legendColor);
+                legendItem.appendChild(legendLabel);
+                legend.appendChild(legendItem);
+            });
+        }
+
+        function renderBrickWallHeatmapLegend(legend, mode, minValue, maxValue) {
+            const option = BRICK_WALL_HEATMAP_OPTIONS.find((item) => item.id === mode);
+            legend.className = 'brick-wall-legend heatmap-legend';
+            legend.innerHTML = `
+                <div class="heatmap-legend-title">${option ? option.label : mode}</div>
+                <div class="heatmap-legend-bar"></div>
+                <div class="heatmap-legend-scale">
+                    <span>${formatHeatmapValue(mode, minValue)}</span>
+                    <span>${formatHeatmapValue(mode, maxValue)}</span>
+                </div>
+                <div class="heatmap-legend-na">
+                    <div class="legend-color"></div>
+                    <span>No data</span>
+                </div>
+            `;
+        }
+
+        function applyBrickWallHeatmap(mode = brickWallHeatmapMode) {
+            const container = document.getElementById('brick-wall-container');
+            if (!container) return;
+            const legend = container.querySelector('.brick-wall-legend');
+            const bricks = [...container.querySelectorAll('.brick')].filter((brick) => brick.boardData);
+
+            if (!mode) {
+                container.classList.remove('heatmap-active');
+                bricks.forEach((brick) => {
+                    brick.style.background = brick._statusColor || getBrickStatusColor(brick.boardData);
+                    brick.style.outline = '';
+                    delete brick.dataset.heatmapValue;
+                });
+                if (legend) renderBrickWallStatusLegend(legend);
+                return;
+            }
+
+            container.classList.add('heatmap-active');
+
+            const values = [];
+            bricks.forEach((brick) => {
+                if (brick.classList.contains('filtered-out')) return;
+                const metrics = getBoardHeatmapMetrics(brick.boardData);
+                const value = metrics[mode];
+                if (value != null && Number.isFinite(Number(value))) {
+                    values.push(Number(value));
+                }
+            });
+
+            let minValue = values.length ? Math.min(...values) : 0;
+            let maxValue = values.length ? Math.max(...values) : 1;
+            if (minValue === maxValue) {
+                maxValue = minValue + 1;
+            }
+
+            bricks.forEach((brick) => {
+                const metrics = getBoardHeatmapMetrics(brick.boardData);
+                const raw = metrics[mode];
+                const value = raw == null ? null : Number(raw);
+                if (value == null || !Number.isFinite(value)) {
+                    brick.style.background = '#ffffff';
+                    brick.style.outline = '1px dashed #888';
+                    brick.dataset.heatmapValue = '';
+                    return;
+                }
+                brick.style.outline = '';
+                const t = (value - minValue) / (maxValue - minValue);
+                brick.style.background = interpolateHeatmapColor(t);
+                brick.dataset.heatmapValue = String(value);
+            });
+
+            if (legend) {
+                const displayMax = values.length ? Math.max(...values) : maxValue;
+                const displayMin = values.length ? Math.min(...values) : minValue;
+                renderBrickWallHeatmapLegend(legend, mode, displayMin, displayMax);
+            }
+        }
+
+        function createHeatmapOverlaysPanel() {
+            const panel = document.createElement('div');
+            panel.className = 'heatmap-overlays-panel';
+            panel.innerHTML = `
+                <div class="heatmap-overlays-title">Heatmap overlays</div>
+                <div class="heatmap-overlays-list"></div>
+                <div class="heatmap-overlay-hint">Select one overlay. Uncheck to restore status colors.</div>
+            `;
+            const list = panel.querySelector('.heatmap-overlays-list');
+            BRICK_WALL_HEATMAP_OPTIONS.forEach((option) => {
+                const label = document.createElement('label');
+                label.className = 'heatmap-overlay-option';
+                const input = document.createElement('input');
+                input.type = 'checkbox';
+                input.name = 'brick-wall-heatmap';
+                input.value = option.id;
+                input.checked = brickWallHeatmapMode === option.id;
+                input.addEventListener('change', () => {
+                    if (input.checked) {
+                        list.querySelectorAll('input[type="checkbox"]').forEach((other) => {
+                            if (other !== input) other.checked = false;
+                        });
+                        brickWallHeatmapMode = option.id;
+                    } else {
+                        brickWallHeatmapMode = null;
+                    }
+                    applyBrickWallHeatmap(brickWallHeatmapMode);
+                });
+                const text = document.createElement('span');
+                text.textContent = option.label;
+                label.appendChild(input);
+                label.appendChild(text);
+                list.appendChild(label);
+            });
+            return panel;
+        }
+
         async function loadBrickWall(containerId = 'brick-wall-container', brickHeight = 10, showLegend = true) {
             const container = document.getElementById(containerId);
             if (!container) return;
@@ -8458,35 +8852,9 @@
                             brick.dataset.serial = board.serial_no;
 
                             // Determine color based on status (matching production overview plot logic)
-                            const status = board.db_status;
-                            const e_test = board.e_test;
-                            const p_test = board.p_test;
-                            const has_benchtest = board.has_benchtest;
-                            const has_sfp_data = board.a0 && board.a1 && board.b0 && board.b1;
-                            const has_post_burnin_test = board.has_post_burnin_test;
-
-                            if ((status === 0 || e_test === 0 || p_test === 0) && has_benchtest) {
-                                // Red for fail with benchtest (highest priority)
-                                brick.style.background = '#EF553B';
-                            } else if (status === 0 && !has_benchtest) {
-                                // Yellow for db_status=0 with no benchtest (No Test)
-                                brick.style.background = '#FECB52';
-                            } else if (status === null || e_test === null || p_test === null) {
-                                // Yellow for NULL (No Test)
-                                brick.style.background = '#FECB52';
-                            } else if (!has_sfp_data) {
-                                // Light green for missing SFP data
-                                brick.style.background = '#90EE90';
-                            } else if (status === 1 && e_test === 1 && p_test === 1 && !has_post_burnin_test) {
-                                // Orange for pre-burn-in passed but no post-burn-in test
-                                brick.style.background = '#FF9800';
-                            } else if (status === 1 && e_test === 1 && p_test === 1 && has_post_burnin_test) {
-                                // Green for all pass AND post-burn-in test passed
-                                brick.style.background = '#00CC96';
-                            } else {
-                                // Red for any other fail
-                                brick.style.background = '#EF553B';
-                            }
+                            const statusColor = getBrickStatusColor(board);
+                            brick.style.background = statusColor;
+                            brick._statusColor = statusColor;
 
                             // Store board data for filtering
                             brick._boardData = board;
@@ -8494,6 +8862,7 @@
                             // Add border style and emojis based on burn-in status and SFP data
                             const emojisContainer = document.createElement('div');
                             emojisContainer.className = 'brick-emojis';
+                            const has_sfp_data = board.a0 && board.a1 && board.b0 && board.b1;
 
                             // Add optical emoji for missing SFP data (leftmost)
                             if (!has_sfp_data) {
@@ -8536,6 +8905,12 @@
                                 const sfpText = hasSfpData ? 'Yes' : 'No';
                                 const eTestText = board.e_test === 1 ? 'Passed' : (board.e_test === 0 ? 'Failed' : 'Unknown');
                                 const pTestText = board.p_test === 1 ? 'Passed' : (board.p_test === 0 ? 'Failed' : 'Unknown');
+                                let heatmapTooltip = '';
+                                if (brickWallHeatmapMode) {
+                                    const metrics = getBoardHeatmapMetrics(board);
+                                    const option = BRICK_WALL_HEATMAP_OPTIONS.find((item) => item.id === brickWallHeatmapMode);
+                                    heatmapTooltip = `<div class="tooltip-row"><span class="tooltip-label">${option ? option.label : brickWallHeatmapMode}:</span>${formatHeatmapValue(brickWallHeatmapMode, metrics[brickWallHeatmapMode])}</div>`;
+                                }
 
                                 tooltip.innerHTML = `
                                     <div class="tooltip-row"><span class="tooltip-label">Serial:</span>${board.serial_no}</div>
@@ -8547,6 +8922,7 @@
                                     <div class="tooltip-row"><span class="tooltip-label">P-Test:</span>${pTestText}</div>
                                     <div class="tooltip-row"><span class="tooltip-label">Burned:</span>${burnedText}</div>
                                     <div class="tooltip-row"><span class="tooltip-label">SFP Data:</span>${sfpText}</div>
+                                    ${heatmapTooltip}
                                 `;
 
                                 tooltip.style.left = e.pageX + 10 + 'px';
@@ -8659,50 +9035,36 @@
                 }
                 content.appendChild(yAxisRight);
 
-                // Add legend if showLegend is true
+                // Create layout: wall + legend on the left, heatmap overlays on the right
+                const layout = document.createElement('div');
+                layout.className = 'brick-wall-layout';
+
+                const main = document.createElement('div');
+                main.className = 'brick-wall-main';
+                wrapper.appendChild(content);
+
                 if (showLegend) {
                     const legend = document.createElement('div');
                     legend.className = 'brick-wall-legend';
-
-                    const legendItems = [
-                        { color: '#00CC96', label: 'Passed (Post-Burn-In)' },
-                        { color: '#FF9800', label: 'Passed (Pre-Burn-In Only)' },
-                        { color: '#EF553B', label: 'Failed' },
-                        { color: '#FECB52', label: 'No Test' },
-                        { color: '#90EE90', label: 'Missing SFP Data', emoji: '&#128245;' },
-                        { color: '#e0e0e0', label: 'Not Burned In', emoji: '&#128219;' }
-                    ];
-
-                    legendItems.forEach(item => {
-                        const legendItem = document.createElement('div');
-                        legendItem.className = 'legend-item';
-
-                        const legendColor = document.createElement('div');
-                        legendColor.className = 'legend-color';
-                        legendColor.style.background = item.color;
-                        if (item.emoji) {
-                            legendColor.innerHTML = item.emoji;
-                        }
-
-                        const legendLabel = document.createElement('span');
-                        legendLabel.textContent = item.label;
-
-                        legendItem.appendChild(legendColor);
-                        legendItem.appendChild(legendLabel);
-                        legend.appendChild(legendItem);
-                    });
-
+                    renderBrickWallStatusLegend(legend);
                     wrapper.appendChild(legend);
                 }
 
-                wrapper.appendChild(content);
-                container.appendChild(wrapper);
+                main.appendChild(wrapper);
+                layout.appendChild(main);
+
+                if (showLegend && containerId === 'brick-wall-container') {
+                    layout.appendChild(createHeatmapOverlaysPanel());
+                }
+
+                container.appendChild(layout);
 
                 // Populate filter controls for the merged brick wall tab
                 if (containerId === 'brick-wall-container') {
                     populateComponentLotsFilters(data);
                     populateBenchtestFilters(data);
                     applyFilters();
+                    applyBrickWallHeatmap(brickWallHeatmapMode);
                     const section = container.closest('.brick-wall-section') || container;
                     attachShowCachedButton(
                         section,
@@ -9113,6 +9475,7 @@
                     brick.classList.remove('filtered-out');
                 }
             });
+            applyBrickWallHeatmap(brickWallHeatmapMode);
         }
 
         // Modal functionality
@@ -9217,6 +9580,13 @@
             const burnInStop = board.burn_in_stop || 'N/A';
             const burnInStopColor = burnInStop === 'N/A' ? '#f44336' : '#666';
             html += '<div class="modal-row"><span class="modal-label">Burn-in Stop:</span><span class="modal-value" style="color: ' + burnInStopColor + '">' + burnInStop + '</span></div>';
+
+            const burnInHoursMetrics = getBoardHeatmapMetrics(board);
+            const burnInHoursText = burnInHoursMetrics.total_burnin_time == null
+                ? 'N/A'
+                : formatHeatmapValue('total_burnin_time', burnInHoursMetrics.total_burnin_time);
+            const burnInHoursColor = burnInHoursText === 'N/A' ? '#f44336' : '#666';
+            html += '<div class="modal-row"><span class="modal-label">Total burn in hours:</span><span class="modal-value" style="color: ' + burnInHoursColor + '">' + burnInHoursText + '</span></div>';
             html += '</div>';
 
             // Component Lots (including SFP Information)

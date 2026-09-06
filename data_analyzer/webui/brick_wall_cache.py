@@ -466,6 +466,19 @@ def build_brick_wall_html(
       const burnInStop = board.burn_in_stop || 'N/A';
       const burnInStopColor = burnInStop === 'N/A' ? '#f44336' : '#666';
       html += '<div class="modal-row"><span class="modal-label">Burn-in Stop:</span><span class="modal-value" style="color: ' + burnInStopColor + '">' + burnInStop + '</span></div>';
+      let burnInHoursText = 'N/A';
+      if (board.burn_in_start && board.burn_in_stop) {{
+        const start = new Date(String(board.burn_in_start).replace(' ', 'T'));
+        const stop = new Date(String(board.burn_in_stop).replace(' ', 'T'));
+        if (!Number.isNaN(start.getTime()) && !Number.isNaN(stop.getTime())) {{
+          const hours = Math.max(0, (stop - start) / 3600000);
+          if (hours >= 100) burnInHoursText = hours.toFixed(0) + ' h';
+          else if (hours >= 10) burnInHoursText = hours.toFixed(1) + ' h';
+          else if (hours >= 1) burnInHoursText = hours.toFixed(2) + ' h';
+          else burnInHoursText = (hours * 60).toFixed(1) + ' min';
+        }}
+      }}
+      html += '<div class="modal-row"><span class="modal-label">Total burn in hours:</span><span class="modal-value" style="color: ' + (burnInHoursText === 'N/A' ? '#f44336' : '#666') + '">' + burnInHoursText + '</span></div>';
       html += '</div>';
 
       html += '<div class="modal-section">';

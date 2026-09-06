@@ -1879,6 +1879,708 @@
         .summary-error {
             color: #c33;
         }
+
+        .history-player {
+            display: none;
+            position: fixed;
+            left: 16px;
+            right: 16px;
+            bottom: 12px;
+            z-index: 10050;
+            background: rgba(255, 255, 255, 0.78);
+            border: 1px solid rgba(215, 219, 224, 0.9);
+            border-radius: 12px;
+            padding: 10px 14px 12px;
+            margin: 0;
+            box-shadow: 0 8px 28px rgba(0, 0, 0, 0.14);
+            backdrop-filter: blur(6px);
+            opacity: 0.38;
+            transition: opacity 0.15s ease, background 0.15s ease;
+            max-height: min(38vh, 320px);
+            overflow: auto;
+            /* Must live on body — parents with transform break viewport fixed */
+        }
+
+        .history-player.visible {
+            display: block;
+        }
+
+        .history-player:hover,
+        .history-player:focus-within {
+            opacity: 1;
+            background: rgba(255, 255, 255, 0.96);
+        }
+
+        /* Keep page content clear of the fixed player dock */
+        #production-history-content {
+            position: relative;
+            padding-bottom: 200px;
+        }
+
+        .history-section-header {
+            display: flex;
+            align-items: flex-start;
+            justify-content: space-between;
+            gap: 16px;
+            position: relative;
+        }
+
+        .history-section-header-text {
+            min-width: 0;
+            flex: 1 1 auto;
+        }
+
+        .history-section-header .history-toolbar-controls {
+            position: static;
+            flex: 0 0 auto;
+            margin-top: 2px;
+            opacity: 0.35;
+        }
+
+        .history-section-header .history-toolbar-controls:hover,
+        .history-section-header .history-toolbar-controls:focus-within {
+            opacity: 1;
+        }
+
+        .history-player-header {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 12px 18px;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 12px;
+        }
+
+        .history-player-title {
+            font-size: 15px;
+            font-weight: 700;
+            color: #333;
+        }
+
+        .history-player-meta {
+            font-size: 13px;
+            color: #666;
+            flex: 1 1 240px;
+        }
+
+        .history-player-controls {
+            display: flex;
+            gap: 8px;
+            align-items: center;
+        }
+
+        .history-player-btn {
+            border: 1px solid #d7dbe0;
+            background: #f4f7fd;
+            color: #335d9b;
+            border-radius: 6px;
+            padding: 7px 12px;
+            font-size: 13px;
+            font-weight: 600;
+            cursor: pointer;
+        }
+
+        .history-player-btn:hover {
+            background: #e8eef8;
+        }
+
+        .history-player-btn:disabled {
+            opacity: 0.45;
+            cursor: not-allowed;
+        }
+
+        .history-player-btn.active {
+            background: #667eea;
+            border-color: #667eea;
+            color: #fff;
+        }
+
+        .history-week-rail {
+            display: flex;
+            gap: 10px;
+            overflow-x: auto;
+            padding: 4px 2px 10px;
+            scroll-snap-type: x proximity;
+        }
+
+        .history-week-group {
+            min-width: 168px;
+            flex: 0 0 auto;
+            border: 1px solid #e4e8ee;
+            border-radius: 10px;
+            background: #fafbfc;
+            padding: 8px;
+            scroll-snap-align: start;
+        }
+
+        .history-week-group.active {
+            border-color: #667eea;
+            box-shadow: 0 0 0 2px rgba(102, 126, 234, 0.15);
+        }
+
+        .history-week-label {
+            font-size: 12px;
+            font-weight: 700;
+            color: #444;
+            margin-bottom: 2px;
+        }
+
+        .history-week-range {
+            font-size: 11px;
+            color: #888;
+            margin-bottom: 8px;
+        }
+
+        .history-week-marks {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 4px;
+        }
+
+        .history-mark {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            border: 1px solid #9aa7b8;
+            background: #dfe5ee;
+            cursor: pointer;
+            padding: 0;
+        }
+
+        .history-mark.benchtest_start,
+        .history-mark.benchtest_stop {
+            background: #636EFA;
+            border-color: #4c5bd4;
+        }
+
+        .history-mark.burn_in_start,
+        .history-mark.burn_in_stop {
+            background: #AB63FA;
+            border-color: #8b4ad4;
+        }
+
+        .history-mark.active {
+            outline: 2px solid #ff9800;
+            outline-offset: 1px;
+        }
+
+        .history-scrubber-row {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-top: 8px;
+        }
+
+        .history-scrubber-row input[type="range"] {
+            flex: 1 1 auto;
+            width: 100%;
+            accent-color: #667eea;
+        }
+
+        .history-scrubber-index {
+            font-size: 12px;
+            color: #666;
+            min-width: 72px;
+            text-align: right;
+            font-variant-numeric: tabular-nums;
+        }
+
+        .history-legend-row {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 12px 16px;
+            margin-top: 10px;
+            font-size: 12px;
+            color: #666;
+        }
+
+        .history-legend-item {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .history-legend-dot {
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+        }
+
+        .history-wall-section {
+            background: #fafbfc;
+            border: 1px solid #e8ebef;
+            border-radius: 10px;
+            padding: 10px;
+            margin-bottom: 0;
+            box-shadow: none;
+            position: relative;
+            min-width: 0;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+
+        .history-wall-legend {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px 12px;
+            margin-top: 8px;
+            padding: 8px 6px;
+            background: #fff;
+            border: 1px solid #e8ebef;
+            border-radius: 6px;
+            font-size: 11px;
+            color: #555;
+        }
+
+        .history-wall-toolbar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 8px;
+            flex-wrap: wrap;
+            min-height: 28px;
+        }
+
+        .history-wall-title {
+            font-size: 13px;
+            font-weight: 700;
+            color: #444;
+        }
+
+        .history-wall-pies-row {
+            display: grid;
+            grid-template-columns: minmax(240px, 1.25fr) minmax(160px, 0.75fr);
+            gap: 12px;
+            align-items: stretch;
+            margin-bottom: 16px;
+            width: 100%;
+            max-width: 100%;
+            box-sizing: border-box;
+            position: relative;
+            overflow: hidden;
+        }
+
+        @media (max-width: 1100px) {
+            .history-wall-pies-row {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .history-toolbar-controls {
+            display: flex !important;
+            flex-direction: row !important;
+            align-items: center;
+            gap: 8px;
+            padding: 5px 7px;
+            border-radius: 8px;
+            background: rgba(35, 40, 48, 0.28);
+            border: 1px solid rgba(255, 255, 255, 0.28);
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.12);
+            opacity: 0.32;
+            transition: opacity 0.15s ease, background 0.15s ease;
+            pointer-events: auto;
+        }
+
+        .history-toolbar-controls:hover,
+        .history-toolbar-controls:focus-within {
+            opacity: 1;
+            background: rgba(35, 40, 48, 0.72);
+        }
+
+        .history-show-cached-btn {
+            display: none;
+            padding: 6px 10px;
+            border: 1px solid rgba(255, 255, 255, 0.35);
+            border-radius: 5px;
+            background: rgba(255, 255, 255, 0.12);
+            color: #fff;
+            font-size: 12px;
+            font-weight: 600;
+            text-decoration: none;
+            white-space: nowrap;
+        }
+
+        .history-show-cached-btn.visible {
+            display: inline-flex;
+            align-items: center;
+        }
+
+        .history-show-cached-btn:hover {
+            background: rgba(255, 255, 255, 0.22);
+            color: #fff;
+        }
+
+        .history-toolbar-controls .burn-in-recompute-btn {
+            border-color: rgba(255, 255, 255, 0.35);
+            background: rgba(255, 255, 255, 0.12);
+            color: #fff;
+        }
+
+        .history-toolbar-controls .burn-in-recompute-btn:hover {
+            background: rgba(255, 255, 255, 0.22);
+            color: #fff;
+        }
+
+        .history-pies-side {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+            min-width: 0;
+            min-height: 0;
+            overflow: hidden;
+            max-height: 100%;
+        }
+
+        .history-pies-side .summary-chart-card.summary-chart-card-pie {
+            height: auto !important;
+            min-height: 0;
+            max-height: none;
+            overflow: hidden;
+            flex: 1 1 0;
+            padding: 6px;
+        }
+
+        .history-pies-side .summary-chart-title {
+            display: none;
+        }
+
+        .history-pies-side .summary-chart-plot,
+        .history-pies-side .history-chart-img-wrap {
+            min-height: 0 !important;
+            height: auto !important;
+            overflow: hidden;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex: 1 1 auto;
+        }
+
+        .history-pies-side .history-frame-img {
+            width: 100%;
+            max-width: 100%;
+            height: auto;
+            max-height: 180px;
+            object-fit: contain;
+        }
+
+        .summary-chart-card.history-line-card {
+            height: auto;
+            overflow: visible;
+        }
+
+        .summary-chart-card.history-line-card .summary-chart-plot,
+        .summary-chart-card.history-line-card .history-chart-img-wrap {
+            flex: 0 0 auto;
+            min-height: 0;
+            height: auto;
+            overflow: visible;
+        }
+
+        .summary-chart-card.history-line-card .history-frame-img {
+            width: 100%;
+            height: auto;
+            max-height: none;
+            object-fit: contain;
+            display: block;
+        }
+
+        #history-brick-wall-container.history-compact-wall {
+            overflow-x: auto;
+            padding: 4px 0;
+        }
+
+        #history-brick-wall-container.history-compact-wall .brick-wall-content {
+            gap: 3px;
+        }
+
+        #history-brick-wall-container.history-compact-wall .batch-column {
+            min-width: 14px;
+            gap: 1px;
+        }
+
+        #history-brick-wall-container.history-compact-wall .batch-label {
+            height: 14px;
+            font-size: 9px;
+        }
+
+        #history-brick-wall-container.history-compact-wall .y-axis-column {
+            min-width: 18px;
+            font-size: 9px;
+        }
+
+        #history-brick-wall-container.history-compact-wall .y-axis-spacer {
+            height: 14px;
+        }
+
+        #history-brick-wall-container.history-compact-wall .brick {
+            width: 12px;
+            border-radius: 1px;
+        }
+
+        #history-brick-wall-container.history-compact-wall .brick-emojis {
+            font-size: 6px;
+        }
+
+        .history-cache-overlay {
+            display: none;
+            position: fixed;
+            inset: 0;
+            z-index: 10060;
+            align-items: center;
+            justify-content: center;
+            background: rgba(245, 247, 250, 0.72);
+            backdrop-filter: blur(2px);
+            /* On body so it stays viewport-centered despite tab transform */
+        }
+
+        .history-cache-overlay.visible {
+            display: flex;
+        }
+
+        .history-cache-modal {
+            min-width: min(420px, 90%);
+            max-width: 520px;
+            background: #fff;
+            border: 1px solid #d7dbe0;
+            border-radius: 12px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.12);
+            padding: 22px 24px;
+            text-align: center;
+        }
+
+        .history-cache-spinner {
+            width: 34px;
+            height: 34px;
+            margin: 0 auto 14px;
+            border-radius: 50%;
+            border: 3px solid #d7dbe0;
+            border-top-color: #667eea;
+            animation: history-spin 0.8s linear infinite;
+        }
+
+        @keyframes history-spin {
+            to { transform: rotate(360deg); }
+        }
+
+        .history-cache-modal-title {
+            font-size: 16px;
+            font-weight: 700;
+            color: #333;
+            margin-bottom: 6px;
+        }
+
+        .history-cache-modal-text {
+            font-size: 13px;
+            color: #666;
+            line-height: 1.45;
+        }
+
+        .history-cache-progress {
+            display: none;
+            margin-top: 16px;
+            text-align: left;
+        }
+
+        .history-cache-progress.visible {
+            display: block;
+        }
+
+        .history-cache-progress-meta {
+            display: flex;
+            justify-content: space-between;
+            align-items: baseline;
+            gap: 10px;
+            margin-bottom: 8px;
+            font-size: 12px;
+            color: #555;
+        }
+
+        .history-cache-progress-percent {
+            font-weight: 700;
+            color: #335d9b;
+            font-variant-numeric: tabular-nums;
+        }
+
+        .history-cache-progress-track {
+            height: 10px;
+            border-radius: 999px;
+            background: #e8ecf1;
+            overflow: hidden;
+        }
+
+        .history-cache-progress-fill {
+            height: 100%;
+            width: 0%;
+            border-radius: 999px;
+            background: linear-gradient(90deg, #667eea, #5a8dee);
+            transition: width 0.25s ease;
+        }
+
+        .history-mark.is-cached {
+            box-shadow: 0 0 0 2px rgba(0, 204, 150, 0.45);
+        }
+
+        .history-frame-img {
+            display: block;
+            width: 100%;
+            max-width: 100%;
+            height: auto;
+            background: #fff;
+            border-radius: 8px;
+            object-fit: contain;
+        }
+
+        .history-frame-stack {
+            position: relative;
+            width: 100%;
+            line-height: 0;
+        }
+
+        .history-frame-stack .history-frame-img {
+            width: 100%;
+            max-width: 100%;
+            height: auto;
+            opacity: 0;
+            pointer-events: none;
+            position: absolute;
+            left: 0;
+            top: 0;
+            transition: opacity 35ms linear;
+            border-radius: 8px;
+            background: #fff;
+        }
+
+        body.history-fade-transitions .history-frame-stack .history-frame-img {
+            transition: opacity 320ms ease-in-out;
+        }
+
+        .history-frame-stack .history-frame-img.is-visible {
+            opacity: 1;
+            position: relative;
+            pointer-events: auto;
+            z-index: 1;
+        }
+
+        .history-player-speed {
+            display: flex;
+            flex-wrap: wrap;
+            align-items: center;
+            gap: 8px 12px;
+            margin-top: 10px;
+            font-size: 12px;
+            color: #555;
+        }
+
+        .history-player-speed label {
+            font-weight: 600;
+            color: #445;
+        }
+
+        .history-player-speed select {
+            border: 1px solid #d7dbe0;
+            background: #fff;
+            border-radius: 6px;
+            padding: 5px 8px;
+            font-size: 12px;
+            color: #333;
+        }
+
+        .history-player-speed-core {
+            display: inline-flex;
+            flex-wrap: wrap;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .history-player-options {
+            display: inline-flex;
+            flex-wrap: wrap;
+            align-items: center;
+            gap: 10px 14px;
+            margin-left: auto;
+        }
+
+        .history-player-option {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            font-weight: 600;
+            color: #445;
+            cursor: pointer;
+            user-select: none;
+        }
+
+        .history-player-option input {
+            margin: 0;
+            cursor: pointer;
+        }
+
+        .history-player-option.is-disabled,
+        .history-player-option.is-hidden {
+            opacity: 0.45;
+            cursor: not-allowed;
+        }
+
+        .history-player-option.is-hidden {
+            display: none;
+        }
+
+        .history-player-option.is-disabled input,
+        .history-player-option.is-disabled select {
+            cursor: not-allowed;
+        }
+
+        .history-player-drop-control {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .history-player-drop-control.is-hidden {
+            display: none;
+        }
+
+        .history-player-drop-control.is-disabled {
+            opacity: 0.45;
+        }
+
+        .history-player-drop-control select {
+            min-width: 56px;
+        }
+
+        .history-player-btn.media-icon {
+            min-width: 42px;
+            font-size: 14px;
+            letter-spacing: 0;
+        }
+
+        #history-brick-wall-container {
+            flex: 1 1 auto;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            overflow: visible;
+            min-height: 0;
+            min-width: 0;
+            background: #fafbfc;
+            border-radius: 8px;
+        }
+        #history-brick-wall-container .history-frame-img {
+            width: 100%;
+            max-width: 100%;
+            height: auto;
+            max-height: none;
+            margin: 0 auto;
+            object-fit: contain;
+            image-rendering: auto;
+            background: #fafbfc;
+        }
+        .history-chart-img-wrap {
+            min-height: 200px;
+            overflow: visible;
+        }
     </style>
     <script src="https://cdn.plot.ly/plotly-2.35.2.min.js"></script>
 </head>
@@ -1911,6 +2613,7 @@
             <button class="tab" data-tab="production-statistics" onclick="switchTab('production-statistics', this)">Production Statistics</button>
             <button class="tab" data-tab="burn-in" onclick="switchTab('burn-in', this)">Burn In</button>
             <button class="tab" data-tab="long-burn-in" onclick="switchTab('long-burn-in', this)">Long Burn In</button>
+            <button class="tab" data-tab="production-history" onclick="switchTab('production-history', this)">Production History</button>
         </div>
 
         <div id="brick-wall" class="tab-content active">
@@ -2038,6 +2741,24 @@
             </div>
         </div>
 
+        <div id="production-history" class="tab-content">
+            <div class="production-summary-section">
+                <div class="production-summary-header history-section-header">
+                    <div class="history-section-header-text">
+                        <h3>Production History</h3>
+                        <p id="production-history-subtitle">Loading milestones...</p>
+                    </div>
+                    <div id="history-cache-controls" class="history-toolbar-controls">
+                        <a id="history-show-cached-btn" class="history-show-cached-btn" target="_blank" rel="noopener noreferrer">Show Cached</a>
+                        <button type="button" id="history-recompute-btn" class="burn-in-recompute-btn">Recompute</button>
+                    </div>
+                </div>
+                <div id="production-history-content">
+                    <div class="summary-loading">Loading production history...</div>
+                </div>
+            </div>
+        </div>
+
         {% if not session.get('guest_mode') %}
         <div id="advanced-options" class="tab-content">
             <div class="cards-grid">
@@ -2074,6 +2795,18 @@
                     <div class="card-icon">⏳</div>
                     <h3>Long Burn-In Configuration</h3>
                     <p>Configure board serial, period, FPGA tags, and aging parameters for the Long Burn In tab.</p>
+                </a>
+
+                <a href="{{ url_for('edit_history_cache') }}" class="card">
+                    <div class="card-icon">🕘</div>
+                    <h3>Production History Cache</h3>
+                    <p>Rebuild missing milestone caches or rebuild the entire Production History cache.</p>
+                </a>
+
+                <a href="{{ url_for('edit_tab_order') }}" class="card">
+                    <div class="card-icon">☰</div>
+                    <h3>Organize Tabs</h3>
+                    <p>Change the order of the main dashboard tabs.</p>
                 </a>
             </div>
         </div>
@@ -2207,6 +2940,24 @@
 
     <script>
         const isGuestMode = {{ 'true' if session.get('guest_mode') else 'false' }};
+        const dashboardTabOrder = {{ (dashboard_tab_order or []) | tojson }};
+
+        function applyDashboardTabOrder() {
+            const tabsContainer = document.querySelector('.tabs');
+            if (!tabsContainer || !dashboardTabOrder.length) return;
+            const buttons = Array.from(tabsContainer.querySelectorAll('.tab[data-tab]'));
+            const byId = new Map(buttons.map((btn) => [btn.dataset.tab, btn]));
+            dashboardTabOrder.forEach((tabId) => {
+                const btn = byId.get(tabId);
+                if (btn) tabsContainer.appendChild(btn);
+            });
+            buttons.forEach((btn) => {
+                if (!dashboardTabOrder.includes(btn.dataset.tab)) {
+                    tabsContainer.appendChild(btn);
+                }
+            });
+        }
+        applyDashboardTabOrder();
         const MAX_BRICK_WALL_BATCH = 13;
         const BURN_IN_PLOT_HEIGHT = 600;
 
@@ -2310,6 +3061,13 @@
             selectedContent.style.opacity = '1';
             selectedContent.style.transform = 'translateY(0)';
 
+            const historyDock = document.getElementById('history-player-dock');
+            if (historyDock) {
+                const showHistoryPlayer = tabId === 'production-history' && historyDock.innerHTML.trim();
+                historyDock.classList.toggle('visible', showHistoryPlayer);
+                historyDock.setAttribute('aria-hidden', showHistoryPlayer ? 'false' : 'true');
+            }
+
             if (tabId === 'brick-wall') {
                 loadBrickWall('brick-wall-container', 10, true).then(() => {
                     applyFilters();
@@ -2322,6 +3080,8 @@
                 loadBurnIn();
             } else if (tabId === 'long-burn-in') {
                 loadLongBurnIn();
+            } else if (tabId === 'production-history') {
+                loadProductionHistory();
             }
         }
 
@@ -2873,6 +3633,25 @@
             return [format(min - padding), format(max + padding)];
         }
 
+        function resolveConfiguredXRange(naturalRange, startDate, endDate) {
+            const hasStart = Boolean(startDate);
+            const hasEnd = Boolean(endDate);
+            if (!hasStart && !hasEnd) {
+                return naturalRange;
+            }
+
+            const start = hasStart
+                ? `${String(startDate).split(' ')[0]} 00:00:00`
+                : (naturalRange ? naturalRange[0] : null);
+            const end = hasEnd
+                ? `${String(endDate).split(' ')[0]} 23:59:59`
+                : (naturalRange ? naturalRange[1] : null);
+            if (!start || !end) {
+                return naturalRange;
+            }
+            return [start, end];
+        }
+
         function getTraceYMax(traces) {
             let ymax = 0;
             traces.forEach(trace => {
@@ -3087,26 +3866,38 @@
                 legend: yieldLegend.legend,
             });
 
-            const burninTotal = data.burnin_status.burned_in + data.burnin_status.not_burned_in;
-            const notBurnedInRate = burninTotal > 0
-                ? (data.burnin_status.not_burned_in / burninTotal * 100).toFixed(1)
+            const burnin = data.burnin_status || {};
+            const burnedIn = burnin.received_burned_in ?? burnin.burned_in ?? 0;
+            const receivedNotBurned = burnin.received_not_burned_in ?? burnin.not_burned_in ?? 0;
+            const notReceived = burnin.not_received ?? 0;
+            const burninExpected = burnin.expected || (burnedIn + receivedNotBurned + notReceived);
+            const burnedInRate = burninExpected > 0
+                ? (burnedIn / burninExpected * 100).toFixed(1)
                 : '0.0';
             const burninSubtitle = document.getElementById('burnin-chart-subtitle');
             if (burninSubtitle) {
-                burninSubtitle.textContent = `Not Burned In: ${notBurnedInRate}%`;
+                burninSubtitle.textContent = (
+                    `Burned In: ${burnedInRate}% of ${burninExpected} expected`
+                );
             }
 
-            const burninLegend = buildSummaryBottomLegend(2);
+            const burninLegend = buildSummaryBottomLegend(3);
             renderSummaryPlot('burnin-pie-chart', [{
                 type: 'pie',
-                labels: ['Burned In', 'Not Burned In'],
-                values: [data.burnin_status.burned_in, data.burnin_status.not_burned_in],
-                marker: { colors: [colors.burned_in, colors.not_burned_in] },
+                labels: ['Received Burned In', 'Received Not Burned In', 'Not Received'],
+                values: [burnedIn, receivedNotBurned, notReceived],
+                marker: {
+                    colors: [
+                        colors.burned_in,
+                        colors.not_burned_in,
+                        colors.not_received || colors.not_yet_produced,
+                    ],
+                },
                 textinfo: 'percent',
                 textposition: 'inside',
                 insidetextorientation: 'radial',
                 domain: burninLegend.domain,
-                hovertemplate: '%{label}: %{value}<extra></extra>',
+                hovertemplate: '%{label}: %{value} (%{percent})<extra></extra>',
             }], {
                 margin: burninLegend.margin,
                 showlegend: true,
@@ -3271,7 +4062,15 @@
                 });
             }
 
-            const timeXRange = computeTraceXRange(timeTraces);
+            const plotConfig = data.production_config || {};
+            const xTicks = Math.max(2, Math.min(50, Number(plotConfig.production_plot_x_ticks) || 8));
+            const yTicks = Math.max(2, Math.min(50, Number(plotConfig.production_plot_y_ticks) || 6));
+            const naturalTimeXRange = computeTraceXRange(timeTraces);
+            const timeXRange = resolveConfiguredXRange(
+                naturalTimeXRange,
+                plotConfig.production_plot_start_date,
+                plotConfig.production_plot_end_date,
+            );
             const timeYMax = getTraceYMax(timeTraces);
             const timeComments = filterCommentsInRange(calendarComments, timeXRange);
             const timeLabelLayout = buildCalendarLabelLayout(timeComments, chartLabelSettings.time, timeYMax);
@@ -3283,8 +4082,13 @@
                     title: 'Test Passed Time',
                     range: timeXRange || undefined,
                     autorange: !timeXRange,
+                    nticks: xTicks,
                 },
-                yaxis: { title: 'Cumulative Board Count', range: [0, timeYMax * 1.05] },
+                yaxis: {
+                    title: 'Cumulative Board Count',
+                    range: [0, timeYMax * 1.05],
+                    nticks: yTicks,
+                },
                 showlegend: true,
                 legend: timeLayout.legend,
                 annotations: timeLabelLayout.annotations,
@@ -3341,7 +4145,12 @@
             }
 
             if (burninTraces.length > 0) {
-                const burninXRange = computeTraceXRange(burninTraces);
+                const naturalBurninXRange = computeTraceXRange(burninTraces);
+                const burninXRange = resolveConfiguredXRange(
+                    naturalBurninXRange,
+                    plotConfig.production_plot_start_date,
+                    plotConfig.production_plot_end_date,
+                );
                 const burninYMax = getTraceYMax(burninTraces);
                 const burninComments = filterCommentsInRange(calendarComments, burninXRange);
                 const burninLabelLayout = buildCalendarLabelLayout(
@@ -3357,8 +4166,13 @@
                         title: 'Burn-In Time',
                         range: burninXRange || undefined,
                         autorange: !burninXRange,
+                        nticks: xTicks,
                     },
-                    yaxis: { title: 'Cumulative Board Count', range: [0, burninYMax * 1.05] },
+                    yaxis: {
+                        title: 'Cumulative Board Count',
+                        range: [0, burninYMax * 1.05],
+                        nticks: yTicks,
+                    },
                     showlegend: true,
                     legend: burninLayout.legend,
                     annotations: burninLabelLayout.annotations,
@@ -3486,6 +4300,16 @@
                 ? String(roundedDays)
                 : roundedDays.toFixed(1);
             return `${hoursText} h (${daysText} d)`;
+        }
+
+        function formatBurnInAgedLegend(hours) {
+            const base = formatBurnInHoursDaysTick(hours || 0);
+            const years = (Math.round((hours || 0) * 10) / 10) / (24 * 365.25);
+            const roundedYears = Math.round(years * 100) / 100;
+            const yearsText = Number.isInteger(roundedYears)
+                ? String(roundedYears)
+                : roundedYears.toFixed(2);
+            return `${base} (${yearsText} years)`;
         }
 
         function formatBurnInNumericTick(value, span) {
@@ -3814,14 +4638,14 @@
                     const totalAging = agingHours.length ? agingHours[agingHours.length - 1] : 0;
                     const elapsed = slot.series.elapsed_hours[slot.series.elapsed_hours.length - 1] || 0;
                     timeText = formatBurnInHoursDaysTick(elapsed);
-                    agingText = formatBurnInHoursDaysTick(totalAging);
+                    agingText = formatBurnInAgedLegend(totalAging);
                     afText = formatAverageAfValue(avgAf);
                 }
                 return `
                     <div class="burn-in-slot-list-item">
                         ${slot.slot_id}
                         &nbsp;·&nbsp; Time: ${timeText}
-                        &nbsp;·&nbsp; Aging: ${agingText}
+                        &nbsp;·&nbsp; ${agingText}
                         &nbsp;·&nbsp; AF: ${afText}
                         &nbsp;·&nbsp; Boards: ${boardLabels || '—'}
                     </div>
@@ -4005,6 +4829,7 @@
             const totalAging = agingHours.length ? agingHours[agingHours.length - 1] : 0;
             const offset = lastBurnInPlotData.config.temperature_offset_c ?? 0;
             const agingLabel = `${profile.name} ${profile.temperature_c}°C, Ea=${energy.value} eV`;
+            const agedLegend = formatBurnInAgedLegend(totalAging || 0);
 
             if (meta) {
                 const boardSerials = (lastBurnInPlotData.boards || [])
@@ -4018,7 +4843,7 @@
                     <span><strong>Stop:</strong> ${lastBurnInPlotData.burn_in_stop}</span>
                     <span><strong>Duration:</strong> ${lastBurnInPlotData.duration_hours} h</span>
                     <span><strong>Offset:</strong> ${offset} °C</span>
-                    <span><strong>Accelerated aging:</strong> ${totalAging} h</span>
+                    <span><strong>Accelerated aging:</strong> ${formatBurnInAgedLegend(totalAging || 0)}</span>
                 `;
             }
 
@@ -4031,7 +4856,7 @@
                 {
                     x: series.elapsed_hours,
                     y: agingHours,
-                    name: `Accelerated Aging (${agingLabel}${formatLegendAverageAf(avgAf)})`,
+                    name: `Accelerated · ${agedLegend}${formatLegendAverageAf(avgAf)} (${agingLabel})`,
                     type: 'scatter',
                     mode: 'lines',
                     line: { color: '#AB63FA', width: 2.2 },
@@ -4110,7 +4935,7 @@
                 const totalElapsed = elapsedHours.length ? elapsedHours[elapsedHours.length - 1] : 0;
                 const totalAging = agingHours.length ? agingHours[agingHours.length - 1] : 0;
                 const legendTime = formatBurnInHoursDaysTick(totalElapsed || 0);
-                const legendAging = formatBurnInHoursDaysTick(totalAging || 0);
+                const legendAging = formatBurnInAgedLegend(totalAging || 0);
                 const legendAf = formatAverageAfValue(avgAf);
                 agingSeriesList.push(agingHours);
                 traces.push({
@@ -4119,7 +4944,7 @@
                     name: (
                         `${slot.slot_id}`
                         + ` · Time: ${legendTime}`
-                        + ` · Aging: ${legendAging}`
+                        + ` · ${legendAging}`
                         + ` · AF: ${legendAf}`
                     ),
                     type: 'scatter',
@@ -5024,11 +5849,14 @@
             const avgAfEnv = computeAverageAccelerationFactor(agingEnv, powerOnHours);
             const avgAfFpgaA = computeAverageAccelerationFactor(agingFpgaA, powerOnHours);
             const avgAfFpgaB = computeAverageAccelerationFactor(agingFpgaB, powerOnHours);
+            const agedEnv = formatBurnInAgedLegend(agingEnv.length ? agingEnv[agingEnv.length - 1] : 0);
+            const agedFpgaA = formatBurnInAgedLegend(agingFpgaA.length ? agingFpgaA[agingFpgaA.length - 1] : 0);
+            const agedFpgaB = formatBurnInAgedLegend(agingFpgaB.length ? agingFpgaB[agingFpgaB.length - 1] : 0);
             const traces = [
                 {
                     x: series.elapsed_hours,
                     y: agingEnv,
-                    name: `Env Aging${formatLegendAverageAf(avgAfEnv)}`,
+                    name: `Env · ${agedEnv}${formatLegendAverageAf(avgAfEnv)}`,
                     type: 'scatter',
                     mode: 'lines',
                     line: { color: LONG_BURN_IN_COLORS.env, width: 2.2 },
@@ -5039,7 +5867,7 @@
                 {
                     x: series.elapsed_hours,
                     y: agingFpgaA,
-                    name: `${config.fpga_a_label} Aging${formatLegendAverageAf(avgAfFpgaA)}`,
+                    name: `${config.fpga_a_label} · ${agedFpgaA}${formatLegendAverageAf(avgAfFpgaA)}`,
                     type: 'scatter',
                     mode: 'lines',
                     line: { color: LONG_BURN_IN_COLORS.fpgaA, width: 2.2 },
@@ -5050,7 +5878,7 @@
                 {
                     x: series.elapsed_hours,
                     y: agingFpgaB,
-                    name: `${config.fpga_b_label} Aging${formatLegendAverageAf(avgAfFpgaB)}`,
+                    name: `${config.fpga_b_label} · ${agedFpgaB}${formatLegendAverageAf(avgAfFpgaB)}`,
                     type: 'scatter',
                     mode: 'lines',
                     line: { color: LONG_BURN_IN_COLORS.fpgaB, width: 2.2 },
@@ -5235,17 +6063,22 @@
 
             const meta = document.getElementById('long-burn-in-meta');
             if (meta) {
+                const formatTrio = (bundle) => [
+                    formatBurnInAgedLegend(bundle.agingEnv.at(-1) || 0),
+                    formatBurnInAgedLegend(bundle.agingFpgaA.at(-1) || 0),
+                    formatBurnInAgedLegend(bundle.agingFpgaB.at(-1) || 0),
+                ].join(' / ');
                 meta.innerHTML = `
                     <span><strong>Board:</strong> ${lastLongBurnInPlotData.board_serial}</span>
                     <span><strong>Start:</strong> ${lastLongBurnInPlotData.period_start}</span>
                     <span><strong>Stop:</strong> ${lastLongBurnInPlotData.period_stop}</span>
-                    <span><strong>Duration:</strong> ${lastLongBurnInPlotData.duration_hours} h</span>
+                    <span><strong>Duration:</strong> ${formatBurnInAgedLegend(lastLongBurnInPlotData.duration_hours || 0)}</span>
                     <span><strong>Env offset:</strong> ${offset} °C</span>
                     <span><strong>Env humidity:</strong> ${latestHumidity != null ? `${latestHumidity} %` : '—'}</span>
                     <span><strong>Tag:</strong> ${config.board_tag_key}</span>
-                    <span><strong>Arrhenius aging (env / A / B):</strong> ${arrheniusAging.agingEnv.at(-1) || 0} / ${arrheniusAging.agingFpgaA.at(-1) || 0} / ${arrheniusAging.agingFpgaB.at(-1) || 0} h</span>
-                    <span><strong>Eyring aging (env / A / B):</strong> ${eyringAging.agingEnv.at(-1) || 0} / ${eyringAging.agingFpgaA.at(-1) || 0} / ${eyringAging.agingFpgaB.at(-1) || 0} h</span>
-                    <span><strong>Peck aging (env / A / B):</strong> ${peckAging.agingEnv.at(-1) || 0} / ${peckAging.agingFpgaA.at(-1) || 0} / ${peckAging.agingFpgaB.at(-1) || 0} h</span>
+                    <span><strong>Arrhenius (env / A / B):</strong> ${formatTrio(arrheniusAging)}</span>
+                    <span><strong>Eyring (env / A / B):</strong> ${formatTrio(eyringAging)}</span>
+                    <span><strong>Peck (env / A / B):</strong> ${formatTrio(peckAging)}</span>
                 `;
             }
 
@@ -5408,6 +6241,959 @@
             } catch (error) {
                 content.innerHTML = '<div class="summary-error">Error loading long burn-in analysis.</div>';
                 subtitle.textContent = 'Failed to load long burn-in analysis.';
+            }
+        }
+
+        let productionHistoryLoaded = false;
+        let productionHistoryMilestones = [];
+        let productionHistoryWeeks = [];
+        let productionHistoryIndex = 0;
+        let productionHistoryPlaying = false;
+        let productionHistoryTimer = null;
+        let productionHistoryRequestId = 0;
+        let productionHistoryTimeAxis = null;
+        let productionHistoryCached = false;
+        let lastProductionHistorySnapshot = null;
+        const HISTORY_WALL_ROWS = 80;
+        const HISTORY_WALL_MAX_BATCH = 13;
+        const HISTORY_BRICK_HEIGHT = 4;
+        const HISTORY_PLAY_INTERVAL_MS = 280;
+        const HISTORY_PLAY_INTERVAL_UNCACHED_MS = 900;
+        const HISTORY_SPEED_VALUES = [0.25, 0.5, 1, 2, 3, 4, 5, 8, 10];
+        const HISTORY_SPEED_STORAGE_KEY = 'tileqa_history_play_speed';
+        const HISTORY_PLAYER_OPTIONS_STORAGE_KEY = 'tileqa_history_play_options';
+        const HISTORY_FADE_TRANSITION_MS = 320;
+        const HISTORY_DROP_N_VALUES = [1, 2, 3, 4, 5, 8, 10, 15, 20];
+        let historyCacheOverlayTimer = null;
+        let historyPlaySpeedUnit = 'milestones_per_second';
+        let historyPlaySpeedValue = 4;
+        let historyPlayWeekLastOnly = false;
+        let historyPlayFadeTransitions = false;
+        let historyPlayDropMilestones = false;
+        let historyPlayDropN = 1;
+
+        function loadHistoryPlaySpeedSettings() {
+            try {
+                const raw = localStorage.getItem(HISTORY_SPEED_STORAGE_KEY);
+                if (!raw) return;
+                const parsed = JSON.parse(raw);
+                if (parsed.unit === 'weeks_per_second' || parsed.unit === 'milestones_per_second') {
+                    historyPlaySpeedUnit = parsed.unit;
+                }
+                const value = Number(parsed.value);
+                if (HISTORY_SPEED_VALUES.includes(value)) {
+                    historyPlaySpeedValue = value;
+                }
+            } catch (_) { /* ignore */ }
+        }
+
+        function saveHistoryPlaySpeedSettings() {
+            try {
+                localStorage.setItem(HISTORY_SPEED_STORAGE_KEY, JSON.stringify({
+                    unit: historyPlaySpeedUnit,
+                    value: historyPlaySpeedValue,
+                }));
+            } catch (_) { /* ignore */ }
+        }
+
+        function loadHistoryPlayOptions() {
+            try {
+                const raw = localStorage.getItem(HISTORY_PLAYER_OPTIONS_STORAGE_KEY);
+                if (!raw) return;
+                const parsed = JSON.parse(raw);
+                historyPlayWeekLastOnly = Boolean(parsed.weekLastOnly);
+                historyPlayFadeTransitions = Boolean(parsed.fadeTransitions);
+                historyPlayDropMilestones = Boolean(parsed.dropMilestones);
+                const dropN = Number(parsed.dropN);
+                if (HISTORY_DROP_N_VALUES.includes(dropN)) {
+                    historyPlayDropN = dropN;
+                }
+            } catch (_) { /* ignore */ }
+        }
+
+        function saveHistoryPlayOptions() {
+            try {
+                localStorage.setItem(HISTORY_PLAYER_OPTIONS_STORAGE_KEY, JSON.stringify({
+                    weekLastOnly: historyPlayWeekLastOnly,
+                    fadeTransitions: historyPlayFadeTransitions,
+                    dropMilestones: historyPlayDropMilestones,
+                    dropN: historyPlayDropN,
+                }));
+            } catch (_) { /* ignore */ }
+        }
+
+        function applyHistoryFadeTransitionSetting() {
+            document.body.classList.toggle('history-fade-transitions', historyPlayFadeTransitions);
+        }
+
+        function syncHistoryPlayerOptionControls() {
+            const weekLastOnly = document.getElementById('history-week-last-only');
+            const weekLastLabel = document.getElementById('history-week-last-only-label');
+            const fadeTransitions = document.getElementById('history-fade-transitions');
+            const dropWrap = document.getElementById('history-drop-milestones-wrap');
+            const dropToggle = document.getElementById('history-drop-milestones');
+            const dropNSelect = document.getElementById('history-drop-n');
+            const weeksMode = historyPlaySpeedUnit === 'weeks_per_second';
+            const milestonesMode = historyPlaySpeedUnit === 'milestones_per_second';
+
+            if (weekLastOnly) {
+                weekLastOnly.checked = historyPlayWeekLastOnly;
+                weekLastOnly.disabled = !weeksMode;
+            }
+            if (weekLastLabel) {
+                weekLastLabel.classList.toggle('is-hidden', !weeksMode);
+                weekLastLabel.classList.toggle('is-disabled', !weeksMode);
+                weekLastLabel.title = weeksMode
+                    ? 'When playing in weeks/s, advance only to the last milestone of each week'
+                    : 'Enable weeks / s speed unit to use week-end-only playback';
+            }
+            if (dropWrap) {
+                dropWrap.classList.toggle('is-hidden', !milestonesMode);
+                dropWrap.classList.toggle('is-disabled', !milestonesMode);
+            }
+            if (dropToggle) {
+                dropToggle.checked = historyPlayDropMilestones;
+                dropToggle.disabled = !milestonesMode;
+            }
+            if (dropNSelect) {
+                dropNSelect.value = String(historyPlayDropN);
+                dropNSelect.disabled = !milestonesMode || !historyPlayDropMilestones;
+            }
+            if (fadeTransitions) {
+                fadeTransitions.checked = historyPlayFadeTransitions;
+            }
+            applyHistoryFadeTransitionSetting();
+        }
+
+        loadHistoryPlaySpeedSettings();
+        loadHistoryPlayOptions();
+        applyHistoryFadeTransitionSetting();
+
+        function getWeekLastMilestoneIndex(week) {
+            const indices = week?.milestone_indices || [];
+            return indices.length ? indices[indices.length - 1] : null;
+        }
+
+        function isHistoryWeekLastOnlyActive() {
+            return historyPlaySpeedUnit === 'weeks_per_second' && historyPlayWeekLastOnly;
+        }
+
+        function isHistoryDropMilestonesActive() {
+            return (
+                historyPlaySpeedUnit === 'milestones_per_second'
+                && historyPlayDropMilestones
+                && historyPlayDropN > 0
+            );
+        }
+
+        function getHistoryMilestoneStep() {
+            if (!isHistoryDropMilestonesActive()) {
+                return 1;
+            }
+            return historyPlayDropN + 1;
+        }
+
+        function getNextHistoryPlayIndex(fromIndex) {
+            if (isHistoryWeekLastOnlyActive()) {
+                const current = productionHistoryMilestones[fromIndex] || {};
+                const weekIdx = productionHistoryWeeks.findIndex((item) => item.week_key === current.week_key);
+                if (weekIdx < 0) {
+                    return fromIndex + 1;
+                }
+                const lastOfCurrent = getWeekLastMilestoneIndex(productionHistoryWeeks[weekIdx]);
+                if (lastOfCurrent != null && fromIndex < lastOfCurrent) {
+                    return lastOfCurrent;
+                }
+                for (let index = weekIdx + 1; index < productionHistoryWeeks.length; index += 1) {
+                    const lastOfWeek = getWeekLastMilestoneIndex(productionHistoryWeeks[index]);
+                    if (lastOfWeek != null && lastOfWeek > fromIndex) {
+                        return lastOfWeek;
+                    }
+                }
+                return productionHistoryMilestones.length;
+            }
+            return fromIndex + getHistoryMilestoneStep();
+        }
+
+        function getHistoryPlayIntervalMs(fromIndex) {
+            const rate = Math.max(0.01, Number(historyPlaySpeedValue) || 1);
+            if (historyPlaySpeedUnit === 'weeks_per_second') {
+                if (isHistoryWeekLastOnlyActive()) {
+                    return Math.max(16, Math.round(1000 / rate));
+                }
+                const milestone = productionHistoryMilestones[fromIndex] || {};
+                const weekKey = milestone.week_key;
+                const week = productionHistoryWeeks.find((item) => item.week_key === weekKey);
+                const count = Math.max(1, (week?.milestone_indices || []).length);
+                return Math.max(16, Math.round((1000 / rate) / count));
+            }
+            return Math.max(16, Math.round(1000 / rate));
+        }
+
+        function setHistoryCacheOverlayProgress(options = {}) {
+            const progress = document.getElementById('history-cache-progress');
+            const fill = document.getElementById('history-cache-progress-fill');
+            const percentEl = document.getElementById('history-cache-progress-percent');
+            const labelEl = document.getElementById('history-cache-progress-label');
+            const bar = document.getElementById('history-cache-progress-bar');
+            if (!progress) return;
+
+            const show = Boolean(options.show);
+            progress.classList.toggle('visible', show);
+            progress.setAttribute('aria-hidden', show ? 'false' : 'true');
+            if (!show) return;
+
+            const percent = Math.max(0, Math.min(100, Number(options.percent) || 0));
+            const done = options.done != null ? options.done : null;
+            const total = options.total != null ? options.total : null;
+            if (fill) fill.style.width = `${percent}%`;
+            if (percentEl) percentEl.textContent = `${percent.toFixed(percent % 1 ? 1 : 0)}%`;
+            if (labelEl) {
+                if (done != null && total != null) {
+                    labelEl.textContent = `${done} / ${total}`;
+                } else if (options.label) {
+                    labelEl.textContent = options.label;
+                } else {
+                    labelEl.textContent = '';
+                }
+            }
+            if (bar) bar.setAttribute('aria-valuenow', String(Math.round(percent)));
+        }
+
+        function showHistoryCacheOverlay(milestone, options = {}) {
+            const overlay = document.getElementById('history-cache-overlay');
+            const title = document.getElementById('history-cache-overlay-title');
+            const text = document.getElementById('history-cache-overlay-text');
+            if (!overlay) return;
+            if (title) {
+                title.textContent = options.title || 'Building cache';
+            }
+            if (text) {
+                if (options.message) {
+                    text.textContent = options.message;
+                } else {
+                    const label = milestone?.label || `milestone ${(milestone?.index ?? 0) + 1}`;
+                    const indexLabel = milestone?.index != null ? ` #${milestone.index + 1}` : '';
+                    text.textContent = `Wait... Building Cache for milestone${indexLabel}: ${label}`;
+                }
+            }
+            setHistoryCacheOverlayProgress({
+                show: Boolean(options.showProgress),
+                percent: options.percent,
+                done: options.done,
+                total: options.total,
+                label: options.progressLabel,
+            });
+            overlay.classList.add('visible');
+            overlay.setAttribute('aria-hidden', 'false');
+        }
+
+        function hideHistoryCacheOverlay() {
+            if (historyCacheOverlayTimer) {
+                clearTimeout(historyCacheOverlayTimer);
+                historyCacheOverlayTimer = null;
+            }
+            const overlay = document.getElementById('history-cache-overlay');
+            if (!overlay) return;
+            overlay.classList.remove('visible');
+            overlay.setAttribute('aria-hidden', 'true');
+            setHistoryCacheOverlayProgress({ show: false });
+        }
+
+        function historyAssetUrl(relativePath) {
+            if (!relativePath) return null;
+            return buildCachedPlotUrl('history', relativePath);
+        }
+
+        function ensureHistoryFrameStack(el) {
+            let stack = el.querySelector(':scope > .history-frame-stack');
+            if (stack) return stack;
+            el.innerHTML = '';
+            stack = document.createElement('div');
+            stack.className = 'history-frame-stack';
+            const visible = document.createElement('img');
+            visible.className = 'history-frame-img is-visible';
+            visible.alt = '';
+            visible.decoding = 'async';
+            const buffer = document.createElement('img');
+            buffer.className = 'history-frame-img';
+            buffer.alt = '';
+            buffer.decoding = 'async';
+            stack.append(visible, buffer);
+            el.appendChild(stack);
+            return stack;
+        }
+
+        function loadHistoryImageSrc(img, src) {
+            return new Promise((resolve, reject) => {
+                if (img.getAttribute('src') === src && img.complete && img.naturalWidth > 0) {
+                    resolve(img);
+                    return;
+                }
+                const onLoad = () => {
+                    cleanup();
+                    resolve(img);
+                };
+                const onError = () => {
+                    cleanup();
+                    reject(new Error('Failed to load history frame'));
+                };
+                const cleanup = () => {
+                    img.removeEventListener('load', onLoad);
+                    img.removeEventListener('error', onError);
+                };
+                img.addEventListener('load', onLoad);
+                img.addEventListener('error', onError);
+                img.src = src;
+            }).then(async (loaded) => {
+                if (loaded.decode) {
+                    try {
+                        await loaded.decode();
+                    } catch (_) { /* ignore decode failures */ }
+                }
+                return loaded;
+            });
+        }
+
+        async function prepareHistoryFrameSwap(el, relativePath, altText, bustCache = false) {
+            if (!el) return null;
+            const url = historyAssetUrl(relativePath);
+            if (!url) return null;
+            const src = bustCache ? `${url}?t=${Date.now()}` : url;
+            const stack = ensureHistoryFrameStack(el);
+            const frames = Array.from(stack.querySelectorAll('.history-frame-img'));
+            const visible = frames.find((img) => img.classList.contains('is-visible')) || frames[0];
+            const buffer = frames.find((img) => img !== visible) || frames[1] || visible;
+
+            if (visible.getAttribute('data-src') === src) {
+                return null;
+            }
+
+            // First paint: fill the visible layer so layout height is established.
+            if (!visible.getAttribute('src')) {
+                visible.alt = altText || '';
+                await loadHistoryImageSrc(visible, src);
+                visible.setAttribute('data-src', src);
+                return null;
+            }
+
+            buffer.alt = altText || '';
+            await loadHistoryImageSrc(buffer, src);
+            buffer.setAttribute('data-src', src);
+            return { visible, buffer };
+        }
+
+        async function renderHistoryPngFrames(source, bustCache = false) {
+            const jobs = [
+                {
+                    id: 'history-brick-wall-container',
+                    path: source.wall_png || source.plot_wall_png,
+                    alt: 'Brick wall frame',
+                },
+                {
+                    id: 'history-yield-pie-chart',
+                    path: source.yield_pie_png || source.plot_yield_pie_png,
+                    alt: 'Yield pie frame',
+                },
+                {
+                    id: 'history-burnin-pie-chart',
+                    path: source.burnin_pie_png || source.plot_burnin_pie_png,
+                    alt: 'Burn-in pie frame',
+                },
+                {
+                    id: 'history-produced-pie-chart',
+                    path: source.produced_pie_png || source.plot_produced_pie_png,
+                    alt: 'Produced pie frame',
+                },
+                {
+                    id: 'history-cumulative-time-chart',
+                    path: source.cumulative_png || source.plot_cumulative_png,
+                    alt: 'Cumulative chart frame',
+                },
+                {
+                    id: 'history-burnin-timeline-chart',
+                    path: source.burnin_png || source.plot_burnin_png,
+                    alt: 'Burn-in timeline frame',
+                },
+            ];
+
+            const swaps = await Promise.all(jobs.map(async (job) => {
+                if (!job.path) return null;
+                const el = document.getElementById(job.id);
+                try {
+                    return await prepareHistoryFrameSwap(el, job.path, job.alt, bustCache);
+                } catch (_) {
+                    return null;
+                }
+            }));
+
+            const pending = swaps.filter(Boolean);
+            if (!pending.length) {
+                return jobs.every((job) => Boolean(job.path));
+            }
+
+            await new Promise((resolve) => {
+                requestAnimationFrame(() => {
+                    pending.forEach(({ visible, buffer }) => {
+                        buffer.classList.add('is-visible');
+                        visible.classList.remove('is-visible');
+                    });
+                    resolve();
+                });
+            });
+            if (historyPlayFadeTransitions) {
+                await new Promise((resolve) => setTimeout(resolve, HISTORY_FADE_TRANSITION_MS));
+            }
+            return jobs.every((job) => Boolean(job.path));
+        }
+
+        function milestoneHasPngCache(milestone) {
+            return Boolean(
+                milestone
+                && milestone.wall_png
+                && milestone.cumulative_png
+                && milestone.burnin_png
+                && milestone.yield_pie_png
+                && milestone.burnin_pie_png
+                && milestone.produced_pie_png
+            );
+        }
+
+        function prefetchHistoryMilestoneFrames(index) {
+            const milestone = productionHistoryMilestones[index];
+            if (!milestoneHasPngCache(milestone)) return;
+            [
+                milestone.wall_png,
+                milestone.cumulative_png,
+                milestone.burnin_png,
+                milestone.yield_pie_png,
+                milestone.burnin_pie_png,
+                milestone.produced_pie_png,
+            ].forEach((relativePath) => {
+                const url = historyAssetUrl(relativePath);
+                if (!url) return;
+                const img = new Image();
+                img.decoding = 'async';
+                img.src = url;
+            });
+        }
+
+        function prefetchNearbyHistoryFrames(centerIndex) {
+            if (isHistoryWeekLastOnlyActive() || isHistoryDropMilestonesActive()) {
+                let index = centerIndex;
+                for (let step = 0; step < 3; step += 1) {
+                    index = getNextHistoryPlayIndex(index);
+                    prefetchHistoryMilestoneFrames(index);
+                }
+                return;
+            }
+            for (let offset = 1; offset <= 3; offset += 1) {
+                prefetchHistoryMilestoneFrames(centerIndex + offset);
+                prefetchHistoryMilestoneFrames(centerIndex - offset);
+            }
+        }
+
+        function updateHistoryCacheControls(snapshot) {
+            const recomputeBtn = document.getElementById('history-recompute-btn');
+            const showCachedBtn = document.getElementById('history-show-cached-btn');
+            if (recomputeBtn) {
+                recomputeBtn.disabled = false;
+            }
+            const htmlName = snapshot?.plot_html
+                || productionHistoryMilestones[productionHistoryIndex]?.html;
+            const url = buildCachedPlotUrl('history', htmlName);
+            if (showCachedBtn) {
+                if (url) {
+                    showCachedBtn.href = url;
+                    showCachedBtn.classList.add('visible');
+                } else {
+                    showCachedBtn.removeAttribute('href');
+                    showCachedBtn.classList.remove('visible');
+                }
+            }
+        }
+
+        function updateHistoryPlayerUi() {
+            const milestone = productionHistoryMilestones[productionHistoryIndex];
+            const meta = document.getElementById('history-player-meta');
+            const scrubber = document.getElementById('history-scrubber');
+            const indexLabel = document.getElementById('history-scrubber-index');
+            const playBtn = document.getElementById('history-play-btn');
+            const pauseBtn = document.getElementById('history-pause-btn');
+            const rewindBtn = document.getElementById('history-rewind-btn');
+            if (!milestone) return;
+
+            if (meta) {
+                meta.textContent = (
+                    `${milestone.timestamp} · ${milestone.label}`
+                    + (milestone.detail ? ` · ${milestone.detail}` : '')
+                    + ` · ${milestone.week_label}`
+                );
+            }
+            if (scrubber) scrubber.value = String(productionHistoryIndex);
+            if (indexLabel) {
+                indexLabel.textContent = `${productionHistoryIndex + 1} / ${productionHistoryMilestones.length}`;
+            }
+            if (playBtn) {
+                playBtn.disabled = productionHistoryPlaying;
+                playBtn.classList.toggle('active', productionHistoryPlaying);
+            }
+            if (pauseBtn) {
+                pauseBtn.disabled = !productionHistoryPlaying;
+                pauseBtn.classList.toggle('active', !productionHistoryPlaying);
+            }
+            if (rewindBtn) {
+                rewindBtn.disabled = productionHistoryIndex === 0 && !productionHistoryPlaying;
+            }
+
+            document.querySelectorAll('.history-mark').forEach((mark) => {
+                mark.classList.toggle('active', Number(mark.dataset.index) === productionHistoryIndex);
+            });
+            document.querySelectorAll('.history-week-group').forEach((group) => {
+                const indices = (group.dataset.indices || '').split(',').map(Number);
+                group.classList.toggle('active', indices.includes(productionHistoryIndex));
+            });
+        }
+
+        function markHistoryMilestoneCached(index, paths = {}) {
+            if (!productionHistoryMilestones[index]) return;
+            const milestone = productionHistoryMilestones[index];
+            milestone.is_cached = true;
+            if (paths.html || paths.plot_html) milestone.html = paths.html || paths.plot_html;
+            if (paths.wall_png || paths.plot_wall_png) {
+                milestone.wall_png = paths.wall_png || paths.plot_wall_png;
+            }
+            if (paths.cumulative_png || paths.plot_cumulative_png) {
+                milestone.cumulative_png = paths.cumulative_png || paths.plot_cumulative_png;
+            }
+            if (paths.burnin_png || paths.plot_burnin_png) {
+                milestone.burnin_png = paths.burnin_png || paths.plot_burnin_png;
+            }
+            if (paths.yield_pie_png || paths.plot_yield_pie_png) {
+                milestone.yield_pie_png = paths.yield_pie_png || paths.plot_yield_pie_png;
+            }
+            if (paths.burnin_pie_png || paths.plot_burnin_pie_png) {
+                milestone.burnin_pie_png = paths.burnin_pie_png || paths.plot_burnin_pie_png;
+            }
+            if (paths.produced_pie_png || paths.plot_produced_pie_png) {
+                milestone.produced_pie_png = paths.produced_pie_png || paths.plot_produced_pie_png;
+            }
+            if (paths.board_count != null) milestone.board_count = paths.board_count;
+            const mark = document.querySelector(`.history-mark[data-index="${index}"]`);
+            if (mark) mark.classList.add('is-cached');
+            updateHistoryCacheControls(lastProductionHistorySnapshot || { cached: true });
+            prefetchNearbyHistoryFrames(index);
+        }
+
+        async function selectHistoryMilestone(index, options = {}) {
+            if (!productionHistoryMilestones.length) return;
+            const clamped = Math.max(0, Math.min(productionHistoryMilestones.length - 1, index));
+            productionHistoryIndex = clamped;
+            updateHistoryPlayerUi();
+            const milestone = productionHistoryMilestones[clamped];
+            const subtitle = document.getElementById('production-history-subtitle');
+            const recompute = Boolean(options.recompute);
+
+            // Cached PNG frames: swap after decode — never show Building Cache.
+            if (!recompute && milestoneHasPngCache(milestone)) {
+                hideHistoryCacheOverlay();
+                await renderHistoryPngFrames(milestone, false);
+                lastProductionHistorySnapshot = {
+                    cached: true,
+                    plot_html: milestone.html,
+                    plot_wall_png: milestone.wall_png,
+                    plot_cumulative_png: milestone.cumulative_png,
+                    plot_burnin_png: milestone.burnin_png,
+                    plot_yield_pie_png: milestone.yield_pie_png,
+                    plot_burnin_pie_png: milestone.burnin_pie_png,
+                    plot_produced_pie_png: milestone.produced_pie_png,
+                    board_count: milestone.board_count,
+                };
+                if (subtitle) {
+                    subtitle.textContent = (
+                        `${milestone.label} · ${milestone.timestamp}`
+                        + (milestone.board_count != null ? ` · Boards: ${milestone.board_count}` : '')
+                        + ` · Wall ${HISTORY_WALL_ROWS}×${HISTORY_WALL_MAX_BATCH + 1} · Cached PNG`
+                    );
+                }
+                updateHistoryCacheControls(lastProductionHistorySnapshot);
+                prefetchNearbyHistoryFrames(clamped);
+                return;
+            }
+
+            const wall = document.getElementById('history-brick-wall-container');
+            const knownCached = Boolean(milestone.is_cached) && !recompute;
+            // Only show the build overlay when we are really computing a new cache.
+            // Already-cached milestones load silently (no overlay flash).
+            if (!knownCached) {
+                if (wall && !wall.querySelector('img.history-frame-img')) {
+                    wall.innerHTML = '<div class="loading">Preparing milestone...</div>';
+                }
+                showHistoryCacheOverlay(milestone);
+            } else {
+                hideHistoryCacheOverlay();
+                // If the silent load somehow turns into a rebuild, show overlay after a short wait.
+                historyCacheOverlayTimer = setTimeout(() => {
+                    showHistoryCacheOverlay(milestone);
+                }, 500);
+            }
+
+            const requestId = ++productionHistoryRequestId;
+            try {
+                const params = new URLSearchParams({
+                    index: String(clamped),
+                });
+                if (milestone.timestamp) params.set('as_of', milestone.timestamp);
+                if (milestone.id) params.set('milestone_id', milestone.id);
+                if (recompute) params.set('recompute', '1');
+                const response = await fetch(`/api/production_history/snapshot?${params.toString()}`);
+                const data = await response.json();
+                if (requestId !== productionHistoryRequestId) return;
+                if (data.error || !data.success) {
+                    hideHistoryCacheOverlay();
+                    if (wall) {
+                        wall.innerHTML = `<div class="error">Error: ${data.error || 'Failed to load snapshot.'}</div>`;
+                    }
+                    return;
+                }
+                lastProductionHistorySnapshot = data;
+                if (data.time_axis) {
+                    productionHistoryTimeAxis = data.time_axis;
+                }
+                markHistoryMilestoneCached(clamped, {
+                    ...data,
+                    board_count: data.board_count,
+                });
+                if (subtitle) {
+                    const cacheNote = data.newly_cached ? ' · Just cached' : (data.cached ? ' · Cached' : '');
+                    subtitle.textContent = (
+                        `${milestone.label} · ${milestone.timestamp} · Boards: ${data.board_count}`
+                        + ` · Wall ${HISTORY_WALL_ROWS}×${HISTORY_WALL_MAX_BATCH + 1}${cacheNote}`
+                    );
+                }
+                await renderHistoryPngFrames({
+                    wall_png: data.plot_wall_png,
+                    cumulative_png: data.plot_cumulative_png,
+                    burnin_png: data.plot_burnin_png,
+                    yield_pie_png: data.plot_yield_pie_png,
+                    burnin_pie_png: data.plot_burnin_pie_png,
+                    produced_pie_png: data.plot_produced_pie_png,
+                }, Boolean(data.newly_cached || recompute));
+                updateHistoryCacheControls(data);
+            } catch (error) {
+                if (requestId !== productionHistoryRequestId) return;
+                if (wall && !wall.querySelector('img.history-frame-img')) {
+                    wall.innerHTML = '<div class="error">Error loading milestone snapshot.</div>';
+                }
+            } finally {
+                if (requestId === productionHistoryRequestId) {
+                    hideHistoryCacheOverlay();
+                }
+            }
+        }
+
+        async function recomputeProductionHistory() {
+            // Recompute only the currently selected milestone.
+            await selectHistoryMilestone(productionHistoryIndex, { recompute: true });
+        }
+
+        function stopHistoryPlayback() {
+            productionHistoryPlaying = false;
+            if (productionHistoryTimer) {
+                clearTimeout(productionHistoryTimer);
+                productionHistoryTimer = null;
+            }
+            updateHistoryPlayerUi();
+        }
+
+        async function historyPlayTick() {
+            if (!productionHistoryPlaying) return;
+            if (productionHistoryIndex >= productionHistoryMilestones.length - 1) {
+                stopHistoryPlayback();
+                return;
+            }
+            const nextIndex = getNextHistoryPlayIndex(productionHistoryIndex);
+            if (nextIndex >= productionHistoryMilestones.length) {
+                stopHistoryPlayback();
+                return;
+            }
+            const nextMilestone = productionHistoryMilestones[nextIndex];
+            const nextCached = milestoneHasPngCache(nextMilestone);
+            await selectHistoryMilestone(nextIndex, { keepPlaying: true });
+            if (!productionHistoryPlaying) return;
+            const delay = nextCached
+                ? getHistoryPlayIntervalMs(productionHistoryIndex)
+                : HISTORY_PLAY_INTERVAL_UNCACHED_MS;
+            productionHistoryTimer = setTimeout(historyPlayTick, delay);
+        }
+
+        function startHistoryPlayback() {
+            if (productionHistoryMilestones.length < 2) return;
+            if (productionHistoryIndex >= productionHistoryMilestones.length - 1) {
+                productionHistoryIndex = 0;
+            }
+            productionHistoryPlaying = true;
+            updateHistoryPlayerUi();
+            if (productionHistoryTimer) {
+                clearTimeout(productionHistoryTimer);
+                productionHistoryTimer = null;
+            }
+            prefetchNearbyHistoryFrames(productionHistoryIndex);
+            const delay = milestoneHasPngCache(productionHistoryMilestones[productionHistoryIndex])
+                ? getHistoryPlayIntervalMs(productionHistoryIndex)
+                : HISTORY_PLAY_INTERVAL_MS;
+            productionHistoryTimer = setTimeout(historyPlayTick, delay);
+        }
+
+        function rewindHistoryPlayback() {
+            const wasPlaying = productionHistoryPlaying;
+            stopHistoryPlayback();
+            selectHistoryMilestone(0).then(() => {
+                if (wasPlaying) startHistoryPlayback();
+            });
+        }
+
+        function renderProductionHistoryPanel(payload) {
+            const container = document.getElementById('production-history-content');
+            productionHistoryMilestones = payload.milestones || [];
+            productionHistoryWeeks = payload.weeks || [];
+            productionHistoryTimeAxis = payload.time_axis || null;
+            productionHistoryCached = Boolean(payload.cached);
+            productionHistoryIndex = 0;
+            stopHistoryPlayback();
+
+            if (!productionHistoryMilestones.length) {
+                container.innerHTML = '<div class="summary-loading">No procedure milestones found in the database.</div>';
+                const emptyDock = document.getElementById('history-player-dock');
+                if (emptyDock) {
+                    emptyDock.innerHTML = '';
+                    emptyDock.classList.remove('visible');
+                    emptyDock.setAttribute('aria-hidden', 'true');
+                }
+                return;
+            }
+
+            const weekGroupsHtml = productionHistoryWeeks.map((week) => {
+                const marks = (week.milestone_indices || []).map((index) => {
+                    const milestone = productionHistoryMilestones[index];
+                    const cachedClass = milestone.is_cached ? ' is-cached' : '';
+                    return (
+                        `<button type="button" class="history-mark ${milestone.kind}${cachedClass}" `
+                        + `data-index="${index}" title="${milestone.timestamp} · ${milestone.label}"></button>`
+                    );
+                }).join('');
+                return `
+                    <div class="history-week-group" data-week="${week.week_key}" data-indices="${(week.milestone_indices || []).join(',')}">
+                        <div class="history-week-label">${week.label}</div>
+                        <div class="history-week-range">${week.range_label} · ${week.count} events</div>
+                        <div class="history-week-marks">${marks}</div>
+                    </div>
+                `;
+            }).join('');
+
+            container.innerHTML = `
+                <div class="history-wall-pies-row">
+                    <div class="history-wall-section">
+                        <div class="history-wall-toolbar">
+                            <div class="history-wall-title">Brick Wall · ${HISTORY_WALL_ROWS} × ${HISTORY_WALL_MAX_BATCH + 1} (B0–B${HISTORY_WALL_MAX_BATCH})</div>
+                        </div>
+                        <div class="brick-wall-container history-compact-wall" id="history-brick-wall-container">
+                            <div class="loading">Loading milestone snapshot...</div>
+                        </div>
+                        <div class="brick-wall-legend history-wall-legend" id="history-wall-legend">
+                            <div class="legend-item"><div class="legend-color" style="background:#00CC96;"></div><span>Passed (Post-Burn-In)</span></div>
+                            <div class="legend-item"><div class="legend-color" style="background:#FF9800;"></div><span>Passed (Pre-Burn-In Only)</span></div>
+                            <div class="legend-item"><div class="legend-color" style="background:#EF553B;"></div><span>Failed</span></div>
+                            <div class="legend-item"><div class="legend-color" style="background:#FECB52;"></div><span>No Test</span></div>
+                            <div class="legend-item"><div class="legend-color" style="background:#e5e5e5;border:1px solid #ccc;"></div><span>Empty</span></div>
+                        </div>
+                    </div>
+                    <div class="history-pies-side">
+                        <div class="summary-chart-card summary-chart-card-pie">
+                            <div class="summary-chart-title">Yield (Tested Boards After Burn-In)</div>
+                            <div id="history-yield-pie-chart" class="summary-chart-plot history-chart-img-wrap"></div>
+                        </div>
+                        <div class="summary-chart-card summary-chart-card-pie">
+                            <div class="summary-chart-title">Burn-In Status</div>
+                            <div id="history-burnin-pie-chart" class="summary-chart-plot history-chart-img-wrap"></div>
+                        </div>
+                        <div class="summary-chart-card summary-chart-card-pie">
+                            <div class="summary-chart-title">Total Produced vs Expected</div>
+                            <div id="history-produced-pie-chart" class="summary-chart-plot history-chart-img-wrap"></div>
+                        </div>
+                    </div>
+                </div>
+                <div class="summary-charts-grid" style="margin-top:16px;">
+                    <div class="summary-chart-card wide history-line-card">
+                        <div class="summary-chart-title">Cumulative Board Count (by Time)</div>
+                        <div id="history-cumulative-time-chart" class="summary-chart-plot history-chart-img-wrap"></div>
+                    </div>
+                    <div class="summary-chart-card wide history-line-card">
+                        <div class="summary-chart-title">Burn-In Timeline</div>
+                        <div id="history-burnin-timeline-chart" class="summary-chart-plot history-chart-img-wrap"></div>
+                    </div>
+                </div>
+            `;
+
+            // Player must live on <body> so position:fixed tracks the viewport
+            // (tab panels use transform, which breaks fixed positioning).
+            const playerDock = document.getElementById('history-player-dock');
+            if (playerDock) {
+                const speedValueOptions = HISTORY_SPEED_VALUES.map((value) => (
+                    `<option value="${value}" ${value === historyPlaySpeedValue ? 'selected' : ''}>${value}</option>`
+                )).join('');
+                playerDock.innerHTML = `
+                    <div class="history-player-header">
+                        <div class="history-player-title">Milestone Player</div>
+                        <div class="history-player-meta" id="history-player-meta"></div>
+                        <div class="history-player-controls">
+                            <button type="button" class="history-player-btn media-icon" id="history-rewind-btn" title="Rewind to start">⏮</button>
+                            <button type="button" class="history-player-btn media-icon" id="history-play-btn" title="Play">▶</button>
+                            <button type="button" class="history-player-btn media-icon" id="history-pause-btn" title="Pause">⏸</button>
+                            <button type="button" class="history-player-btn" id="history-prev-btn" title="Previous milestone">Prev</button>
+                            <button type="button" class="history-player-btn" id="history-next-btn" title="Next milestone">Next</button>
+                        </div>
+                    </div>
+                    <div class="history-player-speed">
+                        <div class="history-player-speed-core">
+                            <label for="history-speed-value">Speed</label>
+                            <select id="history-speed-value" aria-label="Playback speed value">${speedValueOptions}</select>
+                            <select id="history-speed-unit" aria-label="Playback speed unit">
+                                <option value="milestones_per_second" ${historyPlaySpeedUnit === 'milestones_per_second' ? 'selected' : ''}>milestones / s</option>
+                                <option value="weeks_per_second" ${historyPlaySpeedUnit === 'weeks_per_second' ? 'selected' : ''}>weeks / s</option>
+                            </select>
+                        </div>
+                        <div class="history-player-options">
+                            <div class="history-player-drop-control" id="history-drop-milestones-wrap" title="Skip n milestones between played frames">
+                                <label class="history-player-option" for="history-drop-milestones">
+                                    <input type="checkbox" id="history-drop-milestones">
+                                    Drop n
+                                </label>
+                                <select id="history-drop-n" aria-label="Number of milestones to drop">${HISTORY_DROP_N_VALUES.map((value) => (
+                                    `<option value="${value}" ${value === historyPlayDropN ? 'selected' : ''}>${value}</option>`
+                                )).join('')}</select>
+                            </div>
+                            <label class="history-player-option" id="history-week-last-only-label" for="history-week-last-only">
+                                <input type="checkbox" id="history-week-last-only">
+                                Week end only
+                            </label>
+                            <label class="history-player-option" for="history-fade-transitions" title="Cross-fade frames between milestones">
+                                <input type="checkbox" id="history-fade-transitions">
+                                Fade in / out
+                            </label>
+                        </div>
+                    </div>
+                    <div class="history-week-rail" id="history-week-rail">${weekGroupsHtml}</div>
+                    <div class="history-scrubber-row">
+                        <input type="range" id="history-scrubber" min="0" max="${productionHistoryMilestones.length - 1}" value="0" step="1">
+                        <div class="history-scrubber-index" id="history-scrubber-index">1 / ${productionHistoryMilestones.length}</div>
+                    </div>
+                    <div class="history-legend-row">
+                        <div class="history-legend-item"><span class="history-legend-dot" style="background:#636EFA"></span>Benchtest</div>
+                        <div class="history-legend-item"><span class="history-legend-dot" style="background:#AB63FA"></span>Burn-in</div>
+                        <div class="history-legend-item"><span class="history-legend-dot" style="background:#00CC96"></span>Cached milestone</div>
+                        <div class="history-legend-item"><span class="history-legend-dot" style="background:#FF9800"></span>Passed pre-burn-in</div>
+                        <div class="history-legend-item"><span class="history-legend-dot" style="background:#EF553B"></span>Failed</div>
+                        <div class="history-legend-item"><span class="history-legend-dot" style="background:#FECB52"></span>No test</div>
+                    </div>
+                `;
+                const onHistoryTab = document.getElementById('production-history')?.classList.contains('active');
+                playerDock.classList.toggle('visible', Boolean(onHistoryTab));
+                playerDock.setAttribute('aria-hidden', onHistoryTab ? 'false' : 'true');
+            }
+
+            document.getElementById('history-prev-btn')?.addEventListener('click', () => {
+                stopHistoryPlayback();
+                selectHistoryMilestone(productionHistoryIndex - 1);
+            });
+            document.getElementById('history-next-btn')?.addEventListener('click', () => {
+                stopHistoryPlayback();
+                selectHistoryMilestone(productionHistoryIndex + 1);
+            });
+            document.getElementById('history-play-btn')?.addEventListener('click', () => {
+                startHistoryPlayback();
+            });
+            document.getElementById('history-pause-btn')?.addEventListener('click', () => {
+                stopHistoryPlayback();
+            });
+            document.getElementById('history-rewind-btn')?.addEventListener('click', () => {
+                rewindHistoryPlayback();
+            });
+            document.getElementById('history-speed-value')?.addEventListener('change', (event) => {
+                historyPlaySpeedValue = Number(event.target.value) || 1;
+                saveHistoryPlaySpeedSettings();
+            });
+            document.getElementById('history-speed-unit')?.addEventListener('change', (event) => {
+                historyPlaySpeedUnit = event.target.value === 'weeks_per_second'
+                    ? 'weeks_per_second'
+                    : 'milestones_per_second';
+                saveHistoryPlaySpeedSettings();
+                syncHistoryPlayerOptionControls();
+            });
+            document.getElementById('history-week-last-only')?.addEventListener('change', (event) => {
+                historyPlayWeekLastOnly = Boolean(event.target.checked);
+                saveHistoryPlayOptions();
+            });
+            document.getElementById('history-drop-milestones')?.addEventListener('change', (event) => {
+                historyPlayDropMilestones = Boolean(event.target.checked);
+                saveHistoryPlayOptions();
+                syncHistoryPlayerOptionControls();
+            });
+            document.getElementById('history-drop-n')?.addEventListener('change', (event) => {
+                const value = Number(event.target.value);
+                historyPlayDropN = HISTORY_DROP_N_VALUES.includes(value) ? value : 1;
+                historyPlayDropMilestones = true;
+                saveHistoryPlayOptions();
+                syncHistoryPlayerOptionControls();
+            });
+            document.getElementById('history-fade-transitions')?.addEventListener('change', (event) => {
+                historyPlayFadeTransitions = Boolean(event.target.checked);
+                saveHistoryPlayOptions();
+                applyHistoryFadeTransitionSetting();
+            });
+            syncHistoryPlayerOptionControls();
+            document.getElementById('history-scrubber')?.addEventListener('input', (event) => {
+                stopHistoryPlayback();
+                selectHistoryMilestone(Number(event.target.value));
+            });
+            const recomputeBtn = document.getElementById('history-recompute-btn');
+            if (recomputeBtn) {
+                recomputeBtn.onclick = () => { recomputeProductionHistory(); };
+            }
+            document.querySelectorAll('.history-mark').forEach((mark) => {
+                mark.addEventListener('click', () => {
+                    stopHistoryPlayback();
+                    selectHistoryMilestone(Number(mark.dataset.index));
+                });
+            });
+
+            selectHistoryMilestone(0);
+            prefetchNearbyHistoryFrames(0);
+        }
+
+        async function loadProductionHistory(forceReload = false) {
+            if (productionHistoryLoaded && !forceReload) return;
+            const content = document.getElementById('production-history-content');
+            const subtitle = document.getElementById('production-history-subtitle');
+            content.innerHTML = '<div class="summary-loading">Loading milestones...</div>';
+            try {
+                const response = await fetch('/api/production_history');
+                const data = await response.json();
+                if (data.error || !data.success) {
+                    content.innerHTML = `<div class="summary-error">Error: ${data.error || 'Failed to load production history.'}</div>`;
+                    subtitle.textContent = 'Failed to load production history.';
+                    return;
+                }
+                const cachedCount = data.cached_count ?? (data.milestones || []).filter((item) => item.is_cached).length;
+                subtitle.textContent = (
+                    `${data.total} milestones across ${data.weeks?.length || 0} weeks`
+                    + ` · ${cachedCount} cached`
+                );
+                renderProductionHistoryPanel(data);
+                productionHistoryLoaded = true;
+            } catch (error) {
+                content.innerHTML = '<div class="summary-error">Error loading production history.</div>';
+                subtitle.textContent = 'Failed to load production history.';
             }
         }
 
@@ -6995,6 +8781,25 @@
             }
         }
     </script>
+    <div id="history-cache-overlay" class="history-cache-overlay" aria-hidden="true">
+        <div class="history-cache-modal">
+            <div class="history-cache-spinner"></div>
+            <div class="history-cache-modal-title" id="history-cache-overlay-title">Building cache</div>
+            <div class="history-cache-modal-text" id="history-cache-overlay-text">
+                Wait... Building Cache for milestone
+            </div>
+            <div class="history-cache-progress" id="history-cache-progress" aria-hidden="true">
+                <div class="history-cache-progress-meta">
+                    <span id="history-cache-progress-label">0 / 0</span>
+                    <span class="history-cache-progress-percent" id="history-cache-progress-percent">0%</span>
+                </div>
+                <div class="history-cache-progress-track" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0" id="history-cache-progress-bar">
+                    <div class="history-cache-progress-fill" id="history-cache-progress-fill"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div id="history-player-dock" class="history-player" aria-hidden="true"></div>
 </body>
 
 </html>

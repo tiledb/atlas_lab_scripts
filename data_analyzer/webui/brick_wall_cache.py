@@ -24,21 +24,32 @@ def _json_default(value):
     return str(value)
 
 
-def build_brick_wall_html(boards_by_batch, cached_at=None, brick_height=10):
+def build_brick_wall_html(
+    boards_by_batch,
+    cached_at=None,
+    brick_height=10,
+    max_batch=None,
+    fixed_rows=None,
+    title='Production Brick Wall',
+    page_meta=None,
+):
     stamp = format_cache_stamp(cached_at)
     payload = {
         'boards_by_batch': boards_by_batch or {},
-        'max_batch': MAX_BRICK_WALL_BATCH,
+        'max_batch': MAX_BRICK_WALL_BATCH if max_batch is None else int(max_batch),
         'brick_height': brick_height,
+        'fixed_rows': None if fixed_rows is None else int(fixed_rows),
     }
     data_json = json.dumps(payload, default=_json_default)
     data_json = data_json.replace('</', '<\\/')
+    meta_text = page_meta or f'Interactive cached snapshot · Cached: {escape(stamp)}'
+    page_title = escape(title)
 
     return f'''<!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="utf-8">
-  <title>Production Brick Wall (Cached)</title>
+  <title>{page_title} (Cached)</title>
   <style>
     * {{ box-sizing: border-box; }}
     body {{
@@ -183,8 +194,8 @@ def build_brick_wall_html(boards_by_batch, cached_at=None, brick_height=10):
 </head>
 <body>
   {cache_banner_html(stamp)}
-  <div class="page-title">Production Brick Wall</div>
-  <div class="meta">Interactive cached snapshot · Cached: {escape(stamp)}</div>
+  <div class="page-title">{page_title}</div>
+  <div class="meta">{escape(meta_text)}</div>
 
   <div class="brick-wall-section">
     <div class="brick-wall-wrapper">
@@ -293,11 +304,16 @@ def build_brick_wall_html(boards_by_batch, cached_at=None, brick_height=10):
       const boardsByBatch = CACHE_DATA.boards_by_batch || {{}};
       const brickHeight = CACHE_DATA.brick_height || 10;
       let maxPosition = 16;
-      Object.values(boardsByBatch).forEach(boards => {{
-        (boards || []).forEach(board => {{
-          if (board.position && board.position > maxPosition) maxPosition = board.position;
+      if (CACHE_DATA.fixed_rows != null) {{
+        maxPosition = Math.max(0, Number(CACHE_DATA.fixed_rows) - 1);
+      }} else {{
+        Object.values(boardsByBatch).forEach(boards => {{
+          (boards || []).forEach(board => {{
+            if (board.position && board.position > maxPosition) maxPosition = board.position;
+          }});
         }});
-      }});
+      }}
+      const labelStep = maxPosition >= 40 ? 10 : 2;
 
       const content = document.createElement('div');
       content.className = 'brick-wall-content';
@@ -309,7 +325,7 @@ def build_brick_wall_html(boards_by_batch, cached_at=None, brick_height=10):
         const label = document.createElement('div');
         label.className = 'y-axis-label';
         label.style.height = (brickHeight + 1) + 'px';
-        if (pos % 2 === 0) label.textContent = String(pos);
+        if (pos % labelStep === 0) label.textContent = String(pos);
         yAxis.appendChild(label);
       }}
       content.appendChild(yAxis);

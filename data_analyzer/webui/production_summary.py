@@ -15,6 +15,7 @@ COLORS = {
     'no_test': '#FECB52',
     'burned_in': '#4caf50',
     'not_burned_in': '#f44336',
+    'not_received': '#B6B6B6',
     'burnin_timeline': '#AB63FA',
     'expected_produced': '#636EFA',
     'expected_tested': '#00B5D8',
@@ -142,7 +143,7 @@ def build_production_summary(db_rows, benchtest_rows, schedule_csv_path=None):
             yield_failed += 1
 
     burned_in = sum(1 for board in boards if board.get('burn_in_stop'))
-    not_burned_in = total_boards - burned_in
+    received_not_burned_in = max(total_boards - burned_in, 0)
 
     batch_stats = {}
     for board in boards:
@@ -251,7 +252,12 @@ def build_production_summary(db_rows, benchtest_rows, schedule_csv_path=None):
     if expected_batches.get('cumulative'):
         expected_total = expected_batches['cumulative'][-1]
 
-    not_yet_produced = max(expected_total - total_boards, 0)
+    # Burn-in status is always relative to the expected production total.
+    burnin_expected = int(expected_total) if expected_total else 0
+    if burnin_expected <= 0:
+        burnin_expected = max(total_boards, 0)
+    not_yet_produced = max(burnin_expected - total_boards, 0) if burnin_expected else 0
+    not_received = not_yet_produced
 
     return {
         'success': True,
@@ -264,11 +270,16 @@ def build_production_summary(db_rows, benchtest_rows, schedule_csv_path=None):
             'failed': yield_failed,
         },
         'burnin_status': {
+            'expected': burnin_expected,
+            'received_burned_in': burned_in,
+            'received_not_burned_in': received_not_burned_in,
+            'not_received': not_received,
+            # Compatibility aliases
             'burned_in': burned_in,
-            'not_burned_in': not_burned_in,
+            'not_burned_in': received_not_burned_in,
         },
         'total_produced': {
-            'expected': expected_total,
+            'expected': burnin_expected,
             'produced': total_boards,
             'passed_after_burnin': passed_after_burnin,
             'failed_after_burnin': failed_after_burnin,

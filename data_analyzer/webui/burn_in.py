@@ -427,6 +427,18 @@ def _format_burn_in_hours_days_tick(hours):
     return f'{hours_text} h ({days_text} d)'
 
 
+def _format_burn_in_aged_legend(hours):
+    base = _format_burn_in_hours_days_tick(hours or 0.0)
+    years = round(float(hours or 0.0), 1) / (24.0 * 365.25)
+    rounded_years = round(years, 2)
+    years_text = (
+        str(int(rounded_years))
+        if rounded_years == int(rounded_years)
+        else f'{rounded_years:.2f}'
+    )
+    return f'{base} ({years_text} years)'
+
+
 def _expand_burn_in_range(min_value, max_value, floor_min=None):
     if max_value <= min_value:
         max_value = min_value + 1
@@ -503,6 +515,7 @@ def _write_period_plot_html(
     aging_label = f"{profile['name']} {t_use_c}°C, Ea={ea_ev} eV"
     power_on_hours = _compute_power_on_hours(series, 'lvpower')
     avg_af_suffix = _format_avg_af_legend_suffix(aging_hours, power_on_hours)
+    aged_legend = _format_burn_in_aged_legend(aging_hours[-1] if aging_hours else 0.0)
     title_suffix = f' - {slot_id}' if slot_id else ''
     lv_states = ['ON' if value == 1 else 'OFF' for value in series.get('lvpower', [])]
     toven_values = [value for value in series.get('toven_c', []) if value is not None]
@@ -529,7 +542,7 @@ def _write_period_plot_html(
         x=series['elapsed_hours'],
         y=aging_hours,
         mode='lines',
-        name=f'Accelerated Aging ({aging_label}{avg_af_suffix})',
+        name=f'Accelerated · {aged_legend}{avg_af_suffix} ({aging_label})',
         line=dict(color='#AB63FA', width=2),
     ), row=1, col=1, secondary_y=False)
     fig.add_trace(go.Scatter(
@@ -673,13 +686,14 @@ def _write_all_slots_plot_html(slot_payloads, config, cached_at=None):
         aging_hours = _compute_aging_hours(series, t_use_c, ea_ev)
         power_on_hours = _compute_power_on_hours(series, 'lvpower')
         avg_af_suffix = _format_avg_af_legend_suffix(aging_hours, power_on_hours)
+        aged_legend = _format_burn_in_aged_legend(aging_hours[-1] if aging_hours else 0.0)
         lv_states = ['ON' if value == 1 else 'OFF' for value in series.get('lvpower', [])]
 
         fig.add_trace(go.Scatter(
             x=series['elapsed_hours'],
             y=aging_hours,
             mode='lines',
-            name=f'{slot_id} Aging{avg_af_suffix}',
+            name=f'{slot_id} · {aged_legend}{avg_af_suffix}',
             line=dict(color=color, width=2.2),
             legendgroup=slot_id,
             hovertemplate=(

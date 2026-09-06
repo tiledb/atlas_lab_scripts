@@ -1,0 +1,589 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DBQ Admin - Production History Cache</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            background: #f5f7fa;
+            min-height: 100vh;
+        }
+
+        .navbar {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            padding: 20px 40px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+        }
+
+        .navbar h1 {
+            color: white;
+            font-size: 24px;
+            font-weight: 600;
+        }
+
+        .nav-links {
+            display: flex;
+            gap: 20px;
+        }
+
+        .nav-links a {
+            color: white;
+            text-decoration: none;
+            font-size: 14px;
+            opacity: 0.9;
+        }
+
+        .nav-links a:hover {
+            opacity: 1;
+        }
+
+        .container {
+            max-width: 900px;
+            margin: 40px auto;
+            padding: 0 20px 40px;
+        }
+
+        .back-link {
+            display: inline-block;
+            margin-bottom: 20px;
+            color: #667eea;
+            text-decoration: none;
+            font-size: 14px;
+        }
+
+        .back-link:hover {
+            text-decoration: underline;
+        }
+
+        .form-card {
+            background: white;
+            border-radius: 12px;
+            padding: 30px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+            margin-bottom: 30px;
+        }
+
+        .form-card h2 {
+            color: #333;
+            font-size: 24px;
+            margin-bottom: 10px;
+        }
+
+        .help-text {
+            color: #666;
+            font-size: 14px;
+            line-height: 1.5;
+            margin-bottom: 24px;
+        }
+
+        .action-list {
+            display: grid;
+            gap: 16px;
+        }
+
+        .action-row {
+            display: flex;
+            flex-wrap: wrap;
+            align-items: flex-start;
+            justify-content: space-between;
+            gap: 16px;
+            padding: 18px;
+            border: 1px solid #e4e8ee;
+            border-radius: 10px;
+            background: #fafbfc;
+        }
+
+        .action-copy h3 {
+            color: #333;
+            font-size: 16px;
+            margin-bottom: 6px;
+        }
+
+        .action-copy p {
+            color: #666;
+            font-size: 13px;
+            line-height: 1.45;
+            max-width: 520px;
+        }
+
+        .btn {
+            padding: 12px 18px;
+            border: none;
+            border-radius: 6px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            white-space: nowrap;
+        }
+
+        .btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+
+        .btn-danger {
+            background: #c62828;
+            color: white;
+        }
+
+        .message-box,
+        .error-box {
+            border-radius: 6px;
+            padding: 15px;
+            margin-bottom: 20px;
+            font-size: 14px;
+            display: none;
+        }
+
+        .message-box {
+            background: #e8f5e9;
+            border: 1px solid #c8e6c9;
+            color: #2e7d32;
+        }
+
+        .error-box {
+            background: #ffebee;
+            border: 1px solid #ffcdd2;
+            color: #c62828;
+        }
+
+        .message-box.visible,
+        .error-box.visible {
+            display: block;
+        }
+
+        .history-cache-overlay {
+            display: none;
+            position: fixed;
+            inset: 0;
+            z-index: 10060;
+            align-items: center;
+            justify-content: center;
+            background: rgba(245, 247, 250, 0.72);
+            backdrop-filter: blur(2px);
+        }
+
+        .history-cache-overlay.visible {
+            display: flex;
+        }
+
+        .history-cache-modal {
+            min-width: min(420px, 90%);
+            max-width: 520px;
+            background: #fff;
+            border: 1px solid #d7dbe0;
+            border-radius: 12px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.12);
+            padding: 22px 24px;
+            text-align: center;
+        }
+
+        .history-cache-spinner {
+            width: 34px;
+            height: 34px;
+            margin: 0 auto 14px;
+            border-radius: 50%;
+            border: 3px solid #d7dbe0;
+            border-top-color: #667eea;
+            animation: history-spin 0.8s linear infinite;
+        }
+
+        @keyframes history-spin {
+            to { transform: rotate(360deg); }
+        }
+
+        .history-cache-modal-title {
+            font-size: 16px;
+            font-weight: 700;
+            color: #333;
+            margin-bottom: 6px;
+        }
+
+        .history-cache-modal-text {
+            font-size: 13px;
+            color: #666;
+            line-height: 1.45;
+        }
+
+        .history-cache-progress {
+            margin-top: 16px;
+            text-align: left;
+        }
+
+        .history-cache-progress-meta {
+            display: flex;
+            justify-content: space-between;
+            align-items: baseline;
+            gap: 10px;
+            margin-bottom: 8px;
+            font-size: 12px;
+            color: #555;
+        }
+
+        .history-cache-progress-percent {
+            font-weight: 700;
+            color: #335d9b;
+            font-variant-numeric: tabular-nums;
+        }
+
+        .history-cache-progress-track {
+            height: 10px;
+            border-radius: 999px;
+            background: #e8ecf1;
+            overflow: hidden;
+        }
+
+        .history-cache-progress-fill {
+            height: 100%;
+            width: 0%;
+            border-radius: 999px;
+            background: linear-gradient(90deg, #667eea, #5a8dee);
+            transition: width 0.25s ease;
+        }
+
+        .config-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+            gap: 16px;
+            margin-bottom: 16px;
+        }
+
+        .config-field label {
+            display: block;
+            margin-bottom: 8px;
+            color: #333;
+            font-size: 14px;
+            font-weight: 500;
+        }
+
+        .config-field input[type="date"] {
+            width: 100%;
+            padding: 10px 12px;
+            border: 2px solid #e1e5e9;
+            border-radius: 6px;
+            font-size: 14px;
+            font-family: inherit;
+        }
+
+        .actions-row {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+
+        .btn-secondary {
+            background: #eef1f6;
+            color: #444;
+        }
+    </style>
+</head>
+<body>
+    <div class="navbar">
+        <h1>Production History Cache</h1>
+        <div class="nav-links">
+            <a href="{{ url_for('dashboard') }}">Dashboard</a>
+            <a href="{{ url_for('logout') }}">Logout</a>
+        </div>
+    </div>
+
+    <div class="container">
+        <a class="back-link" href="{{ url_for('dashboard') }}">← Back to Dashboard</a>
+
+        <div class="message-box" id="message-box"></div>
+        <div class="error-box" id="error-box"></div>
+
+        <div class="form-card">
+            <h2>Plot Date Range</h2>
+            <p class="help-text">
+                Limit the X-axis of Production History charts and which milestones appear
+                in the player. Leave start empty to use the earliest relevant date, and leave
+                end empty to use the latest relevant date. Reload Production History after
+                saving; rebuild caches if PNG frames should match the new range.
+            </p>
+            <form id="history-plot-range-form">
+                <div class="config-grid">
+                    <div class="config-field">
+                        <label for="history-plot-start">Start date</label>
+                        <input type="date" id="history-plot-start" value="{{ config.history_plot_start_date or '' }}">
+                    </div>
+                    <div class="config-field">
+                        <label for="history-plot-end">End date</label>
+                        <input type="date" id="history-plot-end" value="{{ config.history_plot_end_date or '' }}">
+                    </div>
+                    <div class="config-field">
+                        <label for="history-plot-x-ticks">X-axis ticks</label>
+                        <input type="number" id="history-plot-x-ticks" min="2" max="50" step="1" value="{{ config.history_plot_x_ticks }}">
+                    </div>
+                    <div class="config-field">
+                        <label for="history-plot-y-ticks">Y-axis ticks</label>
+                        <input type="number" id="history-plot-y-ticks" min="2" max="50" step="1" value="{{ config.history_plot_y_ticks }}">
+                    </div>
+                </div>
+                <div class="actions-row">
+                    <button type="submit" class="btn btn-primary">Save Plot Settings</button>
+                    <button type="button" class="btn btn-secondary" id="clear-history-plot-range-btn">Clear Dates</button>
+                </div>
+            </form>
+        </div>
+
+        <div class="form-card">
+            <h2>Rebuild Milestone Caches</h2>
+            <p class="help-text">
+                Production History stores one cache frame per milestone (brick wall, charts, pies).
+                Rebuilding can take a while; progress is shown in the overlay with a percentage bar.
+                You can also run this from the terminal without starting the web server:
+                <code>python app.py --rebuild-history-cache missing</code>
+                or
+                <code>python app.py --rebuild-history-cache all</code>.
+            </p>
+
+            <div class="action-list">
+                <div class="action-row">
+                    <div class="action-copy">
+                        <h3>Rebuild missing only</h3>
+                        <p>Build caches only for milestones that do not already have a complete cache.</p>
+                    </div>
+                    <button type="button" class="btn btn-primary" id="history-rebuild-missing-btn">
+                        Rebuild missing only
+                    </button>
+                </div>
+
+                <div class="action-row">
+                    <div class="action-copy">
+                        <h3>Rebuild entire cache</h3>
+                        <p>Clear and rebuild every Production History milestone cache from scratch.</p>
+                    </div>
+                    <button type="button" class="btn btn-danger" id="history-rebuild-all-btn">
+                        Rebuild entire cache
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div id="history-cache-overlay" class="history-cache-overlay" aria-hidden="true">
+        <div class="history-cache-modal">
+            <div class="history-cache-spinner"></div>
+            <div class="history-cache-modal-title" id="history-cache-overlay-title">Building cache</div>
+            <div class="history-cache-modal-text" id="history-cache-overlay-text">
+                Collecting milestones...
+            </div>
+            <div class="history-cache-progress" id="history-cache-progress">
+                <div class="history-cache-progress-meta">
+                    <span id="history-cache-progress-label">0 / 0</span>
+                    <span class="history-cache-progress-percent" id="history-cache-progress-percent">0%</span>
+                </div>
+                <div class="history-cache-progress-track" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0" id="history-cache-progress-bar">
+                    <div class="history-cache-progress-fill" id="history-cache-progress-fill"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let rebuildInProgress = false;
+
+        function showMessage(text, isError = false) {
+            const messageBox = document.getElementById('message-box');
+            const errorBox = document.getElementById('error-box');
+            messageBox.classList.remove('visible');
+            errorBox.classList.remove('visible');
+            const target = isError ? errorBox : messageBox;
+            target.textContent = text;
+            target.classList.add('visible');
+        }
+
+        function setButtonsDisabled(disabled) {
+            document.getElementById('history-rebuild-missing-btn').disabled = disabled;
+            document.getElementById('history-rebuild-all-btn').disabled = disabled;
+        }
+
+        function setProgress(percent, done, total) {
+            const safePercent = Math.max(0, Math.min(100, Number(percent) || 0));
+            const fill = document.getElementById('history-cache-progress-fill');
+            const percentEl = document.getElementById('history-cache-progress-percent');
+            const labelEl = document.getElementById('history-cache-progress-label');
+            const bar = document.getElementById('history-cache-progress-bar');
+            if (fill) fill.style.width = `${safePercent}%`;
+            if (percentEl) {
+                percentEl.textContent = `${safePercent.toFixed(safePercent % 1 ? 1 : 0)}%`;
+            }
+            if (labelEl) {
+                labelEl.textContent = (done != null && total != null) ? `${done} / ${total}` : '';
+            }
+            if (bar) bar.setAttribute('aria-valuenow', String(Math.round(safePercent)));
+        }
+
+        function showOverlay(title, message, progress = {}) {
+            const overlay = document.getElementById('history-cache-overlay');
+            document.getElementById('history-cache-overlay-title').textContent = title;
+            document.getElementById('history-cache-overlay-text').textContent = message;
+            setProgress(progress.percent, progress.done, progress.total);
+            overlay.classList.add('visible');
+            overlay.setAttribute('aria-hidden', 'false');
+        }
+
+        function hideOverlay() {
+            const overlay = document.getElementById('history-cache-overlay');
+            overlay.classList.remove('visible');
+            overlay.setAttribute('aria-hidden', 'true');
+            setProgress(0, 0, 0);
+        }
+
+        async function rebuildHistoryCache(mode) {
+            if (rebuildInProgress) return;
+
+            const normalized = mode === 'all' ? 'all' : 'missing';
+            const confirmMsg = normalized === 'all'
+                ? 'Rebuild the entire Production History cache? This clears and rebuilds every milestone and may take a long time.'
+                : 'Rebuild only milestones that do not have a cache yet?';
+            if (!window.confirm(confirmMsg)) return;
+
+            rebuildInProgress = true;
+            setButtonsDisabled(true);
+            showMessage('');
+            document.getElementById('message-box').classList.remove('visible');
+            document.getElementById('error-box').classList.remove('visible');
+
+            showOverlay(
+                normalized === 'all' ? 'Rebuilding entire cache' : 'Rebuilding missing cache',
+                'Collecting milestones...',
+                { percent: 0, done: 0, total: 0 },
+            );
+
+            try {
+                const response = await fetch(`/api/production_history/rebuild?mode=${encodeURIComponent(normalized)}`);
+                if (!response.ok) {
+                    let errorText = `HTTP ${response.status}`;
+                    try {
+                        const errJson = await response.json();
+                        errorText = errJson.error || errorText;
+                    } catch (_) { /* ignore */ }
+                    throw new Error(errorText);
+                }
+                if (!response.body || !response.body.getReader) {
+                    throw new Error('Streaming rebuild response is not supported in this browser.');
+                }
+
+                const reader = response.body.getReader();
+                const decoder = new TextDecoder();
+                let buffer = '';
+                let lastDoneMessage = 'Rebuild complete.';
+
+                while (true) {
+                    const { done, value } = await reader.read();
+                    if (done) break;
+                    buffer += decoder.decode(value, { stream: true });
+                    const lines = buffer.split('\n');
+                    buffer = lines.pop() || '';
+                    for (const line of lines) {
+                        const trimmed = line.trim();
+                        if (!trimmed) continue;
+                        let event;
+                        try {
+                            event = JSON.parse(trimmed);
+                        } catch (_) {
+                            continue;
+                        }
+                        if (event.event === 'error') {
+                            throw new Error(event.error || 'Rebuild failed.');
+                        }
+                        if (event.event === 'start' || event.event === 'plan') {
+                            showOverlay(
+                                normalized === 'all' ? 'Rebuilding entire cache' : 'Rebuilding missing cache',
+                                event.message || 'Preparing rebuild...',
+                                { percent: event.total ? 0 : 100, done: 0, total: event.total || 0 },
+                            );
+                        } else if (event.event === 'progress') {
+                            showOverlay(
+                                normalized === 'all' ? 'Rebuilding entire cache' : 'Rebuilding missing cache',
+                                event.message || event.label || 'Building cache...',
+                                { percent: event.percent, done: event.done, total: event.total },
+                            );
+                        } else if (event.event === 'done') {
+                            lastDoneMessage = event.message || 'Rebuild complete.';
+                            showOverlay(
+                                'Cache rebuild complete',
+                                lastDoneMessage,
+                                {
+                                    percent: event.percent != null ? event.percent : 100,
+                                    done: event.built != null ? event.built : event.total,
+                                    total: event.total,
+                                },
+                            );
+                        }
+                    }
+                }
+
+                if (buffer.trim()) {
+                    const event = JSON.parse(buffer.trim());
+                    if (event.event === 'error') {
+                        throw new Error(event.error || 'Rebuild failed.');
+                    }
+                    if (event.message) lastDoneMessage = event.message;
+                }
+
+                showMessage(lastDoneMessage);
+            } catch (error) {
+                console.error('History cache rebuild failed:', error);
+                showMessage(`History cache rebuild failed: ${error.message || error}`, true);
+            } finally {
+                rebuildInProgress = false;
+                setButtonsDisabled(false);
+                hideOverlay();
+            }
+        }
+
+        document.getElementById('history-rebuild-missing-btn').onclick = () => {
+            rebuildHistoryCache('missing');
+        };
+        document.getElementById('history-rebuild-all-btn').onclick = () => {
+            rebuildHistoryCache('all');
+        };
+
+        document.getElementById('history-plot-range-form').addEventListener('submit', async (event) => {
+            event.preventDefault();
+            try {
+                const response = await fetch('/api/production_config', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        history_plot_start_date: document.getElementById('history-plot-start').value || '',
+                        history_plot_end_date: document.getElementById('history-plot-end').value || '',
+                        history_plot_x_ticks: Number(document.getElementById('history-plot-x-ticks').value || 8),
+                        history_plot_y_ticks: Number(document.getElementById('history-plot-y-ticks').value || 6),
+                    }),
+                });
+                const data = await response.json();
+                if (!response.ok || data.error) {
+                    throw new Error(data.error || `HTTP ${response.status}`);
+                }
+                showMessage('History plot settings saved. Rebuild caches to refresh PNG frames.');
+            } catch (error) {
+                showMessage(`Failed to save plot range: ${error.message || error}`, true);
+            }
+        });
+
+        document.getElementById('clear-history-plot-range-btn').addEventListener('click', () => {
+            document.getElementById('history-plot-start').value = '';
+            document.getElementById('history-plot-end').value = '';
+        });
+    </script>
+</body>
+</html>

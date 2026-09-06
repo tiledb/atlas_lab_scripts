@@ -105,3 +105,18 @@ long_burnin_peck_exponents:
     temperature and humidity stress factors on electronic components; captures aggressive
     multi-layer circuit board insulation degradation (n = 4.5)."
 long_burnin_default_peck_exponent: 3.0
+dashboard_tab_order:
+- brick-wall
+- production-summary
+- production-statistics
+- production-history
+- burn-in
+- long-burn-in
+production_plot_start_date: ''
+production_plot_end_date: ''
+production_plot_x_ticks: 8
+production_plot_y_ticks: 6
+history_plot_start_date: '2026-02-14'
+history_plot_end_date: ''
+history_plot_x_ticks: 20
+history_plot_y_ticks: 13

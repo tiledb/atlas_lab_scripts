@@ -63,16 +63,27 @@ def build_production_summary_html(summary, cached_at=None):
     )
     figures_html.append(('pie', _pie_html(fig, 'summary-yield-pie', True)))
 
-    # Burn-in status pie
+    # Burn-in status pie (relative to expected production total)
     burnin = summary.get('burnin_status') or {}
     fig = go.Figure(data=[go.Pie(
-        labels=['Burned In', 'Not Burned In'],
-        values=[burnin.get('burned_in', 0), burnin.get('not_burned_in', 0)],
-        marker=dict(colors=[colors.get('burned_in', '#4caf50'), colors.get('not_burned_in', '#f44336')]),
+        labels=['Received Burned In', 'Received Not Burned In', 'Not Received'],
+        values=[
+            burnin.get('received_burned_in', burnin.get('burned_in', 0)),
+            burnin.get('received_not_burned_in', burnin.get('not_burned_in', 0)),
+            burnin.get('not_received', 0),
+        ],
+        marker=dict(colors=[
+            colors.get('burned_in', '#4caf50'),
+            colors.get('not_burned_in', '#f44336'),
+            colors.get('not_received', colors.get('not_yet_produced', '#B6B6B6')),
+        ]),
         hole=0.35,
         domain=dict(x=[0.05, 0.95], y=[0.18, 1.0]),
     )])
-    fig.update_layout(title='Burn-In Status')
+    expected_burnin = burnin.get('expected') or 0
+    fig.update_layout(
+        title=f'Burn-In Status (of {expected_burnin} expected)' if expected_burnin else 'Burn-In Status',
+    )
     figures_html.append(('pie', _pie_html(fig, 'summary-burnin-pie', False)))
 
     # Total produced pie

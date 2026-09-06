@@ -8,6 +8,9 @@ from pathlib import Path
 from burn_in import (
     BOLTZMANN_EV_K,
     MAX_PLOT_POINTS,
+    _compute_power_on_hours,
+    _format_avg_af_legend_suffix,
+    _format_burn_in_aged_legend,
     _format_influx_time,
     _forward_fill,
     _is_power_on,
@@ -502,6 +505,13 @@ def _write_long_burn_in_plot_html(
         aging_b = _compute_model_aging_hours(
             series, 'fpga_b_temp_c', spec['model'], use_temperature_c, activation_energy_ev, **spec['params'],
         )
+        power_on_hours = _compute_power_on_hours(series, 'power_on')
+        aged_env = _format_burn_in_aged_legend(aging_env[-1] if aging_env else 0.0)
+        aged_a = _format_burn_in_aged_legend(aging_a[-1] if aging_a else 0.0)
+        aged_b = _format_burn_in_aged_legend(aging_b[-1] if aging_b else 0.0)
+        af_env = _format_avg_af_legend_suffix(aging_env, power_on_hours)
+        af_a = _format_avg_af_legend_suffix(aging_a, power_on_hours)
+        af_b = _format_avg_af_legend_suffix(aging_b, power_on_hours)
         fig = make_subplots(
             rows=3,
             cols=1,
@@ -512,17 +522,20 @@ def _write_long_burn_in_plot_html(
         )
         fig.add_trace(go.Scatter(
             x=series['elapsed_hours'], y=aging_env, mode='lines',
-            name=f'Env Aging ({profile_name} {use_temperature_c:g}°C, Ea={activation_energy_ev:g} eV)',
+            name=(
+                f'Env · {aged_env}{af_env} '
+                f'({profile_name} {use_temperature_c:g}°C, Ea={activation_energy_ev:g} eV)'
+            ),
             line=dict(color='#636EFA', width=2),
         ), row=1, col=1, secondary_y=False)
         fig.add_trace(go.Scatter(
             x=series['elapsed_hours'], y=aging_a, mode='lines',
-            name=f'{fpga_a_label} Aging',
+            name=f'{fpga_a_label} · {aged_a}{af_a}',
             line=dict(color='#EF553B', width=2),
         ), row=1, col=1, secondary_y=False)
         fig.add_trace(go.Scatter(
             x=series['elapsed_hours'], y=aging_b, mode='lines',
-            name=f'{fpga_b_label} Aging',
+            name=f'{fpga_b_label} · {aged_b}{af_b}',
             line=dict(color='#00CC96', width=2),
         ), row=1, col=1, secondary_y=False)
         fig.add_trace(go.Scatter(

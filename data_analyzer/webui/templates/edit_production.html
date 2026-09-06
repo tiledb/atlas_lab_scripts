@@ -290,6 +290,38 @@
         </div>
 
         <div class="form-card">
+            <h2>Plot Date Range</h2>
+            <p class="help-text">
+                Limit the X-axis of Production Summary time plots. Leave start empty to use the earliest
+                relevant date, and leave end empty to use the latest relevant date.
+            </p>
+            <form id="plot-range-form">
+                <div class="config-grid">
+                    <div class="config-field">
+                        <label for="production-plot-start">Start date</label>
+                        <input type="date" id="production-plot-start" value="{{ config.production_plot_start_date or '' }}">
+                    </div>
+                    <div class="config-field">
+                        <label for="production-plot-end">End date</label>
+                        <input type="date" id="production-plot-end" value="{{ config.production_plot_end_date or '' }}">
+                    </div>
+                    <div class="config-field">
+                        <label for="production-plot-x-ticks">X-axis ticks</label>
+                        <input type="number" id="production-plot-x-ticks" min="2" max="50" step="1" value="{{ config.production_plot_x_ticks }}">
+                    </div>
+                    <div class="config-field">
+                        <label for="production-plot-y-ticks">Y-axis ticks</label>
+                        <input type="number" id="production-plot-y-ticks" min="2" max="50" step="1" value="{{ config.production_plot_y_ticks }}">
+                    </div>
+                </div>
+                <div class="actions-row">
+                    <button type="submit" class="btn btn-primary">Save Plot Settings</button>
+                    <button type="button" class="btn btn-secondary" id="clear-production-plot-range-btn">Clear Dates</button>
+                </div>
+            </form>
+        </div>
+
+        <div class="form-card">
             <h2>Production Schedule Calendar</h2>
             <p class="help-text">
                 Edit batch entries and comments directly in the calendar. Use formats like
@@ -439,6 +471,36 @@
                 console.error(error);
                 showMessage('Failed to save offsets.', true);
             }
+        });
+
+        document.getElementById('plot-range-form').addEventListener('submit', async (event) => {
+            event.preventDefault();
+            try {
+                const response = await fetch('/api/production_config', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        production_plot_start_date: document.getElementById('production-plot-start').value || '',
+                        production_plot_end_date: document.getElementById('production-plot-end').value || '',
+                        production_plot_x_ticks: Number(document.getElementById('production-plot-x-ticks').value || 8),
+                        production_plot_y_ticks: Number(document.getElementById('production-plot-y-ticks').value || 6),
+                    }),
+                });
+                const data = await response.json();
+                if (!response.ok || data.error) {
+                    showMessage(data.error || 'Failed to save plot range.', true);
+                    return;
+                }
+                showMessage('Production plot settings saved.');
+            } catch (error) {
+                console.error(error);
+                showMessage('Failed to save plot range.', true);
+            }
+        });
+
+        document.getElementById('clear-production-plot-range-btn').addEventListener('click', () => {
+            document.getElementById('production-plot-start').value = '';
+            document.getElementById('production-plot-end').value = '';
         });
 
         document.getElementById('save-calendar-btn').addEventListener('click', async () => {

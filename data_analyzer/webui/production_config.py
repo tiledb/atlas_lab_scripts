@@ -155,6 +155,24 @@ DEFAULT_LONG_BURNIN_RH_USE_OPTIONS = [5.0, 10.0, 15.0]
 
 DEFAULT_BURNIN_CACHE_DIR = '/var/www/html/drive/production_plots/burn_in'
 
+DEFAULT_DASHBOARD_TAB_ORDER = [
+    'brick-wall',
+    'production-summary',
+    'production-statistics',
+    'burn-in',
+    'long-burn-in',
+    'production-history',
+]
+
+DASHBOARD_TAB_LABELS = {
+    'brick-wall': 'Production Brick Wall',
+    'production-summary': 'Production Summary',
+    'production-statistics': 'Production Statistics',
+    'burn-in': 'Burn In',
+    'long-burn-in': 'Long Burn In',
+    'production-history': 'Production History',
+}
+
 DEFAULT_CONFIG = {
     'pretest_offset_days': 0,
     'post_test_offset_days': 0,
@@ -183,6 +201,15 @@ DEFAULT_CONFIG = {
     'long_burnin_default_rh_use_pct': 10.0,
     'long_burnin_peck_exponents': DEFAULT_LONG_BURNIN_PECK_EXPONENTS,
     'long_burnin_default_peck_exponent': 3.0,
+    'dashboard_tab_order': list(DEFAULT_DASHBOARD_TAB_ORDER),
+    'production_plot_start_date': '',
+    'production_plot_end_date': '',
+    'production_plot_x_ticks': 8,
+    'production_plot_y_ticks': 6,
+    'history_plot_start_date': '',
+    'history_plot_end_date': '',
+    'history_plot_x_ticks': 8,
+    'history_plot_y_ticks': 6,
 }
 
 
@@ -397,7 +424,97 @@ def _normalize_config(data):
     elif config['long_burnin_default_rh_use_pct'] not in rh_use_options:
         config['long_burnin_default_rh_use_pct'] = rh_use_options[0]
 
+    config['dashboard_tab_order'] = _normalize_dashboard_tab_order(
+        data.get('dashboard_tab_order', config.get('dashboard_tab_order'))
+    )
+
+    for key in (
+        'production_plot_start_date',
+        'production_plot_end_date',
+        'history_plot_start_date',
+        'history_plot_end_date',
+    ):
+        if key in data:
+            config[key] = _normalize_optional_date(data.get(key))
+        else:
+            config[key] = _normalize_optional_date(config.get(key))
+
+    for key in (
+        'production_plot_x_ticks',
+        'production_plot_y_ticks',
+        'history_plot_x_ticks',
+        'history_plot_y_ticks',
+    ):
+        source = data.get(key, config.get(key))
+        config[key] = _normalize_tick_count(source, DEFAULT_CONFIG[key])
+
     return config
+
+
+def _normalize_optional_date(value):
+    text = str(value or '').strip()
+    if not text:
+        return ''
+    part = text.split(' ')[0]
+    try:
+        datetime.strptime(part, '%Y-%m-%d')
+        return part
+    except ValueError:
+        return ''
+
+
+def _normalize_tick_count(value, default=8):
+    try:
+        ticks = int(value)
+    except (TypeError, ValueError):
+        ticks = int(default)
+    return max(2, min(50, ticks))
+
+
+def _normalize_dashboard_tab_order(order):
+    known = list(DEFAULT_DASHBOARD_TAB_ORDER)
+    known_set = set(known)
+    cleaned = []
+    for item in order or []:
+        tab_id = str(item or '').strip()
+        if tab_id in known_set and tab_id not in cleaned:
+            cleaned.append(tab_id)
+    for tab_id in known:
+        if tab_id not in cleaned:
+            cleaned.append(tab_id)
+    return cleaned
+
+
+def dashboard_tab_order_payload(config=None):
+    config = config or load_production_config()
+    order = _normalize_dashboard_tab_order(config.get('dashboard_tab_order'))
+    return {
+        'order': order,
+        'tabs': [
+            {'id': tab_id, 'label': DASHBOARD_TAB_LABELS.get(tab_id, tab_id)}
+            for tab_id in order
+        ],
+    }
+
+
+def save_dashboard_tab_order(order):
+    current = load_production_config()
+    current['dashboard_tab_order'] = _normalize_dashboard_tab_order(order)
+    return save_production_config(current)
+
+
+def save_production_plot_date_range(start_date, end_date):
+    return save_production_config({
+        'production_plot_start_date': start_date,
+        'production_plot_end_date': end_date,
+    })
+
+
+def save_history_plot_date_range(start_date, end_date):
+    return save_production_config({
+        'history_plot_start_date': start_date,
+        'history_plot_end_date': end_date,
+    })
 
 
 def load_production_config():
@@ -416,8 +533,11 @@ def load_production_config():
 
 
 def save_production_config(config):
-    merged = _normalize_config(load_production_config())
-    merged.update(_normalize_config(config))
+    """Merge provided fields into the existing config, then normalize and save."""
+    current = load_production_config()
+    if isinstance(config, dict):
+        current.update(config)
+    merged = _normalize_config(current)
 
     yaml_handler = YAML()
     yaml_handler.default_flow_style = False

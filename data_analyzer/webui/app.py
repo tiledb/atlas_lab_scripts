@@ -1,4 +1,4 @@
-from flask import Flask, render_template, request, redirect, url_for, session, jsonify, flash
+from flask import Flask, render_template, request, redirect, url_for, session, jsonify, flash, Response, stream_with_context, has_request_context
 from pathlib import Path
 import mysql.connector
 from mysql.connector import Error
@@ -6,17 +6,31 @@ from ruamel.yaml import YAML
 import os
 import subprocess
 import re
+import json
+import argparse
+import sys
 
 from production_summary import build_production_summary
 from production_statistics import build_production_statistics
+from production_history import (
+    build_history_snapshot,
+    build_production_history,
+    cache_milestone_snapshot,
+    iter_rebuild_history_cache,
+    load_cached_snapshot,
+    load_history_index,
+    rebuild_history_cache,
+)
 from burn_in import build_burn_in_overview, build_burn_in_plot_all_slots, build_burn_in_plot_for_slot
 from benchtest_results import get_failed_tests_for_serial
 from long_burn_in import build_long_burn_in_overview, build_long_burn_in_plot
 from production_config import (
     SCHEDULE_CSV_PATH,
     backup_and_save_schedule,
+    dashboard_tab_order_payload,
     load_production_config,
     save_burn_in_config,
+    save_dashboard_tab_order,
     save_long_burn_in_config,
     save_production_config,
 )
@@ -97,6 +111,8 @@ edit_vars_template = "edit_vars.html"
 edit_production_template = "edit_production.html"
 edit_burn_in_template = "edit_burn_in.html"
 edit_long_burn_in_template = "edit_long_burn_in.html"
+edit_history_cache_template = "edit_history_cache.html"
+edit_tab_order_template = "edit_tab_order.html"
 
 def load_secrets():
     """Load database credentials from secrets.yaml."""
@@ -122,13 +138,36 @@ def require_full_access():
 
 
 def get_db_connection():
-    """Create and return a database connection using session credentials."""
+    """Create and return a database connection.
+
+    Uses the logged-in Flask session when available; otherwise falls back to
+    credentials in secrets.yaml (for CLI tools such as --rebuild-history-cache).
+    """
+    db_user = None
+    db_pass = None
+    db_name = database
+
+    if has_request_context() and session.get('logged_in'):
+        db_user = session.get('db_user')
+        db_pass = session.get('db_pass')
+        db_name = session.get('db_name') or database
+
+    if not db_user or db_pass is None:
+        secrets = load_secrets()
+        mariadb = secrets.get('tiledb-mariadb', {}) if isinstance(secrets, dict) else {}
+        db_user = mariadb.get('user')
+        db_pass = mariadb.get('password')
+
+    if not db_user or db_pass is None:
+        print('Error while connecting to database: missing credentials')
+        return None
+
     try:
         conn = mysql.connector.connect(
             host=host,
-            user=session.get('db_user'),
-            password=session.get('db_pass'),
-            database=session['db_name']
+            user=db_user,
+            password=db_pass,
+            database=db_name,
         )
         conn.time_zone = '+00:00'
         return conn
@@ -275,7 +314,11 @@ def login():
 def dashboard():
     if not session.get('logged_in'):
         return redirect(url_for('login'))
-    return render_template(dashboard_template)
+    tab_payload = dashboard_tab_order_payload()
+    return render_template(
+        dashboard_template,
+        dashboard_tab_order=tab_payload['order'],
+    )
 
 @app.route('/run_script', methods=['GET', 'POST'])
 def run_script():
@@ -451,6 +494,61 @@ def edit_long_burn_in():
         edit_long_burn_in_template,
         config=_config_payload(load_production_config()),
     )
+
+
+@app.route('/edit_history_cache')
+def edit_history_cache():
+    if not session.get('logged_in'):
+        return redirect(url_for('login'))
+    blocked = require_full_access()
+    if blocked:
+        return blocked
+
+    return render_template(
+        edit_history_cache_template,
+        config=load_production_config(),
+    )
+
+
+@app.route('/edit_tab_order')
+def edit_tab_order():
+    if not session.get('logged_in'):
+        return redirect(url_for('login'))
+    blocked = require_full_access()
+    if blocked:
+        return blocked
+
+    from production_config import DASHBOARD_TAB_LABELS, DEFAULT_DASHBOARD_TAB_ORDER
+    payload = dashboard_tab_order_payload()
+    return render_template(
+        edit_tab_order_template,
+        tab_order=payload['order'],
+        default_order=list(DEFAULT_DASHBOARD_TAB_ORDER),
+        labels=DASHBOARD_TAB_LABELS,
+    )
+
+
+@app.route('/api/dashboard_tab_order', methods=['GET', 'POST'])
+def dashboard_tab_order_api():
+    if not session.get('logged_in'):
+        return jsonify({'error': 'Not logged in'}), 401
+
+    if request.method == 'GET':
+        payload = dashboard_tab_order_payload()
+        return jsonify({'success': True, **payload})
+
+    blocked = require_full_access()
+    if blocked:
+        return jsonify({'error': 'Not allowed in guest mode'}), 403
+
+    try:
+        data = request.get_json() or {}
+        saved = save_dashboard_tab_order(data.get('order') or [])
+        payload = dashboard_tab_order_payload(saved)
+        return jsonify({'success': True, **payload})
+    except Exception as exc:
+        print(f'Error saving dashboard tab order: {exc}')
+        return jsonify({'error': str(exc)}), 500
 
 @app.route('/api/brick_wall_data')
 def brick_wall_data():
@@ -980,6 +1078,149 @@ def production_statistics():
         print(f"Error fetching production statistics: {e}")
         return jsonify({'error': str(e)}), 500
 
+def _fetch_history_source_rows():
+    conn = get_db_connection()
+    if not conn:
+        return None, None, 'Database connection failed'
+
+    cursor = conn.cursor(dictionary=True)
+    cursor.execute("""
+        SELECT d.serial_no, d.batch_id, d.db_status, d.burn_in,
+               d.burn_in_start, d.burn_in_stop,
+               d.kin_lot, d.pro_lot, d.gbt_lot,
+               d.ina_lot, d.ltm_lot, d.mos_lot, d.op4_lot, d.ok4_lot, d.ok1_lot,
+               d.mem_lot, d.sfp_lot, d.e_test, d.p_test, d.a0, d.a1, d.b0, d.b1
+        FROM daughterboard d
+        ORDER BY d.serial_no
+    """)
+    db_rows = cursor.fetchall()
+    cursor.execute("""
+        SELECT id, test_start, test_stop, test_op, test_pass,
+               db_slot1, db_slot2, db_slot3, db_slot4
+        FROM benchtest
+        ORDER BY id
+    """)
+    benchtest_rows = cursor.fetchall()
+    cursor.close()
+    conn.close()
+    return db_rows, benchtest_rows, None
+
+
+@app.route('/api/production_history')
+def production_history():
+    if not session.get('logged_in'):
+        return jsonify({'error': 'Not logged in'}), 401
+
+    try:
+        force = request.args.get('recompute', '').lower() in ('1', 'true', 'yes')
+        db_rows, benchtest_rows, error = _fetch_history_source_rows()
+        if error:
+            return jsonify({'error': error}), 500
+        # Always return the full milestone list quickly; snapshots are cached lazily.
+        return jsonify(build_production_history(
+            db_rows,
+            benchtest_rows,
+            force_recompute=force,
+        ))
+    except Exception as e:
+        print(f'Error fetching production history: {e}')
+        import traceback
+        traceback.print_exc()
+        cached = load_history_index()
+        if cached:
+            cached = dict(cached)
+            cached['cache_fallback'] = True
+            cached['cache_fallback_reason'] = str(e)
+            return jsonify(cached)
+        return jsonify({'error': str(e)}), 500
+
+
+@app.route('/api/production_history/snapshot')
+def production_history_snapshot():
+    if not session.get('logged_in'):
+        return jsonify({'error': 'Not logged in'}), 401
+
+    as_of = request.args.get('as_of', '').strip()
+    milestone_id = request.args.get('milestone_id', '').strip()
+    index_raw = request.args.get('index', '').strip()
+    force = request.args.get('recompute', '').lower() in ('1', 'true', 'yes')
+
+    index = None
+    if index_raw != '':
+        try:
+            index = int(index_raw)
+        except ValueError:
+            return jsonify({'error': 'Invalid index'}), 400
+
+    if not force:
+        cached = load_cached_snapshot(index=index, as_of=as_of or None, milestone_id=milestone_id or None)
+        if cached:
+            return jsonify(cached)
+
+    try:
+        db_rows, benchtest_rows, error = _fetch_history_source_rows()
+        if error:
+            return jsonify({'error': error}), 500
+
+        history = build_production_history(db_rows, benchtest_rows, force_recompute=False)
+        milestones = history.get('milestones') or []
+        milestone = None
+        if index is not None and 0 <= index < len(milestones):
+            milestone = milestones[index]
+        elif milestone_id:
+            milestone = next((item for item in milestones if item.get('id') == milestone_id), None)
+        elif as_of:
+            milestone = next((item for item in milestones if item.get('timestamp') == as_of), None)
+
+        if not milestone:
+            if not as_of:
+                return jsonify({'error': 'Milestone not found'}), 404
+            milestone = {
+                'id': f'asof-{as_of}',
+                'index': index if index is not None else 0,
+                'timestamp': as_of,
+                'label': f'Snapshot @ {as_of}',
+                'detail': None,
+                'kind': 'snapshot',
+            }
+
+        if force:
+            # Drop existing files for this milestone so it is rebuilt.
+            from production_history import snapshot_paths
+            paths = snapshot_paths(milestone.get('index', 0), milestone.get('timestamp'))
+            for key in (
+                'json', 'html', 'wall_png', 'cumulative_png', 'burnin_png',
+                'yield_pie_png', 'burnin_pie_png', 'produced_pie_png',
+            ):
+                try:
+                    path = paths[key]
+                    if path.exists():
+                        path.unlink()
+                except OSError:
+                    pass
+
+        snapshot = cache_milestone_snapshot(
+            db_rows,
+            benchtest_rows,
+            milestone,
+            time_axis=history.get('time_axis'),
+        )
+        snapshot['cached'] = True
+        snapshot['newly_cached'] = True
+        return jsonify(snapshot)
+    except Exception as e:
+        print(f'Error fetching production history snapshot: {e}')
+        import traceback
+        traceback.print_exc()
+        cached = load_cached_snapshot(index=index, as_of=as_of or None, milestone_id=milestone_id or None)
+        if cached:
+            cached = dict(cached)
+            cached['cache_fallback'] = True
+            cached['cache_fallback_reason'] = str(e)
+            return jsonify(cached)
+        return jsonify({'error': str(e)}), 500
+
+
 def _fetch_daughterboard_rows():
     conn = get_db_connection()
     if not conn:
@@ -1190,11 +1431,25 @@ def production_config():
 
     try:
         data = request.get_json() or {}
-        config = save_production_config({
-            'pretest_offset_days': data.get('pretest_offset_days', 0),
-            'post_test_offset_days': data.get('post_test_offset_days', 0),
-            'burnin_offset_days': data.get('burnin_offset_days', 0),
-        })
+        updates = {}
+        for key in (
+            'pretest_offset_days',
+            'post_test_offset_days',
+            'burnin_offset_days',
+            'production_plot_start_date',
+            'production_plot_end_date',
+            'production_plot_x_ticks',
+            'production_plot_y_ticks',
+            'history_plot_start_date',
+            'history_plot_end_date',
+            'history_plot_x_ticks',
+            'history_plot_y_ticks',
+        ):
+            if key in data:
+                updates[key] = data.get(key)
+        if not updates:
+            return jsonify({'error': 'No configuration fields provided'}), 400
+        config = save_production_config(updates)
         return jsonify({'success': True, 'config': config})
     except Exception as e:
         print(f'Error saving production config: {e}')
@@ -1251,10 +1506,93 @@ def upload_production_schedule():
         print(f'Error uploading production schedule: {e}')
         return jsonify({'error': str(e)}), 500
 
+@app.route('/api/production_history/rebuild')
+def production_history_rebuild():
+    if not session.get('logged_in'):
+        return jsonify({'error': 'Not logged in'}), 401
+    if session.get('guest_mode'):
+        return jsonify({'error': 'Not authorized'}), 403
+
+    mode = (request.args.get('mode') or 'missing').strip().lower()
+    if mode not in ('all', 'missing'):
+        return jsonify({'error': 'mode must be "all" or "missing"'}), 400
+
+    def generate():
+        try:
+            db_rows, benchtest_rows, error = _fetch_history_source_rows()
+            if error:
+                yield json.dumps({'event': 'error', 'error': error}) + '\n'
+                return
+            for event in iter_rebuild_history_cache(db_rows, benchtest_rows, mode=mode):
+                yield json.dumps(event) + '\n'
+        except Exception as exc:
+            print(f'Error rebuilding production history cache: {exc}')
+            import traceback
+            traceback.print_exc()
+            yield json.dumps({'event': 'error', 'error': str(exc)}) + '\n'
+
+    return Response(
+        stream_with_context(generate()),
+        mimetype='application/x-ndjson',
+        headers={
+            'Cache-Control': 'no-cache',
+            'X-Accel-Buffering': 'no',
+        },
+    )
+
+
 @app.route('/logout')
 def logout():
     session.clear()
     return redirect(url_for('login'))
 
+
+def _run_history_cache_cli(mode):
+    """Rebuild production-history caches from the terminal and exit."""
+    print(f'[history-cache] Starting rebuild (mode={mode})...')
+    db_rows, benchtest_rows, error = _fetch_history_source_rows()
+    if error:
+        print(f'[history-cache] ERROR: {error}')
+        return 1
+
+    def on_progress(done, total, item):
+        label = (item or {}).get('label') or (item or {}).get('timestamp') or '?'
+        pct = (100.0 * done / total) if total else 100.0
+        print(f'[history-cache] [{done}/{total}] {pct:5.1f}%  {label}')
+
+    result = rebuild_history_cache(
+        db_rows,
+        benchtest_rows,
+        mode=mode,
+        progress_callback=on_progress,
+    )
+    print(
+        f"[history-cache] Done. built={result.get('rebuild_built', 0)} "
+        f"cached_count={result.get('cached_count', 0)} "
+        f"milestones={result.get('rebuild_total_milestones', result.get('total', 0))}"
+    )
+    return 0
+
+
 if __name__ == '__main__':
-    app.run(host='0.0.0.0', port=5001, debug=True)
+    parser = argparse.ArgumentParser(
+        description='TileQA web UI server, or rebuild Production History caches and exit.',
+    )
+    parser.add_argument(
+        '--rebuild-history-cache',
+        choices=('all', 'missing'),
+        metavar='MODE',
+        help=(
+            'Rebuild Production History milestone caches and exit without starting the web server. '
+            'MODE=all clears and rebuilds every milestone; MODE=missing only builds uncached ones.'
+        ),
+    )
+    parser.add_argument('--host', default='0.0.0.0', help='Web server bind host (default: 0.0.0.0)')
+    parser.add_argument('--port', type=int, default=5001, help='Web server port (default: 5001)')
+    parser.add_argument('--debug', action='store_true', help='Enable Flask debug mode')
+    args = parser.parse_args()
+
+    if args.rebuild_history_cache:
+        sys.exit(_run_history_cache_cli(args.rebuild_history_cache))
+
+    app.run(host=args.host, port=args.port, debug=args.debug)

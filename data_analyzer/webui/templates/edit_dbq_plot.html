@@ -1,0 +1,970 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DBQ Admin - DBQ_MkX Plot Configuration</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            background: #f5f7fa;
+            min-height: 100vh;
+        }
+        .navbar {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            padding: 20px 40px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+        }
+        .navbar h1 { color: white; font-size: 24px; font-weight: 600; }
+        .nav-links { display: flex; gap: 20px; }
+        .nav-links a { color: white; text-decoration: none; font-size: 14px; opacity: 0.9; }
+        .nav-links a:hover { opacity: 1; }
+        .container { max-width: 1100px; margin: 40px auto; padding: 0 20px 40px; }
+        .back-link { display: inline-block; margin-bottom: 20px; color: #667eea; text-decoration: none; font-size: 14px; }
+        .back-link:hover { text-decoration: underline; }
+        .form-card {
+            background: white;
+            border-radius: 12px;
+            padding: 30px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+            margin-bottom: 24px;
+        }
+        .form-card h2 { color: #333; font-size: 24px; margin-bottom: 10px; }
+        .form-card h3 {
+            color: #333;
+            font-size: 16px;
+            margin: 0 0 14px;
+            padding-bottom: 8px;
+            border-bottom: 1px solid #e8ecf1;
+        }
+        .help-text { color: #666; font-size: 14px; line-height: 1.5; margin-bottom: 20px; }
+        .config-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+            gap: 16px;
+            margin-bottom: 8px;
+        }
+        .config-field label {
+            display: block;
+            margin-bottom: 8px;
+            color: #333;
+            font-size: 13px;
+            font-weight: 600;
+        }
+        .config-field input,
+        .config-field select,
+        .config-field textarea {
+            width: 100%;
+            padding: 10px 12px;
+            border: 1px solid #d7dbe0;
+            border-radius: 6px;
+            font-size: 14px;
+            background: #fff;
+        }
+        .config-field textarea { min-height: 72px; resize: vertical; font-family: inherit; }
+        .config-field .hint { display: block; margin-top: 6px; font-size: 12px; color: #888; font-weight: 400; }
+        .config-field.checkbox-field {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding-top: 28px;
+        }
+        .config-field.checkbox-field label { margin: 0; font-weight: 500; }
+        .config-field.checkbox-field input { width: auto; }
+        .dual-row {
+            display: grid;
+            grid-template-columns: minmax(0, 1fr) minmax(0, 1.1fr);
+            gap: 8px;
+        }
+        .color-row {
+            display: grid;
+            grid-template-columns: 48px minmax(0, 1fr);
+            gap: 8px;
+            align-items: center;
+        }
+        .color-row input[type="color"] {
+            width: 48px;
+            height: 40px;
+            padding: 2px;
+            cursor: pointer;
+        }
+        .preview-box {
+            margin-top: 12px;
+            padding: 12px 14px;
+            border: 1px solid #e4e8ee;
+            border-radius: 8px;
+            background: #f7f8fa;
+            font-size: 13px;
+            color: #444;
+        }
+        .preview-box strong { color: #333; }
+        .actions {
+            display: flex;
+            gap: 12px;
+            flex-wrap: wrap;
+            margin-top: 8px;
+        }
+        .btn {
+            border: none;
+            border-radius: 6px;
+            padding: 10px 16px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+        }
+        .btn-primary { background: #667eea; color: #fff; }
+        .btn-secondary { background: #eef1f6; color: #444; }
+        .message-box, .error-box {
+            border-radius: 6px;
+            padding: 15px;
+            margin-bottom: 20px;
+            font-size: 14px;
+            display: none;
+        }
+        .message-box { background: #e8f5e9; border: 1px solid #c8e6c9; color: #2e7d32; }
+        .error-box { background: #ffebee; border: 1px solid #ffcdd2; color: #c62828; }
+        .path-note { font-size: 12px; color: #888; margin-top: 12px; }
+        code { background: #f3f5f7; padding: 1px 5px; border-radius: 4px; font-size: 12px; }
+        @media (max-width: 640px) {
+            .dual-row { grid-template-columns: 1fr; }
+        }
+    </style>
+</head>
+<body>
+    <nav class="navbar">
+        <h1>DBQ Admin Panel</h1>
+        <div class="nav-links">
+            <a href="{{ url_for('dashboard') }}">Dashboard</a>
+            <a href="{{ url_for('logout') }}">Logout</a>
+        </div>
+    </nav>
+
+    <div class="container">
+        <a href="{{ url_for('dashboard') }}" class="back-link">← Back to Dashboard</a>
+
+        <div id="message-box" class="message-box"></div>
+        <div id="error-box" class="error-box"></div>
+
+        <div class="form-card">
+            <h2>DBQ_MkX Plot Configuration</h2>
+            <p class="help-text">
+                Configure visuals for HTML plots generated by <strong>DBQ_Mk6</strong>.
+                Use dropdowns/presets where available, or type a custom value in the text box.
+                Color fields include a color picker plus free-text (hex / rgba).
+            </p>
+            <p class="path-note">Saved to <code>{{ config_path }}</code></p>
+        </div>
+
+        <form id="dbq-plot-config-form">
+            <div class="form-card">
+                <h3>Figure</h3>
+                <div class="config-grid">
+                    <div class="config-field">
+                        <label for="figure-template">Plotly template</label>
+                        <div class="dual-row">
+                            <select id="figure-template-preset" data-target="figure-template"></select>
+                            <input type="text" id="figure-template" placeholder="custom template">
+                        </div>
+                    </div>
+                    <div class="config-field">
+                        <label for="figure-height">Height (px)</label>
+                        <input type="number" id="figure-height" min="200" step="10">
+                    </div>
+                    <div class="config-field">
+                        <label for="figure-width">Width (px, blank = auto)</label>
+                        <input type="number" id="figure-width" min="200" step="10" placeholder="auto">
+                    </div>
+                    <div class="config-field">
+                        <label for="figure-hovermode">Hover mode</label>
+                        <div class="dual-row">
+                            <select id="figure-hovermode-preset" data-target="figure-hovermode"></select>
+                            <input type="text" id="figure-hovermode" placeholder="custom hovermode">
+                        </div>
+                    </div>
+                    <div class="config-field">
+                        <label for="figure-paper-bg">Paper background</label>
+                        <div class="color-row">
+                            <input type="color" id="figure-paper-bg-picker" data-color-for="figure-paper-bg" aria-label="Paper background picker">
+                            <input type="text" id="figure-paper-bg" placeholder="#ffffff or rgba(...)">
+                        </div>
+                    </div>
+                    <div class="config-field">
+                        <label for="figure-plot-bg">Plot background</label>
+                        <div class="color-row">
+                            <input type="color" id="figure-plot-bg-picker" data-color-for="figure-plot-bg" aria-label="Plot background picker">
+                            <input type="text" id="figure-plot-bg" placeholder="#ffffff or rgba(...)">
+                        </div>
+                    </div>
+                    <div class="config-field">
+                        <label for="figure-margin-l">Margin left</label>
+                        <input type="number" id="figure-margin-l" step="1">
+                    </div>
+                    <div class="config-field">
+                        <label for="figure-margin-r">Margin right</label>
+                        <input type="number" id="figure-margin-r" step="1">
+                    </div>
+                    <div class="config-field">
+                        <label for="figure-margin-t">Margin top</label>
+                        <input type="number" id="figure-margin-t" step="1">
+                    </div>
+                    <div class="config-field">
+                        <label for="figure-margin-b">Margin bottom</label>
+                        <input type="number" id="figure-margin-b" step="1">
+                    </div>
+                </div>
+            </div>
+
+            <div class="form-card">
+                <h3>Fonts</h3>
+                <div class="config-grid">
+                    <div class="config-field">
+                        <label for="font-family">Family</label>
+                        <div class="dual-row">
+                            <select id="font-family-preset" data-target="font-family"></select>
+                            <input type="text" id="font-family" placeholder="custom CSS font stack">
+                        </div>
+                    </div>
+                    <div class="config-field">
+                        <label for="font-color">Color</label>
+                        <div class="color-row">
+                            <input type="color" id="font-color-picker" data-color-for="font-color" aria-label="Font color picker">
+                            <input type="text" id="font-color" placeholder="#333333">
+                        </div>
+                    </div>
+                    <div class="config-field">
+                        <label for="font-size">Base size</label>
+                        <input type="number" id="font-size" min="8" step="1">
+                    </div>
+                    <div class="config-field">
+                        <label for="font-title-size">Title size</label>
+                        <input type="number" id="font-title-size" min="8" step="1">
+                    </div>
+                    <div class="config-field">
+                        <label for="font-axis-title-size">Axis title size</label>
+                        <input type="number" id="font-axis-title-size" min="8" step="1">
+                    </div>
+                    <div class="config-field">
+                        <label for="font-tick-size">Tick size</label>
+                        <input type="number" id="font-tick-size" min="8" step="1">
+                    </div>
+                    <div class="config-field">
+                        <label for="font-legend-size">Legend size</label>
+                        <input type="number" id="font-legend-size" min="8" step="1">
+                    </div>
+                </div>
+            </div>
+
+            <div class="form-card">
+                <h3>Labels &amp; title</h3>
+                <div class="config-grid">
+                    <div class="config-field">
+                        <label for="labels-x-title">X-axis title</label>
+                        <div class="dual-row">
+                            <select id="labels-x-title-preset" data-target="labels-x-title"></select>
+                            <input type="text" id="labels-x-title" placeholder="custom X title">
+                        </div>
+                    </div>
+                    <div class="config-field">
+                        <label for="labels-legend-title">Legend title</label>
+                        <div class="dual-row">
+                            <select id="labels-legend-title-preset" data-target="labels-legend-title"></select>
+                            <input type="text" id="labels-legend-title" placeholder="custom legend title">
+                        </div>
+                    </div>
+                    <div class="config-field checkbox-field">
+                        <input type="checkbox" id="labels-y-is-varname">
+                        <label for="labels-y-is-varname">Y-axis title = variable name</label>
+                    </div>
+                    <div class="config-field">
+                        <label for="labels-y-title">Y-axis title (if not variable name)</label>
+                        <input type="text" id="labels-y-title">
+                    </div>
+                    <div class="config-field" style="grid-column: 1 / -1;">
+                        <label for="labels-title-template">Plot title template</label>
+                        <div class="dual-row" style="margin-bottom: 8px;">
+                            <select id="labels-title-template-preset" data-target="labels-title-template"></select>
+                            <span class="hint" style="align-self:center;margin:0;">Preset fills the text box</span>
+                        </div>
+                        <textarea id="labels-title-template"></textarea>
+                        <span class="hint">Placeholders: <code>{serial}</code>, <code>{ivar}</code> (caption), <code>{benchtest_id}</code>, <code>{test_length}</code>, <code>{generated_at}</code></span>
+                    </div>
+                    <div class="config-field">
+                        <label for="labels-title-time-format">Title time format</label>
+                        <div class="dual-row">
+                            <select id="labels-title-time-format-preset" data-target="labels-title-time-format"></select>
+                            <input type="text" id="labels-title-time-format" placeholder="strftime format">
+                        </div>
+                    </div>
+                    <div class="config-field">
+                        <label for="title-preview-datetime">Preview datetime</label>
+                        <input type="datetime-local" id="title-preview-datetime" step="1">
+                        <span class="hint">Used only to preview the title format below</span>
+                    </div>
+                </div>
+                <div class="preview-box">
+                    <div><strong>Formatted time:</strong> <span id="title-time-preview">—</span></div>
+                    <div style="margin-top:6px;"><strong>Sample title:</strong> <span id="title-template-preview">—</span></div>
+                </div>
+            </div>
+
+            <div class="form-card">
+                <h3>Data traces</h3>
+                <div class="config-grid">
+                    <div class="config-field">
+                        <label for="data-mode">Mode</label>
+                        <div class="dual-row">
+                            <select id="data-mode-preset" data-target="data-mode"></select>
+                            <input type="text" id="data-mode" placeholder="lines / markers / …">
+                        </div>
+                    </div>
+                    <div class="config-field">
+                        <label for="data-line-width">Line width</label>
+                        <input type="number" id="data-line-width" min="0.5" step="0.1">
+                    </div>
+                    <div class="config-field">
+                        <label for="data-marker-size">Marker size</label>
+                        <input type="number" id="data-marker-size" min="1" step="0.5">
+                    </div>
+                    <div class="config-field">
+                        <label for="data-opacity">Opacity (0–1)</label>
+                        <input type="number" id="data-opacity" min="0" max="1" step="0.05">
+                    </div>
+                </div>
+            </div>
+
+            <div class="form-card">
+                <h3>Reference traces (Truth / Limits)</h3>
+                <div class="config-grid">
+                    <div class="config-field">
+                        <label for="ref-truth-name">Truth series name</label>
+                        <div class="dual-row">
+                            <select id="ref-truth-name-preset" data-target="ref-truth-name"></select>
+                            <input type="text" id="ref-truth-name">
+                        </div>
+                    </div>
+                    <div class="config-field">
+                        <label for="ref-truth-color">Truth color</label>
+                        <div class="color-row">
+                            <input type="color" id="ref-truth-color-picker" data-color-for="ref-truth-color">
+                            <input type="text" id="ref-truth-color" placeholder="rgba(255, 0, 0, 1)">
+                        </div>
+                    </div>
+                    <div class="config-field">
+                        <label for="ref-truth-width">Truth width</label>
+                        <input type="number" id="ref-truth-width" min="0.5" step="0.1">
+                    </div>
+                    <div class="config-field">
+                        <label for="ref-truth-dash">Truth dash</label>
+                        <div class="dual-row">
+                            <select id="ref-truth-dash-preset" data-target="ref-truth-dash"></select>
+                            <input type="text" id="ref-truth-dash">
+                        </div>
+                    </div>
+                    <div class="config-field">
+                        <label for="ref-lower-name">Lower limit name</label>
+                        <div class="dual-row">
+                            <select id="ref-lower-name-preset" data-target="ref-lower-name"></select>
+                            <input type="text" id="ref-lower-name">
+                        </div>
+                    </div>
+                    <div class="config-field">
+                        <label for="ref-lower-color">Lower limit color</label>
+                        <div class="color-row">
+                            <input type="color" id="ref-lower-color-picker" data-color-for="ref-lower-color">
+                            <input type="text" id="ref-lower-color">
+                        </div>
+                    </div>
+                    <div class="config-field">
+                        <label for="ref-lower-width">Lower limit width</label>
+                        <input type="number" id="ref-lower-width" min="0.5" step="0.1">
+                    </div>
+                    <div class="config-field">
+                        <label for="ref-lower-dash">Lower limit dash</label>
+                        <div class="dual-row">
+                            <select id="ref-lower-dash-preset" data-target="ref-lower-dash"></select>
+                            <input type="text" id="ref-lower-dash">
+                        </div>
+                    </div>
+                    <div class="config-field">
+                        <label for="ref-upper-name">Upper limit name</label>
+                        <div class="dual-row">
+                            <select id="ref-upper-name-preset" data-target="ref-upper-name"></select>
+                            <input type="text" id="ref-upper-name">
+                        </div>
+                    </div>
+                    <div class="config-field">
+                        <label for="ref-upper-color">Upper limit color</label>
+                        <div class="color-row">
+                            <input type="color" id="ref-upper-color-picker" data-color-for="ref-upper-color">
+                            <input type="text" id="ref-upper-color">
+                        </div>
+                    </div>
+                    <div class="config-field">
+                        <label for="ref-upper-width">Upper limit width</label>
+                        <input type="number" id="ref-upper-width" min="0.5" step="0.1">
+                    </div>
+                    <div class="config-field">
+                        <label for="ref-upper-dash">Upper limit dash</label>
+                        <div class="dual-row">
+                            <select id="ref-upper-dash-preset" data-target="ref-upper-dash"></select>
+                            <input type="text" id="ref-upper-dash">
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="form-card">
+                <h3>Legend &amp; axes</h3>
+                <div class="config-grid">
+                    <div class="config-field checkbox-field">
+                        <input type="checkbox" id="legend-show">
+                        <label for="legend-show">Show legend</label>
+                    </div>
+                    <div class="config-field">
+                        <label for="legend-position">Legend position</label>
+                        <select id="legend-position">
+                            <option value="outside_right">Outside right</option>
+                            <option value="top_left">Top left</option>
+                            <option value="top_right">Top right</option>
+                            <option value="bottom_left">Bottom left</option>
+                            <option value="bottom_right">Bottom right</option>
+                            <option value="top">Top (horizontal)</option>
+                            <option value="bottom">Bottom (horizontal)</option>
+                            <option value="custom">Custom (x / y below)</option>
+                        </select>
+                        <span class="hint">Presets set orientation and anchors automatically</span>
+                    </div>
+                    <div class="config-field">
+                        <label for="legend-orientation">Legend orientation (custom)</label>
+                        <div class="dual-row">
+                            <select id="legend-orientation-preset" data-target="legend-orientation"></select>
+                            <input type="text" id="legend-orientation" placeholder="v or h">
+                        </div>
+                    </div>
+                    <div class="config-field">
+                        <label for="legend-x">Legend x (custom)</label>
+                        <input type="number" id="legend-x" step="0.01">
+                    </div>
+                    <div class="config-field">
+                        <label for="legend-y">Legend y (custom)</label>
+                        <input type="number" id="legend-y" step="0.01">
+                    </div>
+                    <div class="config-field">
+                        <label for="legend-bg">Legend background</label>
+                        <div class="color-row">
+                            <input type="color" id="legend-bg-picker" data-color-for="legend-bg">
+                            <input type="text" id="legend-bg" placeholder="rgba(255,255,255,0.85)">
+                        </div>
+                    </div>
+                    <div class="config-field">
+                        <label for="legend-border">Legend border width</label>
+                        <input type="number" id="legend-border" min="0" step="1">
+                    </div>
+                    <div class="config-field checkbox-field">
+                        <input type="checkbox" id="axes-grid-x">
+                        <label for="axes-grid-x">Show X grid</label>
+                    </div>
+                    <div class="config-field checkbox-field">
+                        <input type="checkbox" id="axes-grid-y">
+                        <label for="axes-grid-y">Show Y grid</label>
+                    </div>
+                    <div class="config-field checkbox-field">
+                        <input type="checkbox" id="axes-zeroline">
+                        <label for="axes-zeroline">Show zeroline</label>
+                    </div>
+                    <div class="config-field checkbox-field">
+                        <input type="checkbox" id="axes-show-borders">
+                        <label for="axes-show-borders">Plot borders (axis on four sides)</label>
+                    </div>
+                    <div class="config-field">
+                        <label for="axes-border-color">Border color</label>
+                        <div class="color-row">
+                            <input type="color" id="axes-border-color-picker" data-color-for="axes-border-color">
+                            <input type="text" id="axes-border-color" placeholder="#333333">
+                        </div>
+                    </div>
+                    <div class="config-field">
+                        <label for="axes-border-width">Border width</label>
+                        <input type="number" id="axes-border-width" min="0.5" step="0.5">
+                    </div>
+                    <div class="config-field">
+                        <label for="axes-gridcolor">Grid color</label>
+                        <div class="color-row">
+                            <input type="color" id="axes-gridcolor-picker" data-color-for="axes-gridcolor">
+                            <input type="text" id="axes-gridcolor">
+                        </div>
+                    </div>
+                    <div class="config-field">
+                        <label for="output-plotlyjs">include_plotlyjs</label>
+                        <div class="dual-row">
+                            <select id="output-plotlyjs-preset" data-target="output-plotlyjs"></select>
+                            <input type="text" id="output-plotlyjs" placeholder="true / cdn / false">
+                        </div>
+                    </div>
+                </div>
+
+                <div class="actions">
+                    <button type="submit" class="btn btn-primary">Save configuration</button>
+                    <button type="button" class="btn btn-secondary" id="reload-dbq-plot-config-btn">Reload</button>
+                    <button type="button" class="btn btn-secondary" id="reset-dbq-plot-config-btn">Reset to defaults</button>
+                </div>
+            </div>
+        </form>
+    </div>
+
+    <script>
+        let dbqPlotConfig = {{ config | tojson }};
+
+        const PRESETS = {
+            'figure-template': [
+                'plotly_white', 'plotly', 'plotly_dark', 'ggplot2', 'seaborn', 'simple_white',
+            ],
+            'figure-hovermode': ['x unified', 'x', 'y', 'closest'],
+            'font-family': [
+                'Arial, sans-serif',
+                'Helvetica, Arial, sans-serif',
+                'DejaVu Sans, Arial, sans-serif',
+                'Times New Roman, Times, serif',
+                'Courier New, monospace',
+                'system-ui, sans-serif',
+            ],
+            'labels-x-title': ['Time', 'Timestamp', 'Date/Time'],
+            'labels-legend-title': ['Uplink Channel', 'Channel', 'Series'],
+            'labels-title-template': [
+                'DBSNo: {serial} - PPrGTH: {ivar} (BT {benchtest_id} -> {test_length}) (Gen -> {generated_at})',
+                'DBSNo: {serial} — {ivar} (BT {benchtest_id} -> {test_length}) ({generated_at})',
+                '{ivar} · board {serial} · BT {benchtest_id} -> {test_length}',
+                '{serial} / {ivar}',
+            ],
+            'labels-title-time-format': [
+                '%Y-%m-%d %H:%M:%S',
+                '%Y-%m-%d %H:%M',
+                '%d/%m/%Y %H:%M:%S',
+                '%Y-%m-%d',
+                '%H:%M:%S',
+                '%b %d, %Y %H:%M',
+            ],
+            'data-mode': ['lines', 'lines+markers', 'markers'],
+            'ref-truth-name': ['TruthValue', 'Truth', 'Nominal'],
+            'ref-lower-name': ['LowerLimit', 'Lower', 'Min'],
+            'ref-upper-name': ['UpperLimit', 'Upper', 'Max'],
+            'ref-truth-dash': ['solid', 'dot', 'dash', 'longdash', 'dashdot', 'longdashdot'],
+            'ref-lower-dash': ['solid', 'dot', 'dash', 'longdash', 'dashdot', 'longdashdot'],
+            'ref-upper-dash': ['solid', 'dot', 'dash', 'longdash', 'dashdot', 'longdashdot'],
+            'legend-orientation': ['v', 'h'],
+            'output-plotlyjs': ['true', 'cdn', 'false'],
+        };
+
+        function showMessage(text, isError = false) {
+            const ok = document.getElementById('message-box');
+            const err = document.getElementById('error-box');
+            ok.style.display = 'none';
+            err.style.display = 'none';
+            const box = isError ? err : ok;
+            box.textContent = text;
+            box.style.display = 'block';
+        }
+
+        function fillPresetSelect(selectId, values) {
+            const el = document.getElementById(selectId);
+            if (!el) return;
+            el.innerHTML = '<option value="">Custom…</option>' + values.map((value) => (
+                `<option value="${escapeAttr(value)}">${escapeHtml(value)}</option>`
+            )).join('');
+        }
+
+        function escapeHtml(value) {
+            return String(value)
+                .replaceAll('&', '&amp;')
+                .replaceAll('<', '&lt;')
+                .replaceAll('>', '&gt;')
+                .replaceAll('"', '&quot;');
+        }
+
+        function escapeAttr(value) {
+            return escapeHtml(value).replaceAll("'", '&#39;');
+        }
+
+        function syncPresetFromText(textId) {
+            const textEl = document.getElementById(textId);
+            const presetEl = document.getElementById(`${textId}-preset`);
+            if (!textEl || !presetEl) return;
+            const value = textEl.value;
+            const match = [...presetEl.options].some((opt) => opt.value === value);
+            presetEl.value = match ? value : '';
+        }
+
+        function parseColorToHex(value) {
+            const text = String(value || '').trim();
+            if (!text) return '#ffffff';
+            const hex = text.match(/^#([0-9a-fA-F]{3}|[0-9a-fA-F]{6})$/);
+            if (hex) {
+                if (hex[1].length === 3) {
+                    return `#${hex[1].split('').map((c) => c + c).join('').toLowerCase()}`;
+                }
+                return `#${hex[1].toLowerCase()}`;
+            }
+            const rgb = text.match(/^rgba?\(\s*(\d+)\s*,\s*(\d+)\s*,\s*(\d+)/i);
+            if (rgb) {
+                const toHex = (n) => Number(n).toString(16).padStart(2, '0');
+                return `#${toHex(rgb[1])}${toHex(rgb[2])}${toHex(rgb[3])}`;
+            }
+            const named = {
+                white: '#ffffff',
+                black: '#000000',
+                red: '#ff0000',
+                green: '#008000',
+                blue: '#0000ff',
+            };
+            return named[text.toLowerCase()] || '#ffffff';
+        }
+
+        function syncColorPicker(textId) {
+            const textEl = document.getElementById(textId);
+            const picker = document.querySelector(`input[type="color"][data-color-for="${textId}"]`);
+            if (!textEl || !picker) return;
+            picker.value = parseColorToHex(textEl.value);
+        }
+
+        function pad2(n) {
+            return String(n).padStart(2, '0');
+        }
+
+        function formatPreviewTime(date, format) {
+            if (!(date instanceof Date) || Number.isNaN(date.getTime())) return '—';
+            const map = {
+                '%Y': String(date.getFullYear()),
+                '%m': pad2(date.getMonth() + 1),
+                '%d': pad2(date.getDate()),
+                '%H': pad2(date.getHours()),
+                '%M': pad2(date.getMinutes()),
+                '%S': pad2(date.getSeconds()),
+                '%b': date.toLocaleString('en', { month: 'short' }),
+            };
+            let out = String(format || '%Y-%m-%d %H:%M:%S');
+            Object.entries(map).forEach(([token, value]) => {
+                out = out.split(token).join(value);
+            });
+            return out;
+        }
+
+        function datetimeLocalToDate(value) {
+            if (!value) return new Date();
+            const parsed = new Date(value);
+            return Number.isNaN(parsed.getTime()) ? new Date() : parsed;
+        }
+
+        function toDatetimeLocalValue(date) {
+            return (
+                `${date.getFullYear()}-${pad2(date.getMonth() + 1)}-${pad2(date.getDate())}`
+                + `T${pad2(date.getHours())}:${pad2(date.getMinutes())}:${pad2(date.getSeconds())}`
+            );
+        }
+
+        function updateTitlePreview() {
+            const format = document.getElementById('labels-title-time-format')?.value || '%Y-%m-%d %H:%M:%S';
+            const template = document.getElementById('labels-title-template')?.value
+                || 'DBSNo: {serial} - PPrGTH: {ivar} (BT {benchtest_id} -> {test_length}) (Gen -> {generated_at})';
+            const dt = datetimeLocalToDate(document.getElementById('title-preview-datetime')?.value);
+            const formatted = formatPreviewTime(dt, format);
+            const sample = template
+                .replaceAll('{serial}', '9000001')
+                .replaceAll('{ivar}', 'BER')
+                .replaceAll('{benchtest_id}', '42')
+                .replaceAll('{bt}', '42')
+                .replaceAll('{test_length}', '2h 15m')
+                .replaceAll('{duration}', '2h 15m')
+                .replaceAll('{generated_at}', formatted);
+            const timeEl = document.getElementById('title-time-preview');
+            const titleEl = document.getElementById('title-template-preview');
+            if (timeEl) timeEl.textContent = formatted;
+            if (titleEl) titleEl.textContent = sample;
+        }
+
+        function setTextAndSync(id, value) {
+            const el = document.getElementById(id);
+            if (!el) return;
+            el.value = value == null ? '' : String(value);
+            syncPresetFromText(id);
+            syncColorPicker(id);
+        }
+
+        function bindDualControls() {
+            Object.keys(PRESETS).forEach((textId) => {
+                fillPresetSelect(`${textId}-preset`, PRESETS[textId]);
+                const preset = document.getElementById(`${textId}-preset`);
+                const text = document.getElementById(textId);
+                if (preset) {
+                    preset.addEventListener('change', () => {
+                        if (!preset.value) return;
+                        text.value = preset.value;
+                        updateTitlePreview();
+                    });
+                }
+                if (text) {
+                    text.addEventListener('input', () => {
+                        syncPresetFromText(textId);
+                        updateTitlePreview();
+                    });
+                }
+            });
+
+            document.querySelectorAll('input[type="color"][data-color-for]').forEach((picker) => {
+                const textId = picker.dataset.colorFor;
+                const text = document.getElementById(textId);
+                picker.addEventListener('input', () => {
+                    if (!text) return;
+                    // Keep alpha if current value is rgba(...)
+                    const current = String(text.value || '').trim();
+                    const rgba = current.match(/^rgba?\(\s*\d+\s*,\s*\d+\s*,\s*\d+\s*(,\s*([0-9.]+)\s*)?\)$/i);
+                    if (rgba) {
+                        const hex = picker.value;
+                        const r = parseInt(hex.slice(1, 3), 16);
+                        const g = parseInt(hex.slice(3, 5), 16);
+                        const b = parseInt(hex.slice(5, 7), 16);
+                        const alpha = rgba[2] != null ? rgba[2] : '1';
+                        text.value = `rgba(${r}, ${g}, ${b}, ${alpha})`;
+                    } else {
+                        text.value = picker.value;
+                    }
+                });
+                if (text) {
+                    text.addEventListener('input', () => syncColorPicker(textId));
+                }
+            });
+
+            document.getElementById('title-preview-datetime')?.addEventListener('input', updateTitlePreview);
+            document.getElementById('labels-title-template')?.addEventListener('input', updateTitlePreview);
+            document.getElementById('labels-title-time-format')?.addEventListener('input', updateTitlePreview);
+        }
+
+        function renderConfig(config) {
+            dbqPlotConfig = config || {};
+            const fig = config.figure || {};
+            const font = config.font || {};
+            const labels = config.labels || {};
+            const data = config.data_traces || {};
+            const refs = config.reference_traces || {};
+            const legend = config.legend || {};
+            const axes = config.axes || {};
+            const output = config.output || {};
+
+            setTextAndSync('figure-template', fig.template || 'plotly_white');
+            document.getElementById('figure-height').value = fig.height ?? 560;
+            document.getElementById('figure-width').value = fig.width ?? '';
+            setTextAndSync('figure-hovermode', fig.hovermode || 'x unified');
+            setTextAndSync('figure-paper-bg', fig.paper_bgcolor || 'white');
+            setTextAndSync('figure-plot-bg', fig.plot_bgcolor || 'white');
+            document.getElementById('figure-margin-l').value = fig.margin_l ?? 60;
+            document.getElementById('figure-margin-r').value = fig.margin_r ?? 40;
+            document.getElementById('figure-margin-t').value = fig.margin_t ?? 70;
+            document.getElementById('figure-margin-b').value = fig.margin_b ?? 50;
+
+            setTextAndSync('font-family', font.family || 'Arial, sans-serif');
+            setTextAndSync('font-color', font.color || '#333333');
+            document.getElementById('font-size').value = font.size ?? 12;
+            document.getElementById('font-title-size').value = font.title_size ?? 16;
+            document.getElementById('font-axis-title-size').value = font.axis_title_size ?? 13;
+            document.getElementById('font-tick-size').value = font.tick_size ?? 11;
+            document.getElementById('font-legend-size').value = font.legend_size ?? 11;
+
+            setTextAndSync('labels-x-title', labels.x_title || 'Time');
+            setTextAndSync('labels-legend-title', labels.legend_title || 'Uplink Channel');
+            document.getElementById('labels-y-is-varname').checked = Boolean(labels.y_title_is_varname);
+            document.getElementById('labels-y-title').value = labels.y_title || '';
+            setTextAndSync(
+                'labels-title-template',
+                labels.title_template || 'DBSNo: {serial} - PPrGTH: {ivar} (BT {benchtest_id} -> {test_length}) (Gen -> {generated_at})',
+            );
+            setTextAndSync('labels-title-time-format', labels.title_time_format || '%Y-%m-%d %H:%M:%S');
+
+            const previewDt = document.getElementById('title-preview-datetime');
+            if (previewDt && !previewDt.value) {
+                previewDt.value = toDatetimeLocalValue(new Date());
+            }
+
+            setTextAndSync('data-mode', data.mode || 'lines');
+            document.getElementById('data-line-width').value = data.line_width ?? 1.5;
+            document.getElementById('data-marker-size').value = data.marker_size ?? 5;
+            document.getElementById('data-opacity').value = data.opacity ?? 1;
+
+            setTextAndSync('ref-truth-name', refs.truth_name || 'TruthValue');
+            setTextAndSync('ref-truth-color', refs.truth_color || 'rgba(255, 0, 0, 1)');
+            document.getElementById('ref-truth-width').value = refs.truth_width ?? 2;
+            setTextAndSync('ref-truth-dash', refs.truth_dash || 'solid');
+            setTextAndSync('ref-lower-name', refs.lower_name || 'LowerLimit');
+            setTextAndSync('ref-lower-color', refs.lower_color || 'rgba(255, 0, 0, 1)');
+            document.getElementById('ref-lower-width').value = refs.lower_width ?? 2;
+            setTextAndSync('ref-lower-dash', refs.lower_dash || 'dash');
+            setTextAndSync('ref-upper-name', refs.upper_name || 'UpperLimit');
+            setTextAndSync('ref-upper-color', refs.upper_color || 'rgba(255, 0, 0, 1)');
+            document.getElementById('ref-upper-width').value = refs.upper_width ?? 2;
+            setTextAndSync('ref-upper-dash', refs.upper_dash || 'dash');
+
+            document.getElementById('legend-show').checked = Boolean(legend.show);
+            document.getElementById('legend-position').value = legend.position || 'outside_right';
+            setTextAndSync('legend-orientation', legend.orientation || 'v');
+            document.getElementById('legend-x').value = legend.x ?? 1.02;
+            document.getElementById('legend-y').value = legend.y ?? 1;
+            setTextAndSync('legend-bg', legend.bgcolor || 'rgba(255,255,255,0.85)');
+            document.getElementById('legend-border').value = legend.borderwidth ?? 0;
+            document.getElementById('axes-grid-x').checked = Boolean(axes.showgrid_x);
+            document.getElementById('axes-grid-y').checked = Boolean(axes.showgrid_y);
+            document.getElementById('axes-zeroline').checked = Boolean(axes.zeroline);
+            document.getElementById('axes-show-borders').checked = Boolean(axes.show_borders);
+            setTextAndSync('axes-border-color', axes.border_color || '#333333');
+            document.getElementById('axes-border-width').value = axes.border_width ?? 1;
+            setTextAndSync('axes-gridcolor', axes.gridcolor || '#e4e8ee');
+
+            const includeJs = output.include_plotlyjs;
+            if (includeJs === false) setTextAndSync('output-plotlyjs', 'false');
+            else if (includeJs === 'cdn') setTextAndSync('output-plotlyjs', 'cdn');
+            else setTextAndSync('output-plotlyjs', 'true');
+
+            updateTitlePreview();
+        }
+
+        function collectConfig() {
+            const widthRaw = document.getElementById('figure-width').value.trim();
+            let includeJs = document.getElementById('output-plotlyjs').value.trim();
+            if (includeJs === 'true') includeJs = true;
+            else if (includeJs === 'false') includeJs = false;
+            return {
+                figure: {
+                    template: document.getElementById('figure-template').value.trim(),
+                    height: Number(document.getElementById('figure-height').value || 560),
+                    width: widthRaw === '' ? null : Number(widthRaw),
+                    hovermode: document.getElementById('figure-hovermode').value.trim(),
+                    paper_bgcolor: document.getElementById('figure-paper-bg').value.trim(),
+                    plot_bgcolor: document.getElementById('figure-plot-bg').value.trim(),
+                    margin_l: Number(document.getElementById('figure-margin-l').value || 0),
+                    margin_r: Number(document.getElementById('figure-margin-r').value || 0),
+                    margin_t: Number(document.getElementById('figure-margin-t').value || 0),
+                    margin_b: Number(document.getElementById('figure-margin-b').value || 0),
+                },
+                font: {
+                    family: document.getElementById('font-family').value.trim(),
+                    color: document.getElementById('font-color').value.trim(),
+                    size: Number(document.getElementById('font-size').value || 12),
+                    title_size: Number(document.getElementById('font-title-size').value || 16),
+                    axis_title_size: Number(document.getElementById('font-axis-title-size').value || 13),
+                    tick_size: Number(document.getElementById('font-tick-size').value || 11),
+                    legend_size: Number(document.getElementById('font-legend-size').value || 11),
+                },
+                labels: {
+                    x_title: document.getElementById('labels-x-title').value.trim(),
+                    legend_title: document.getElementById('labels-legend-title').value.trim(),
+                    y_title_is_varname: document.getElementById('labels-y-is-varname').checked,
+                    y_title: document.getElementById('labels-y-title').value.trim(),
+                    title_template: document.getElementById('labels-title-template').value.trim(),
+                    title_time_format: document.getElementById('labels-title-time-format').value.trim(),
+                },
+                data_traces: {
+                    mode: document.getElementById('data-mode').value.trim(),
+                    line_width: Number(document.getElementById('data-line-width').value || 1.5),
+                    marker_size: Number(document.getElementById('data-marker-size').value || 5),
+                    opacity: Number(document.getElementById('data-opacity').value || 1),
+                },
+                reference_traces: {
+                    truth_name: document.getElementById('ref-truth-name').value.trim(),
+                    truth_color: document.getElementById('ref-truth-color').value.trim(),
+                    truth_width: Number(document.getElementById('ref-truth-width').value || 2),
+                    truth_dash: document.getElementById('ref-truth-dash').value.trim(),
+                    lower_name: document.getElementById('ref-lower-name').value.trim(),
+                    lower_color: document.getElementById('ref-lower-color').value.trim(),
+                    lower_width: Number(document.getElementById('ref-lower-width').value || 2),
+                    lower_dash: document.getElementById('ref-lower-dash').value.trim(),
+                    upper_name: document.getElementById('ref-upper-name').value.trim(),
+                    upper_color: document.getElementById('ref-upper-color').value.trim(),
+                    upper_width: Number(document.getElementById('ref-upper-width').value || 2),
+                    upper_dash: document.getElementById('ref-upper-dash').value.trim(),
+                },
+                legend: {
+                    show: document.getElementById('legend-show').checked,
+                    position: document.getElementById('legend-position').value,
+                    orientation: document.getElementById('legend-orientation').value.trim(),
+                    x: Number(document.getElementById('legend-x').value || 0),
+                    y: Number(document.getElementById('legend-y').value || 0),
+                    bgcolor: document.getElementById('legend-bg').value.trim(),
+                    borderwidth: Number(document.getElementById('legend-border').value || 0),
+                },
+                axes: {
+                    showgrid_x: document.getElementById('axes-grid-x').checked,
+                    showgrid_y: document.getElementById('axes-grid-y').checked,
+                    zeroline: document.getElementById('axes-zeroline').checked,
+                    show_borders: document.getElementById('axes-show-borders').checked,
+                    border_color: document.getElementById('axes-border-color').value.trim(),
+                    border_width: Number(document.getElementById('axes-border-width').value || 1),
+                    gridcolor: document.getElementById('axes-gridcolor').value.trim(),
+                },
+                output: {
+                    include_plotlyjs: includeJs,
+                },
+            };
+        }
+
+        async function loadConfig() {
+            try {
+                const response = await fetch('/api/dbq_plot/config');
+                const data = await response.json();
+                if (data.error || !data.success) {
+                    showMessage(data.error || 'Failed to load configuration.', true);
+                    return;
+                }
+                renderConfig(data.config);
+                showMessage('Configuration loaded.');
+            } catch (error) {
+                console.error(error);
+                showMessage('Error loading configuration.', true);
+            }
+        }
+
+        document.getElementById('reload-dbq-plot-config-btn').addEventListener('click', loadConfig);
+
+        document.getElementById('reset-dbq-plot-config-btn').addEventListener('click', async () => {
+            if (!window.confirm('Reset DBQ plot configuration to defaults?')) return;
+            try {
+                const response = await fetch('/api/dbq_plot/config/reset', { method: 'POST' });
+                const data = await response.json();
+                if (data.error || !data.success) {
+                    showMessage(data.error || 'Failed to reset configuration.', true);
+                    return;
+                }
+                renderConfig(data.config);
+                showMessage('Configuration reset to defaults.');
+            } catch (error) {
+                console.error(error);
+                showMessage('Error resetting configuration.', true);
+            }
+        });
+
+        document.getElementById('dbq-plot-config-form').addEventListener('submit', async (event) => {
+            event.preventDefault();
+            try {
+                const response = await fetch('/api/dbq_plot/config', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(collectConfig()),
+                });
+                const data = await response.json();
+                if (data.error || !data.success) {
+                    showMessage(data.error || 'Failed to save configuration.', true);
+                    return;
+                }
+                renderConfig(data.config);
+                showMessage('DBQ plot configuration saved.');
+            } catch (error) {
+                console.error(error);
+                showMessage('Error saving configuration.', true);
+            }
+        });
+
+        bindDualControls();
+        renderConfig(dbqPlotConfig);
+    </script>
+</body>
+</html>

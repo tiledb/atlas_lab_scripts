@@ -1,0 +1,64 @@
+figure:
+  template: plotly_white
+  width:
+  height: 560
+  paper_bgcolor: white
+  plot_bgcolor: white
+  margin_l: 60
+  margin_r: 40
+  margin_t: 70
+  margin_b: 120
+  hovermode: x unified
+font:
+  family: Arial, sans-serif
+  color: '#333333'
+  size: 20
+  title_size: 22
+  axis_title_size: 20
+  tick_size: 20
+  legend_size: 20
+labels:
+  x_title: Time
+  y_title_is_varname: true
+  y_title: Value
+  legend_title: Uplink Channel
+  title_template: 'DBSNo: {serial} - PPrGTH: {ivar} (BT {benchtest_id} -> {test_length}) (Gen -> {generated_at})'
+  title_time_format: '%Y-%m-%d %H:%M:%S'
+data_traces:
+  mode: lines+markers
+  line_width: 2.0
+  marker_size: 5.0
+  opacity: 1.0
+reference_traces:
+  truth_name: TruthValue
+  truth_color: rgba(255, 0, 0, 1)
+  truth_width: 5.0
+  truth_dash: solid
+  lower_name: LowerLimit
+  lower_color: rgba(255, 0, 0, 1)
+  lower_width: 2.0
+  lower_dash: dash
+  upper_name: UpperLimit
+  upper_color: rgba(255, 0, 0, 1)
+  upper_width: 2.0
+  upper_dash: dash
+legend:
+  show: true
+  position: bottom
+  orientation: h
+  x: 0.5
+  y: -0.28
+  xanchor: center
+  yanchor: top
+  bgcolor: rgba(255,255,255,0.85)
+  borderwidth: 0
+axes:
+  showgrid_x: true
+  showgrid_y: true
+  zeroline: false
+  gridcolor: '#e4e8ee'
+  show_borders: true
+  border_color: '#333333'
+  border_width: 1.0
+output:
+  include_plotlyjs: true

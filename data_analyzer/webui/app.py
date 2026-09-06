@@ -16,10 +16,19 @@ from production_history import (
     build_history_snapshot,
     build_production_history,
     cache_milestone_snapshot,
+    clear_history_cache_scope,
     iter_rebuild_history_cache,
     load_cached_snapshot,
     load_history_index,
     rebuild_history_cache,
+)
+from production_history_video import (
+    estimate_video_selection,
+    fetch_db_comments_for_video,
+    iter_generate_history_slideshow,
+    iter_generate_history_video,
+    resolve_slideshow_path,
+    resolve_video_path,
 )
 from burn_in import build_burn_in_overview, build_burn_in_plot_all_slots, build_burn_in_plot_for_slot
 from benchtest_results import get_failed_tests_for_serial
@@ -113,6 +122,7 @@ edit_burn_in_template = "edit_burn_in.html"
 edit_long_burn_in_template = "edit_long_burn_in.html"
 edit_history_cache_template = "edit_history_cache.html"
 edit_tab_order_template = "edit_tab_order.html"
+edit_dbq_plot_template = "edit_dbq_plot.html"
 
 def load_secrets():
     """Load database credentials from secrets.yaml."""
@@ -186,50 +196,66 @@ def load_vars_yaml():
         print(f"Error loading vars.yaml: {e}")
         return {}
 
+
+def load_vars_yaml_for_edit():
+    """Normalized vars for the edit UI: thresholds/essential/caption per variable."""
+    if str(SCRIPT_DIR) not in sys.path:
+        sys.path.insert(0, str(SCRIPT_DIR))
+    from vars_config import (
+        format_thresholds_for_form,
+        normalize_vars_config,
+    )
+    normalized = normalize_vars_config(load_vars_yaml())
+    for table_vars in normalized.values():
+        for var_name, entry in table_vars.items():
+            entry['thresholds_text'] = format_thresholds_for_form(entry.get('thresholds'))
+    return normalized
+
+
 def save_vars_yaml(data):
-    """Save configuration to vars.yaml preserving original format."""
+    """Save configuration to vars.yaml in the thresholds/essential/caption schema."""
     try:
-        # Load original data to get structure with formatting metadata
-        yaml_handler = YAML()
-        yaml_handler.preserve_quotes = True
-        with open(VARS_YAML_PATH, 'r') as f:
-            original_data = yaml_handler.load(f)
-        
-        # Recursively update values in original data while preserving structure
-        def update_values(original, new):
-            if isinstance(new, dict):
-                for key, value in new.items():
-                    if key in original:
-                        original[key] = update_values(original[key], value)
-                    else:
-                        original[key] = value
-            elif isinstance(new, list):
-                # For lists, update element by element to preserve sequence style
-                if isinstance(original, list):
-                    for i in range(min(len(original), len(new))):
-                        original[i] = new[i]
-                    # If new list is longer, append remaining elements
-                    for i in range(len(original), len(new)):
-                        original.append(new[i])
-                    # If new list is shorter, truncate
-                    while len(original) > len(new):
-                        original.pop()
+        if str(SCRIPT_DIR) not in sys.path:
+            sys.path.insert(0, str(SCRIPT_DIR))
+        from vars_config import normalize_var_entry, parse_thresholds_text
+        from ruamel.yaml.comments import CommentedMap, CommentedSeq
+
+        out = CommentedMap()
+        for table_name, table_vars in (data or {}).items():
+            tmap = CommentedMap()
+            for var_name, entry in (table_vars or {}).items():
+                if isinstance(entry, dict):
+                    thresholds = entry.get('thresholds')
+                    if isinstance(thresholds, str):
+                        thresholds = parse_thresholds_text(thresholds)
+                    elif thresholds is None:
+                        thresholds = []
+                    elif not isinstance(thresholds, list):
+                        thresholds = [thresholds]
+                    raw = {
+                        'thresholds': thresholds,
+                        'essential': entry.get('essential', 0),
+                        'caption': entry.get('caption', var_name),
+                    }
                 else:
-                    return new
-            else:
-                return new
-            return original
-        
-        update_values(original_data, data)
-        
-        # Save with ruamel.yaml to preserve formatting
+                    raw = entry
+                normalized = normalize_var_entry(raw, name=var_name)
+                emap = CommentedMap()
+                thr = CommentedSeq(normalized['thresholds'])
+                thr.fa.set_flow_style()
+                emap['thresholds'] = thr
+                emap['essential'] = int(normalized['essential'])
+                emap['caption'] = normalized['caption']
+                tmap[var_name] = emap
+            out[table_name] = tmap
+
         yaml_handler = YAML()
         yaml_handler.preserve_quotes = True
         yaml_handler.default_flow_style = False
         yaml_handler.indent(mapping=2, sequence=4, offset=2)
         yaml_handler.width = 4096
         with open(VARS_YAML_PATH, 'w') as f:
-            yaml_handler.dump(original_data, f)
+            yaml_handler.dump(out, f)
         return True
     except Exception as e:
         print(f"Error saving vars.yaml: {e}")
@@ -398,60 +424,42 @@ def edit_vars():
     error = None
     
     if request.method == 'POST':
-        # Parse the YAML form data
+        if str(SCRIPT_DIR) not in sys.path:
+            sys.path.insert(0, str(SCRIPT_DIR))
+        from vars_config import parse_thresholds_text
+
         yaml_data = {}
-        
-        # Get all table names from form
         table_names = request.form.getlist('table_name')
         
         for table_name in table_names:
             yaml_data[table_name] = {}
-            
-            # Get variables for this table
             var_names = request.form.getlist(f'{table_name}_var_name')
             
             for var_name in var_names:
-                # Get the value for this variable
-                value_str = request.form.get(f'{table_name}_{var_name}')
-                
-                # Parse the value (could be single value or list)
-                if value_str:
-                    try:
-                        # Try to parse as list
-                        if value_str.startswith('[') and value_str.endswith(']'):
-                            # Parse list
-                            values = value_str[1:-1].split(',')
-                            parsed_values = []
-                            for v in values:
-                                v = v.strip()
-                                # Try to convert to int or float
-                                try:
-                                    if '.' in v:
-                                        parsed_values.append(float(v))
-                                    else:
-                                        parsed_values.append(int(v))
-                                except ValueError:
-                                    parsed_values.append(v)
-                            yaml_data[table_name][var_name] = parsed_values
-                        else:
-                            # Single value
-                            try:
-                                if '.' in value_str:
-                                    yaml_data[table_name][var_name] = float(value_str)
-                                else:
-                                    yaml_data[table_name][var_name] = int(value_str)
-                            except ValueError:
-                                yaml_data[table_name][var_name] = value_str
-                    except Exception as e:
-                        error = f"Error parsing value for {table_name}.{var_name}: {str(e)}"
-                        return render_template(edit_vars_template, error=error, vars_data=load_vars_yaml())
+                thresholds_str = request.form.get(f'{table_name}_{var_name}_thresholds', '')
+                essential_str = request.form.get(f'{table_name}_{var_name}_essential', '0')
+                caption_str = request.form.get(f'{table_name}_{var_name}_caption', var_name)
+                try:
+                    essential = 1 if str(essential_str).strip() in ('1', 'true', 'True', 'on') else 0
+                    yaml_data[table_name][var_name] = {
+                        'thresholds': parse_thresholds_text(thresholds_str),
+                        'essential': essential,
+                        'caption': (caption_str or var_name).strip() or var_name,
+                    }
+                except Exception as e:
+                    error = f"Error parsing value for {table_name}.{var_name}: {str(e)}"
+                    return render_template(
+                        edit_vars_template,
+                        error=error,
+                        vars_data=load_vars_yaml_for_edit(),
+                    )
         
         if save_vars_yaml(yaml_data):
             message = "Configuration saved successfully!"
         else:
             error = "Failed to save configuration."
     
-    vars_data = load_vars_yaml()
+    vars_data = load_vars_yaml_for_edit()
     return render_template(edit_vars_template, message=message, error=error, vars_data=vars_data)
 
 @app.route('/edit_production')
@@ -508,6 +516,71 @@ def edit_history_cache():
         edit_history_cache_template,
         config=load_production_config(),
     )
+
+
+@app.route('/edit_dbq_plot')
+def edit_dbq_plot():
+    if not session.get('logged_in'):
+        return redirect(url_for('login'))
+    blocked = require_full_access()
+    if blocked:
+        return blocked
+
+    if str(SCRIPT_DIR) not in sys.path:
+        sys.path.insert(0, str(SCRIPT_DIR))
+    from dbq_plot_config import CONFIG_PATH, load_dbq_plot_config
+
+    return render_template(
+        edit_dbq_plot_template,
+        config=load_dbq_plot_config(),
+        config_path=str(CONFIG_PATH),
+    )
+
+
+@app.route('/api/dbq_plot/config', methods=['GET', 'POST'])
+def dbq_plot_config_api():
+    if not session.get('logged_in'):
+        return jsonify({'error': 'Not logged in'}), 401
+
+    if str(SCRIPT_DIR) not in sys.path:
+        sys.path.insert(0, str(SCRIPT_DIR))
+    from dbq_plot_config import load_dbq_plot_config, save_dbq_plot_config
+
+    if request.method == 'GET':
+        return jsonify({'success': True, 'config': load_dbq_plot_config()})
+
+    blocked = require_full_access()
+    if blocked:
+        return jsonify({'error': 'Not allowed in guest mode'}), 403
+
+    try:
+        data = request.get_json(silent=True) or {}
+        saved = save_dbq_plot_config(data)
+        return jsonify({'success': True, 'config': saved})
+    except Exception as exc:
+        print(f'Error saving DBQ plot config: {exc}')
+        return jsonify({'error': str(exc)}), 500
+
+
+@app.route('/api/dbq_plot/config/reset', methods=['POST'])
+def dbq_plot_config_reset_api():
+    if not session.get('logged_in'):
+        return jsonify({'error': 'Not logged in'}), 401
+
+    blocked = require_full_access()
+    if blocked:
+        return jsonify({'error': 'Not allowed in guest mode'}), 403
+
+    if str(SCRIPT_DIR) not in sys.path:
+        sys.path.insert(0, str(SCRIPT_DIR))
+    from dbq_plot_config import DEFAULT_DBQ_PLOT_CONFIG, save_dbq_plot_config
+
+    try:
+        saved = save_dbq_plot_config(DEFAULT_DBQ_PLOT_CONFIG)
+        return jsonify({'success': True, 'config': saved})
+    except Exception as exc:
+        print(f'Error resetting DBQ plot config: {exc}')
+        return jsonify({'error': str(exc)}), 500
 
 
 @app.route('/edit_tab_order')
@@ -708,6 +781,17 @@ def brick_wall_data():
             # Initialize serial_to_has_post_burnin_test before the try block
             serial_to_has_post_burnin_test = {}
 
+            if str(SCRIPT_DIR) not in sys.path:
+                sys.path.insert(0, str(SCRIPT_DIR))
+            try:
+                from dbq_plot_config import format_test_length, test_length_seconds
+            except Exception:
+                def format_test_length(**_kwargs):
+                    return None
+
+                def test_length_seconds(**_kwargs):
+                    return None
+
             # Organize benchtest data by serial
             for bt in benchtest_rows:
                 # Each benchtest has up to 4 daughterboards (db_slot1, db_slot2, db_slot3, db_slot4)
@@ -740,12 +824,22 @@ def brick_wall_data():
                                 test_pass_value = bt['test_pass']
                         else:
                             test_pass_value = bt['test_pass']
+
+                        test_start = str(bt.get('test_start')) if bt.get('test_start') else None
+                        test_stop = str(bt.get('test_stop')) if bt.get('test_stop') else None
+                        length_seconds = test_length_seconds(start_time=test_start, stop_time=test_stop)
+                        test_length = format_test_length(start_time=test_start, stop_time=test_stop)
+                        if test_length == 'n/a':
+                            test_length = None
                         
                         serial_to_benchtests[serial_str].append({
                             'benchtest_id': bt['id'],
                             'benchtest_slot': slot_name,
                             'test_pass': test_pass_value,
-                            'test_stop': str(bt.get('test_stop')) if bt.get('test_stop') else None,
+                            'test_start': test_start,
+                            'test_stop': test_stop,
+                            'test_length': test_length,
+                            'test_length_seconds': length_seconds,
                             'test_op': bt.get('test_op'),
                             'failed_tests': failed_tests,
                             'burned': burned_status
@@ -1538,6 +1632,172 @@ def production_history_rebuild():
             'Cache-Control': 'no-cache',
             'X-Accel-Buffering': 'no',
         },
+    )
+
+
+@app.route('/api/production_history/video/estimate', methods=['POST'])
+def production_history_video_estimate():
+    if not session.get('logged_in'):
+        return jsonify({'error': 'Not logged in'}), 401
+    try:
+        options = request.get_json(silent=True) or {}
+        return jsonify(estimate_video_selection(options=options))
+    except Exception as exc:
+        print(f'Error estimating history video: {exc}')
+        return jsonify({'error': str(exc)}), 500
+
+
+@app.route('/api/production_history/video/generate', methods=['POST'])
+def production_history_video_generate():
+    if not session.get('logged_in'):
+        return jsonify({'error': 'Not logged in'}), 401
+
+    options = request.get_json(silent=True) or {}
+
+    def generate():
+        db_comments = []
+        conn = None
+        try:
+            include_comments = bool(
+                options.get('include_comments') or options.get('includeComments')
+            )
+            if include_comments:
+                conn = get_db_connection()
+                if conn:
+                    db_comments = fetch_db_comments_for_video(conn)
+            for event in iter_generate_history_video(options=options, db_comments=db_comments):
+                # Pad lightly so proxies flush progress lines promptly.
+                yield json.dumps(event) + '\n' + (' ' * 256) + '\n'
+        except Exception as exc:
+            print(f'Error generating history video: {exc}')
+            import traceback
+            traceback.print_exc()
+            yield json.dumps({'type': 'error', 'error': str(exc)}) + '\n'
+        finally:
+            if conn is not None:
+                try:
+                    conn.close()
+                except Exception:
+                    pass
+
+    return Response(
+        stream_with_context(generate()),
+        mimetype='application/x-ndjson',
+        headers={
+            'Cache-Control': 'no-cache, no-store',
+            'X-Accel-Buffering': 'no',
+            'Content-Encoding': 'identity',
+        },
+    )
+
+
+@app.route('/api/production_history/cache/clear', methods=['POST'])
+def production_history_cache_clear():
+    if not session.get('logged_in'):
+        return jsonify({'error': 'Not logged in'}), 401
+    if session.get('guest_mode'):
+        return jsonify({'error': 'Not authorized'}), 403
+
+    payload = request.get_json(silent=True) or {}
+    scope = (payload.get('scope') or request.args.get('scope') or 'all').strip().lower()
+    try:
+        result = clear_history_cache_scope(scope)
+        return jsonify(result)
+    except ValueError as exc:
+        return jsonify({'error': str(exc)}), 400
+    except Exception as exc:
+        print(f'Error clearing history cache: {exc}')
+        return jsonify({'error': str(exc)}), 500
+
+
+@app.route('/api/production_history/video/download')
+def production_history_video_download():
+    if not session.get('logged_in'):
+        return jsonify({'error': 'Not logged in'}), 401
+    filename = (request.args.get('file') or '').strip()
+    path = resolve_video_path(filename)
+    if not path:
+        return jsonify({'error': 'Video not found'}), 404
+    from flask import send_file
+    return send_file(
+        path,
+        mimetype='video/mp4',
+        as_attachment=True,
+        download_name=path.name,
+    )
+
+
+@app.route('/api/production_history/slideshow/estimate', methods=['POST'])
+def production_history_slideshow_estimate():
+    if not session.get('logged_in'):
+        return jsonify({'error': 'Not logged in'}), 401
+    try:
+        options = request.get_json(silent=True) or {}
+        result = estimate_video_selection(options=options)
+        result['format'] = 'pdf'
+        return jsonify(result)
+    except Exception as exc:
+        print(f'Error estimating history slideshow: {exc}')
+        return jsonify({'error': str(exc)}), 500
+
+
+@app.route('/api/production_history/slideshow/generate', methods=['POST'])
+def production_history_slideshow_generate():
+    if not session.get('logged_in'):
+        return jsonify({'error': 'Not logged in'}), 401
+
+    options = request.get_json(silent=True) or {}
+
+    def generate():
+        db_comments = []
+        conn = None
+        try:
+            include_comments = bool(
+                options.get('include_comments') or options.get('includeComments')
+            )
+            if include_comments:
+                conn = get_db_connection()
+                if conn:
+                    db_comments = fetch_db_comments_for_video(conn)
+            for event in iter_generate_history_slideshow(options=options, db_comments=db_comments):
+                yield json.dumps(event) + '\n' + (' ' * 256) + '\n'
+        except Exception as exc:
+            print(f'Error generating history slideshow: {exc}')
+            import traceback
+            traceback.print_exc()
+            yield json.dumps({'type': 'error', 'error': str(exc)}) + '\n'
+        finally:
+            if conn is not None:
+                try:
+                    conn.close()
+                except Exception:
+                    pass
+
+    return Response(
+        stream_with_context(generate()),
+        mimetype='application/x-ndjson',
+        headers={
+            'Cache-Control': 'no-cache, no-store',
+            'X-Accel-Buffering': 'no',
+            'Content-Encoding': 'identity',
+        },
+    )
+
+
+@app.route('/api/production_history/slideshow/download')
+def production_history_slideshow_download():
+    if not session.get('logged_in'):
+        return jsonify({'error': 'Not logged in'}), 401
+    filename = (request.args.get('file') or '').strip()
+    path = resolve_slideshow_path(filename)
+    if not path:
+        return jsonify({'error': 'Slideshow not found'}), 404
+    from flask import send_file
+    return send_file(
+        path,
+        mimetype='application/pdf',
+        as_attachment=True,
+        download_name=path.name,
     )
 
 

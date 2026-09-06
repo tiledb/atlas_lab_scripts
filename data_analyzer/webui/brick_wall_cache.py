@@ -398,6 +398,36 @@ def build_brick_wall_html(
       container.appendChild(content);
     }}
 
+    function formatBenchtestDurationSeconds(totalSeconds) {{
+      const secondsTotal = Number(totalSeconds);
+      if (!Number.isFinite(secondsTotal) || secondsTotal < 0) {{
+        return 'N/A';
+      }}
+      const hours = Math.floor(secondsTotal / 3600);
+      const minutes = Math.floor((secondsTotal % 3600) / 60);
+      const seconds = Math.floor(secondsTotal % 60);
+      if (hours > 0) {{
+        return hours + 'h ' + String(minutes).padStart(2, '0') + 'm';
+      }}
+      if (minutes > 0) {{
+        return minutes + 'm ' + String(seconds).padStart(2, '0') + 's';
+      }}
+      return seconds + 's';
+    }}
+
+    function formatBenchtestDurationFromRange(start, stop) {{
+      if (!start || !stop) {{
+        return null;
+      }}
+      const startDate = new Date(String(start).replace(' ', 'T'));
+      const stopDate = new Date(String(stop).replace(' ', 'T'));
+      if (Number.isNaN(startDate.getTime()) || Number.isNaN(stopDate.getTime())) {{
+        return null;
+      }}
+      const seconds = Math.max(0, Math.floor((stopDate - startDate) / 1000));
+      return formatBenchtestDurationSeconds(seconds);
+    }}
+
     function showModal(board) {{
       const modal = document.getElementById('modal');
       const modalOverlay = document.getElementById('modal-overlay');
@@ -466,6 +496,11 @@ def build_brick_wall_html(
       if (board.benchtests && board.benchtests.length > 0) {{
         html += '<div class="modal-section">';
         html += '<div class="modal-section-title">Benchtest Information</div>';
+        const totalTestedSeconds = board.benchtests.reduce((sum, bt) => {{
+          const seconds = Number(bt.test_length_seconds);
+          return sum + (Number.isFinite(seconds) ? seconds : 0);
+        }}, 0);
+        html += '<div class="modal-row"><span class="modal-label">Total tested time:</span><span class="modal-value">' + formatBenchtestDurationSeconds(totalTestedSeconds) + '</span></div>';
         board.benchtests.forEach(bt => {{
           html += '<div class="modal-benchtest">';
           const benchtestUrl = 'https://piro-atlas-lab.fysik.su.se/drive/benchtests/benchtest_id_' + bt.benchtest_id + '/DB_' + board.serial_no + '/';
@@ -473,6 +508,8 @@ def build_brick_wall_html(
           html += '<div class="modal-benchtest-title"><a href="' + benchtestUrl + '" target="_blank" style="color: #0066cc; text-decoration: none;">Benchtest ' + bt.benchtest_id + ' ' + (bt.benchtest_slot || '') + '</a></div>';
           html += '</div>';
           html += '<div class="modal-row"><span class="modal-label">Test OP:</span><span class="modal-value">' + (bt.test_op || 'N/A') + '</span></div>';
+          const testLength = bt.test_length || formatBenchtestDurationFromRange(bt.test_start, bt.test_stop);
+          html += '<div class="modal-row"><span class="modal-label">Test Length:</span><span class="modal-value">' + (testLength || 'N/A') + '</span></div>';
           if (bt.test_stop) {{
             html += '<div class="modal-row"><span class="modal-label">Test Date:</span><span class="modal-value">' + String(bt.test_stop).split(' ')[0] + '</span></div>';
           }}

@@ -279,6 +279,27 @@ def _iter_calendar_event_cells(csv_path):
             yield planned_date, event_cell
 
 
+def load_schedule_calendar_events(csv_path):
+    """Load all meaningful calendar event cells (batches + free-text labels)."""
+    events = []
+    for planned_date, event_cell in _iter_calendar_event_cells(csv_path):
+        text = (event_cell or '').strip()
+        if not text:
+            continue
+        if text.lower() == 'veckonr.se':
+            continue
+        if re.fullmatch(r'\d+\s*', text):
+            continue
+        if re.search(r'\(backup\)', text, re.IGNORECASE):
+            continue
+        events.append({
+            'date': planned_date,
+            'label': text,
+        })
+    events.sort(key=lambda item: item['date'])
+    return events
+
+
 def load_schedule_comments(csv_path):
     """Load non-batch calendar comments from the schedule CSV."""
     comments = []

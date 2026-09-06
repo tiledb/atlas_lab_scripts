@@ -343,6 +343,53 @@
         </div>
 
         <div class="form-card">
+            <h2>Clear Caches</h2>
+            <p class="help-text">
+                Remove generated Production History artifacts without rebuilding.
+                Clearing snapshots also removes the history index so the player will rebuild
+                frames on demand (or via Rebuild below). Video clears only exported MP4 files.
+            </p>
+            <div class="action-list">
+                <div class="action-row">
+                    <div class="action-copy">
+                        <h3>Clear video cache</h3>
+                        <p>Delete exported history MP4 files under <code>history/videos/</code>.</p>
+                    </div>
+                    <button type="button" class="btn btn-secondary" id="history-clear-videos-btn">
+                        Clear videos
+                    </button>
+                </div>
+                <div class="action-row">
+                    <div class="action-copy">
+                        <h3>Clear slideshow cache</h3>
+                        <p>Delete exported history PDF slideshows under <code>history/slideshows/</code>.</p>
+                    </div>
+                    <button type="button" class="btn btn-secondary" id="history-clear-slideshows-btn">
+                        Clear slideshows
+                    </button>
+                </div>
+                <div class="action-row">
+                    <div class="action-copy">
+                        <h3>Clear snapshot cache</h3>
+                        <p>Delete milestone PNG/HTML/JSON snapshots and the history index.</p>
+                    </div>
+                    <button type="button" class="btn btn-secondary" id="history-clear-snapshots-btn">
+                        Clear snapshots
+                    </button>
+                </div>
+                <div class="action-row">
+                    <div class="action-copy">
+                        <h3>Clear all history cache</h3>
+                        <p>Remove videos, slideshows, snapshots, and index files for Production History.</p>
+                    </div>
+                    <button type="button" class="btn btn-danger" id="history-clear-all-btn">
+                        Clear all
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <div class="form-card">
             <h2>Rebuild Milestone Caches</h2>
             <p class="help-text">
                 Production History stores one cache frame per milestone (brick wall, charts, pies).
@@ -410,8 +457,41 @@
         }
 
         function setButtonsDisabled(disabled) {
-            document.getElementById('history-rebuild-missing-btn').disabled = disabled;
-            document.getElementById('history-rebuild-all-btn').disabled = disabled;
+            [
+                'history-rebuild-missing-btn',
+                'history-rebuild-all-btn',
+                'history-clear-videos-btn',
+                'history-clear-slideshows-btn',
+                'history-clear-snapshots-btn',
+                'history-clear-all-btn',
+            ].forEach((id) => {
+                const el = document.getElementById(id);
+                if (el) el.disabled = disabled;
+            });
+        }
+
+        async function clearHistoryCacheScope(scope, confirmMsg) {
+            if (rebuildInProgress) return;
+            if (!window.confirm(confirmMsg)) return;
+            rebuildInProgress = true;
+            setButtonsDisabled(true);
+            try {
+                const response = await fetch('/api/production_history/cache/clear', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ scope }),
+                });
+                const data = await response.json();
+                if (!response.ok || data.error) {
+                    throw new Error(data.error || `HTTP ${response.status}`);
+                }
+                showMessage(`Cleared ${scope} cache · removed ${data.removed || 0} file(s).`);
+            } catch (error) {
+                showMessage(`Failed to clear ${scope} cache: ${error.message || error}`, true);
+            } finally {
+                rebuildInProgress = false;
+                setButtonsDisabled(false);
+            }
         }
 
         function setProgress(percent, done, total) {
@@ -555,6 +635,30 @@
         };
         document.getElementById('history-rebuild-all-btn').onclick = () => {
             rebuildHistoryCache('all');
+        };
+        document.getElementById('history-clear-videos-btn').onclick = () => {
+            clearHistoryCacheScope(
+                'videos',
+                'Delete all exported Production History videos?',
+            );
+        };
+        document.getElementById('history-clear-slideshows-btn').onclick = () => {
+            clearHistoryCacheScope(
+                'slideshows',
+                'Delete all exported Production History PDF slideshows?',
+            );
+        };
+        document.getElementById('history-clear-snapshots-btn').onclick = () => {
+            clearHistoryCacheScope(
+                'snapshots',
+                'Delete all milestone snapshot caches and the history index?',
+            );
+        };
+        document.getElementById('history-clear-all-btn').onclick = () => {
+            clearHistoryCacheScope(
+                'all',
+                'Delete all Production History caches (videos + snapshots + index)?',
+            );
         };
 
         document.getElementById('history-plot-range-form').addEventListener('submit', async (event) => {

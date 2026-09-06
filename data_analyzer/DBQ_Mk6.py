@@ -25,6 +25,8 @@ import plotly.express as plotlyEX
 # Server Packages
 from ruamel.yaml import YAML
 
+from vars_config import get_var_caption, get_var_thresholds
+
 # MySQL for MariaDB
 import mysql.connector
 from mysql.connector import Error
@@ -742,24 +744,25 @@ def DBQ_Mk6(regenerate_mode=None, specific_benchtest_ids=None, specific_daughter
 
                                 var_npoints += len(dataDict[benchtest_id][ivar]["MD"+str(MDi+1)][channel]["y"])
 
-                                if len(config[table][ivar]) == 1:
+                                var_thresholds = get_var_thresholds(config[table][ivar])
+                                if len(var_thresholds) == 1:
 
                                     for y in dataDict[benchtest_id][ivar]["MD"+str(MDi+1)][channel]["y"]:
                                         #print(f'            y = {y}')
 
-                                        if y == config[table][ivar][0]:
+                                        if y == var_thresholds[0]:
                                             #print("True")
                                             var_pointpass.append(1)
                                         else:
                                             #print("False")
                                             var_pointpass.append(0)
 
-                                if len(config[table][ivar]) == 2:
+                                if len(var_thresholds) == 2:
                                     #This section is for variables that need to be between two values
 
                                     #np_yArray = np.array(dataDict[benchtest_id][ivar]["MD"+str(MDi+1)][channel]["y"])
                                     #np_Filter = np.ones(np.size(np_yArray), dtype=bool)                                
-                                    #np_yVarBound = np_yVarArray[(np_yVarArray > config[table][ivar][0]) & (np_yVarArray < config[table][ivar][1])]
+                                    #np_yVarBound = np_yVarArray[(np_yVarArray > var_thresholds[0]) & (np_yVarArray < var_thresholds[1])]
                                     #
                                     #y_mu    = np.mean(np_yVarBound)
                                     #y_sigma = np.std(np_yVarbound)
@@ -781,10 +784,10 @@ def DBQ_Mk6(regenerate_mode=None, specific_benchtest_ids=None, specific_daughter
                                         roll_median = 0
                                         roll_MAD = 0
 
-                                        if y >= config[table][ivar][0] and y <= config[table][ivar][1]:
+                                        if y >= var_thresholds[0] and y <= var_thresholds[1]:
                                             var_pointpass.append(1)
 
-                                        elif y < config[table][ivar][0] or y > config[table][ivar][1]:
+                                        elif y < var_thresholds[0] or y > var_thresholds[1]:
 
                                             # Skip spike/drop detection if there's only 1 data point
                                             if datlen == 1:
@@ -1306,25 +1309,30 @@ def DBQ_Mk6(regenerate_mode=None, specific_benchtest_ids=None, specific_daughter
                             #print(f'\n{dfDict[benchtest_id][benchtest_proc[benchtest_id]["benchtest_serialnos"][MDi]][ivar][channel]}')
 
                         ### Adding the tolerances to the plots ###
-                        if len(config[table][ivar]) == 1:
+                        _refs = (dbq_plot_style or {}).get('reference_traces') or {}
+                        truth_name = _refs.get('truth_name') or 'TruthValue'
+                        lower_name = _refs.get('lower_name') or 'LowerLimit'
+                        upper_name = _refs.get('upper_name') or 'UpperLimit'
+                        var_thresholds = get_var_thresholds(config[table][ivar])
+                        if len(var_thresholds) == 1:
                             # The variable has a single value it needs to take
-                            dfDict[benchtest_id][benchtest_proc[benchtest_id]["benchtest_serialnos"][MDi]][ivar]["TruthValue"] = pd.DataFrame( {'channel' : ["TruthValue", "TruthValue"], 'x' : [datetime.fromisoformat(start_time), datetime.fromisoformat(stop_time)], 'y' : [config[table][ivar][0], config[table][ivar][0]] } )
+                            dfDict[benchtest_id][benchtest_proc[benchtest_id]["benchtest_serialnos"][MDi]][ivar][truth_name] = pd.DataFrame( {'channel' : [truth_name, truth_name], 'x' : [datetime.fromisoformat(start_time), datetime.fromisoformat(stop_time)], 'y' : [var_thresholds[0], var_thresholds[0]] } )
 
-                            dfCombo.append(dfDict[benchtest_id][benchtest_proc[benchtest_id]["benchtest_serialnos"][MDi]][ivar]["TruthValue"])
+                            dfCombo.append(dfDict[benchtest_id][benchtest_proc[benchtest_id]["benchtest_serialnos"][MDi]][ivar][truth_name])
 
                             #useful time range code
                             #start_time = benchtest_proc[benchtest_id]["benchtest_timestamp"][0]
                             #stop_time  = benchtest_proc[benchtest_id]["benchtest_timestamp"][1]
 
-                        if len(config[table][ivar]) == 2:
+                        if len(var_thresholds) == 2:
                             # The variable has to between two different values
-                            dfDict[benchtest_id][benchtest_proc[benchtest_id]["benchtest_serialnos"][MDi]][ivar]["LowerLimit"] = pd.DataFrame( {'channel' : ["LowerLimit", "LowerLimit"], 'x' : [datetime.fromisoformat(start_time), datetime.fromisoformat(stop_time)], 'y' : [config[table][ivar][0], config[table][ivar][0]] } )
+                            dfDict[benchtest_id][benchtest_proc[benchtest_id]["benchtest_serialnos"][MDi]][ivar][lower_name] = pd.DataFrame( {'channel' : [lower_name, lower_name], 'x' : [datetime.fromisoformat(start_time), datetime.fromisoformat(stop_time)], 'y' : [var_thresholds[0], var_thresholds[0]] } )
 
-                            dfCombo.append(dfDict[benchtest_id][benchtest_proc[benchtest_id]["benchtest_serialnos"][MDi]][ivar]["LowerLimit"])
+                            dfCombo.append(dfDict[benchtest_id][benchtest_proc[benchtest_id]["benchtest_serialnos"][MDi]][ivar][lower_name])
 
-                            dfDict[benchtest_id][benchtest_proc[benchtest_id]["benchtest_serialnos"][MDi]][ivar]["UpperLimit"] = pd.DataFrame( {'channel' : ["UpperLimit", "UpperLimit"], 'x' : [datetime.fromisoformat(start_time), datetime.fromisoformat(stop_time)], 'y' : [config[table][ivar][1], config[table][ivar][1]] } )
+                            dfDict[benchtest_id][benchtest_proc[benchtest_id]["benchtest_serialnos"][MDi]][ivar][upper_name] = pd.DataFrame( {'channel' : [upper_name, upper_name], 'x' : [datetime.fromisoformat(start_time), datetime.fromisoformat(stop_time)], 'y' : [var_thresholds[1], var_thresholds[1]] } )
 
-                            dfCombo.append(dfDict[benchtest_id][benchtest_proc[benchtest_id]["benchtest_serialnos"][MDi]][ivar]["UpperLimit"])
+                            dfCombo.append(dfDict[benchtest_id][benchtest_proc[benchtest_id]["benchtest_serialnos"][MDi]][ivar][upper_name])
 
                         #DataFrame debugging stuff
                         #print(f'        dfCombo: {dfCombo}')
@@ -1400,32 +1408,50 @@ def DBQ_Mk6(regenerate_mode=None, specific_benchtest_ids=None, specific_daughter
                         print(f'        Post Initialise-plotDict Date/Time: {testtime.strftime("%y/%m/%d - %H:%M:%S")}')
 
                         if len(dataDict[benchtest_id][ivar]["MD"+str(MDi+1)]) != 0:
-                            plotDict[benchtest_id][benchtest_proc[benchtest_id]["benchtest_serialnos"][MDi]][ivar] = plotlyEX.line( dfDict[benchtest_id][benchtest_proc[benchtest_id]["benchtest_serialnos"][MDi]][ivar]["Full"], x="x", y="y", color = "channel", labels = {"x":"Time", "y":ivar, "channel":"Uplink Channel"} )
+                            plot_caption = get_var_caption(config[table][ivar], default_name=ivar)
+                            plotDict[benchtest_id][benchtest_proc[benchtest_id]["benchtest_serialnos"][MDi]][ivar] = plotlyEX.line(
+                                dfDict[benchtest_id][benchtest_proc[benchtest_id]["benchtest_serialnos"][MDi]][ivar]["Full"],
+                                x="x",
+                                y="y",
+                                color="channel",
+                                labels=px_line_labels(
+                                    dbq_plot_style,
+                                    plot_caption,
+                                ),
+                            )
 
                             testtime = datetime.now()
                             print(f'          Post Define-plotDict Date/Time: {testtime.strftime("%y/%m/%d - %H:%M:%S")}')
 
-                            plotDict[benchtest_id][benchtest_proc[benchtest_id]["benchtest_serialnos"][MDi]][ivar].update_layout(title = "DBSNo: "+str(benchtest_proc[benchtest_id]["benchtest_serialnos"][MDi])+" - PPrGTH: "+ivar+" (Gen -> "+datetime.now().strftime("%Y-%m-%d %H:%M:%S")+")")
-
-                            testtime = datetime.now()
-                            print(f'          Post Update Layout-plotDict Date/Time: {testtime.strftime("%y/%m/%d - %H:%M:%S")}')
-
-                            if len(config[table][ivar]) == 1:
+                            threshold_mode = None
+                            var_thresholds = get_var_thresholds(config[table][ivar])
+                            if len(var_thresholds) == 1:
                                 print('            LENGTH = 1')
-                                plotDict[benchtest_id][benchtest_proc[benchtest_id]["benchtest_serialnos"][MDi]][ivar].update_traces(selector={'name':'TruthValue'}, line={'color':'rgba(255, 0, 0, 1)'})
-                                testtime = datetime.now()
-                                print(f'            Post Update Truth-plotDict Date/Time: {testtime.strftime("%y/%m/%d - %H:%M:%S")}')
-
-                            if len(config[table][ivar]) == 2:
+                                threshold_mode = 'truth'
+                            elif len(var_thresholds) == 2:
                                 print('            LENGTH = 2')
-                                plotDict[benchtest_id][benchtest_proc[benchtest_id]["benchtest_serialnos"][MDi]][ivar].update_traces(selector={'name':'LowerLimit'}, line={'color':'rgba(255, 0, 0, 1)'})
-                                plotDict[benchtest_id][benchtest_proc[benchtest_id]["benchtest_serialnos"][MDi]][ivar].update_traces(selector={'name':'UpperLimit'}, line={'color':'rgba(255, 0, 0, 1)'})
-                                testtime = datetime.now()
-                                print(f'            Post Update Limits-plotDict Date/Time: {testtime.strftime("%y/%m/%d - %H:%M:%S")}')
+                                threshold_mode = 'limits'
+
+                            style_dbq_figure(
+                                plotDict[benchtest_id][benchtest_proc[benchtest_id]["benchtest_serialnos"][MDi]][ivar],
+                                dbq_plot_style,
+                                serial=benchtest_proc[benchtest_id]["benchtest_serialnos"][MDi],
+                                ivar=plot_caption,
+                                threshold_mode=threshold_mode,
+                                start_time=start_time,
+                                stop_time=stop_time,
+                                benchtest_id=benchtest_id,
+                            )
+                            testtime = datetime.now()
+                            print(f'          Post Style-plotDict Date/Time: {testtime.strftime("%y/%m/%d - %H:%M:%S")}')
 
                             if plot_regenerate[benchtest_id]:
+                                # Filenames keep the raw variable key (ivar), not the caption.
                                 plot_path = driveDIR+btDIRName+"/"+dbDIRName + "/DBSNo_"+str(benchtest_proc[benchtest_id]["benchtest_serialnos"][MDi])+"_PPrGTH_"+ivar+".html"
-                                plotDict[benchtest_id][benchtest_proc[benchtest_id]["benchtest_serialnos"][MDi]][ivar].write_html(plot_path)
+                                plotDict[benchtest_id][benchtest_proc[benchtest_id]["benchtest_serialnos"][MDi]][ivar].write_html(
+                                    plot_path,
+                                    **write_html_options(dbq_plot_style),
+                                )
                                 testtime = datetime.now()
                                 print(f'          Post Final Save-plotDict Date/Time: {testtime.strftime("%y/%m/%d - %H:%M:%S")}')
 
@@ -1438,6 +1464,26 @@ def DBQ_Mk6(regenerate_mode=None, specific_benchtest_ids=None, specific_daughter
 # Load Config
 config  = load_yaml_conf("vars.yaml")
 secrets = load_yaml_conf("../secrets/secrets.yaml")
+try:
+    from dbq_plot_config import (
+        load_dbq_plot_config,
+        px_line_labels,
+        style_dbq_figure,
+        write_html_options,
+    )
+    dbq_plot_style = load_dbq_plot_config()
+except Exception as exc:
+    print(f'Warning: DBQ plot style config unavailable ({exc}); using built-in defaults.')
+    dbq_plot_style = None
+
+    def px_line_labels(_style, ivar):
+        return {"x": "Time", "y": ivar, "channel": "Uplink Channel"}
+
+    def style_dbq_figure(fig, _style=None, **_kwargs):
+        return fig
+
+    def write_html_options(_style=None):
+        return {}
 
 # Setup argparse for regeneration options
 parser = argparse.ArgumentParser(description='DaughterBoard Qualification Program')
@@ -1496,10 +1542,12 @@ if DEBUG_CONFIG:
             #print(f'    type(j) = {type(j)}')
             print(f'    config[{i}][{j}] = {config[i][j]}')
 
-            for k, val in enumerate(config[i][j]):
+            thresholds = get_var_thresholds(config[i][j])
+            for k, val in enumerate(thresholds):
                 print(f'      k = {k}')
                 #print(f'      type(k) = {type(k)}')
-                print(f'      config[{i}][{j}][{k}] = {val}')
+                print(f'      thresholds[{k}] = {val}')
+            print(f'      caption = {get_var_caption(config[i][j], default_name=j)}')
 
     print("\n")
 

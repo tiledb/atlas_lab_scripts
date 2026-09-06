@@ -1895,9 +1895,9 @@
             box-shadow: 0 8px 28px rgba(0, 0, 0, 0.14);
             backdrop-filter: blur(6px);
             opacity: 0.38;
-            transition: opacity 0.15s ease, background 0.15s ease;
-            max-height: min(38vh, 320px);
-            overflow: auto;
+            transition: opacity 0.15s ease, background 0.15s ease, max-height 0.2s ease;
+            max-height: min(22vh, 160px);
+            overflow: hidden;
             /* Must live on body — parents with transform break viewport fixed */
         }
 
@@ -1905,10 +1905,19 @@
             display: block;
         }
 
+        .history-player.is-expanded {
+            max-height: min(48vh, 420px);
+            overflow: auto;
+        }
+
         .history-player:hover,
         .history-player:focus-within {
             opacity: 1;
             background: rgba(255, 255, 255, 0.96);
+        }
+
+        .history-player:not(.is-expanded) .history-player-expanded {
+            display: none;
         }
 
         /* Keep page content clear of the fixed player dock */
@@ -1945,28 +1954,88 @@
         .history-player-header {
             display: flex;
             flex-wrap: wrap;
-            gap: 12px 18px;
+            gap: 10px 14px;
             align-items: center;
             justify-content: space-between;
-            margin-bottom: 12px;
+            margin-bottom: 8px;
+        }
+
+        .history-player-title-block {
+            display: flex;
+            flex-wrap: wrap;
+            align-items: center;
+            gap: 8px 10px;
+            min-width: 0;
+            flex: 1 1 280px;
+        }
+
+        .history-player-expand-btn {
+            border: 1px solid #d7dbe0;
+            background: #f4f7fd;
+            color: #335d9b;
+            border-radius: 6px;
+            width: 30px;
+            height: 30px;
+            padding: 0;
+            font-size: 14px;
+            font-weight: 700;
+            line-height: 1;
+            cursor: pointer;
+            flex: 0 0 auto;
+        }
+
+        .history-player-expand-btn:hover {
+            background: #e8eef8;
         }
 
         .history-player-title {
             font-size: 15px;
             font-weight: 700;
             color: #333;
+            white-space: nowrap;
+        }
+
+        .history-player-week-nav {
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+            font-size: 13px;
+            color: #444;
+            font-weight: 600;
+        }
+
+        .history-player-week-nav select {
+            border: 1px solid #d7dbe0;
+            border-radius: 5px;
+            background: #fff;
+            color: #333;
+            font-size: 13px;
+            font-weight: 600;
+            padding: 3px 6px;
+            max-width: 5.5rem;
+        }
+
+        .history-player-week-nav select:disabled {
+            opacity: 0.55;
+            cursor: not-allowed;
+            background: #f3f5f7;
         }
 
         .history-player-meta {
-            font-size: 13px;
+            font-size: 12px;
             color: #666;
-            flex: 1 1 240px;
+            min-width: 0;
+            flex: 1 1 180px;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
         }
 
         .history-player-controls {
             display: flex;
             gap: 8px;
             align-items: center;
+            flex-wrap: wrap;
         }
 
         .history-player-btn {
@@ -2068,13 +2137,15 @@
             display: flex;
             align-items: center;
             gap: 12px;
-            margin-top: 8px;
+            margin-top: 4px;
         }
 
         .history-scrubber-row input[type="range"] {
             flex: 1 1 auto;
             width: 100%;
+            height: 28px;
             accent-color: #667eea;
+            cursor: pointer;
         }
 
         .history-scrubber-index {
@@ -2085,25 +2156,10 @@
             font-variant-numeric: tabular-nums;
         }
 
-        .history-legend-row {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 12px 16px;
+        .history-player-expanded {
             margin-top: 10px;
-            font-size: 12px;
-            color: #666;
-        }
-
-        .history-legend-item {
-            display: flex;
-            align-items: center;
-            gap: 6px;
-        }
-
-        .history-legend-dot {
-            width: 10px;
-            height: 10px;
-            border-radius: 50%;
+            padding-top: 8px;
+            border-top: 1px solid #e8ecf1;
         }
 
         .history-wall-section {
@@ -2243,7 +2299,12 @@
         }
 
         .history-pies-side .summary-chart-title {
-            display: none;
+            display: block;
+            font-size: 12px;
+            font-weight: 600;
+            margin: 0 0 4px;
+            line-height: 1.2;
+            color: #333;
         }
 
         .history-pies-side .summary-chart-plot,
@@ -2556,6 +2617,282 @@
             letter-spacing: 0;
         }
 
+        .history-video-modal-overlay {
+            display: none;
+            position: fixed;
+            inset: 0;
+            z-index: 10070;
+            align-items: center;
+            justify-content: center;
+            background: rgba(20, 24, 32, 0.45);
+            backdrop-filter: blur(2px);
+        }
+
+        .history-video-modal-overlay.visible {
+            display: flex;
+        }
+
+        .history-video-modal {
+            width: min(560px, 94vw);
+            max-height: min(90vh, 720px);
+            overflow: auto;
+            background: #fff;
+            border: 1px solid #d7dbe0;
+            border-radius: 12px;
+            box-shadow: 0 16px 40px rgba(0, 0, 0, 0.18);
+            padding: 20px 22px 18px;
+        }
+
+        .history-video-modal-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 12px;
+            margin-bottom: 14px;
+        }
+
+        .history-video-modal-title {
+            font-size: 17px;
+            font-weight: 700;
+            color: #2f3640;
+        }
+
+        .history-video-modal-close {
+            border: none;
+            background: transparent;
+            font-size: 24px;
+            line-height: 1;
+            color: #778;
+            cursor: pointer;
+        }
+
+        .history-video-modal-grid {
+            display: grid;
+            gap: 12px;
+        }
+
+        .history-video-field {
+            display: grid;
+            gap: 6px;
+        }
+
+        .history-video-field label {
+            font-size: 12px;
+            font-weight: 700;
+            color: #445;
+        }
+
+        .history-video-field select {
+            border: 1px solid #d7dbe0;
+            border-radius: 6px;
+            padding: 8px 10px;
+            font-size: 13px;
+            background: #fff;
+            color: #333;
+        }
+
+        .history-video-checks {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px 16px;
+            margin-top: 2px;
+        }
+
+        .history-video-check {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            font-size: 12px;
+            font-weight: 600;
+            color: #445;
+            cursor: pointer;
+            user-select: none;
+        }
+
+        .history-video-check select {
+            border: 1px solid #d7dbe0;
+            border-radius: 6px;
+            padding: 5px 8px;
+            font-size: 12px;
+            background: #fff;
+            color: #333;
+            min-width: 56px;
+        }
+
+        .history-video-field.is-hidden {
+            display: none;
+        }
+
+        .history-video-check.is-hidden {
+            display: none;
+        }
+
+        .history-video-check.is-disabled {
+            opacity: 0.45;
+            cursor: not-allowed;
+        }
+
+        .history-video-estimate {
+            margin-top: 14px;
+            padding: 10px 12px;
+            border-radius: 8px;
+            background: #f4f7fd;
+            border: 1px solid #e2e8f2;
+            font-size: 13px;
+            color: #445;
+            line-height: 1.45;
+        }
+
+        .history-video-progress {
+            display: none;
+            margin-top: 14px;
+        }
+
+        .history-video-progress.visible {
+            display: block;
+        }
+
+        .history-video-progress-meta {
+            display: flex;
+            justify-content: space-between;
+            gap: 10px;
+            font-size: 12px;
+            color: #555;
+            margin-bottom: 8px;
+        }
+
+        .history-video-progress-bar {
+            height: 8px;
+            border-radius: 999px;
+            background: #e6ebf2;
+            overflow: hidden;
+        }
+
+        .history-video-progress-fill {
+            height: 100%;
+            width: 0%;
+            background: linear-gradient(90deg, #667eea, #5a8dee);
+            transition: width 0.2s ease;
+        }
+
+        .history-video-actions {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: flex-end;
+            gap: 8px;
+            margin-top: 16px;
+        }
+
+        .history-video-actions button,
+        .history-video-actions a {
+            border: 1px solid #d7dbe0;
+            background: #f4f7fd;
+            color: #335d9b;
+            border-radius: 6px;
+            padding: 8px 14px;
+            font-size: 13px;
+            font-weight: 600;
+            cursor: pointer;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+        }
+
+        .history-video-actions .primary {
+            background: #667eea;
+            border-color: #667eea;
+            color: #fff;
+        }
+
+        .history-video-actions .primary:disabled {
+            opacity: 0.55;
+            cursor: not-allowed;
+        }
+
+        .history-video-actions a.is-hidden {
+            display: none;
+        }
+
+        .history-video-status {
+            margin-top: 10px;
+            font-size: 12px;
+            color: #666;
+            min-height: 18px;
+        }
+
+        .history-video-status.error {
+            color: #b42318;
+        }
+
+        .history-video-status.success {
+            color: #067647;
+        }
+
+        .history-video-busy-overlay {
+            display: none;
+            position: fixed;
+            inset: 0;
+            z-index: 10080;
+            align-items: center;
+            justify-content: center;
+            background: rgba(245, 247, 250, 0.78);
+            backdrop-filter: blur(2px);
+        }
+
+        .history-video-busy-overlay.visible {
+            display: flex;
+        }
+
+        .history-video-busy-modal {
+            min-width: min(460px, 92vw);
+            max-width: 560px;
+            background: #fff;
+            border: 1px solid #d7dbe0;
+            border-radius: 12px;
+            box-shadow: 0 12px 34px rgba(0, 0, 0, 0.14);
+            padding: 22px 24px;
+            text-align: center;
+        }
+
+        .history-video-busy-title {
+            font-size: 16px;
+            font-weight: 700;
+            color: #333;
+            margin-bottom: 6px;
+        }
+
+        .history-video-busy-text {
+            font-size: 13px;
+            color: #666;
+            line-height: 1.45;
+            min-height: 38px;
+            margin-bottom: 14px;
+        }
+
+        .history-video-busy-meta {
+            display: flex;
+            justify-content: space-between;
+            gap: 10px;
+            font-size: 12px;
+            color: #555;
+            margin-bottom: 8px;
+            text-align: left;
+        }
+
+        .history-video-busy-track {
+            height: 10px;
+            border-radius: 999px;
+            background: #e6ebf2;
+            overflow: hidden;
+        }
+
+        .history-video-busy-fill {
+            height: 100%;
+            width: 0%;
+            background: linear-gradient(90deg, #667eea, #5a8dee);
+            transition: width 0.2s ease;
+        }
+
         #history-brick-wall-container {
             flex: 1 1 auto;
             display: flex;
@@ -2777,6 +3114,12 @@
                         data
                         analysis.
                     </p>
+                </a>
+
+                <a href="{{ url_for('edit_dbq_plot') }}" class="card">
+                    <div class="card-icon">📈</div>
+                    <h3>DBQ_MkX Plot Configuration</h3>
+                    <p>Configure fonts, traces, Truth/Limit styles, legend, and layout for plots generated by DBQ_Mk6.</p>
                 </a>
 
                 <a href="{{ url_for('edit_production') }}" class="card">
@@ -3029,6 +3372,7 @@
         }
 
         function switchTab(tabId, clickedElement = null) {
+            const resolvedTabId = resolveDashboardTabId(tabId) || tabId;
             const tabContents = document.querySelectorAll('.tab-content');
             tabContents.forEach(content => {
                 if (content.classList.contains('active')) {
@@ -3049,40 +3393,86 @@
             });
 
             const activeButton = clickedElement
-                || document.querySelector(`[data-tab="${tabId}"]`);
+                || document.querySelector(`[data-tab="${resolvedTabId}"]`);
             if (activeButton) {
                 activeButton.classList.add('active');
             }
 
-            const selectedContent = document.getElementById(tabId);
+            const selectedContent = document.getElementById(resolvedTabId);
+            if (!selectedContent) {
+                return;
+            }
             selectedContent.style.display = 'block';
             selectedContent.offsetHeight;
             selectedContent.classList.add('active');
             selectedContent.style.opacity = '1';
             selectedContent.style.transform = 'translateY(0)';
 
+            syncDashboardTabHash(resolvedTabId);
+
             const historyDock = document.getElementById('history-player-dock');
             if (historyDock) {
-                const showHistoryPlayer = tabId === 'production-history' && historyDock.innerHTML.trim();
+                const showHistoryPlayer = resolvedTabId === 'production-history' && historyDock.innerHTML.trim();
                 historyDock.classList.toggle('visible', showHistoryPlayer);
                 historyDock.setAttribute('aria-hidden', showHistoryPlayer ? 'false' : 'true');
             }
 
-            if (tabId === 'brick-wall') {
+            if (resolvedTabId === 'brick-wall') {
                 loadBrickWall('brick-wall-container', 10, true).then(() => {
                     applyFilters();
                 });
-            } else if (tabId === 'production-summary') {
+            } else if (resolvedTabId === 'production-summary') {
                 loadProductionSummary();
-            } else if (tabId === 'production-statistics') {
+            } else if (resolvedTabId === 'production-statistics') {
                 loadProductionStatistics();
-            } else if (tabId === 'burn-in') {
+            } else if (resolvedTabId === 'burn-in') {
                 loadBurnIn();
-            } else if (tabId === 'long-burn-in') {
+            } else if (resolvedTabId === 'long-burn-in') {
                 loadLongBurnIn();
-            } else if (tabId === 'production-history') {
+            } else if (resolvedTabId === 'production-history') {
                 loadProductionHistory();
             }
+        }
+
+        function resolveDashboardTabId(rawTabId) {
+            if (!rawTabId) {
+                return null;
+            }
+            const normalized = String(rawTabId).trim().replace(/^#/, '').replace(/_/g, '-');
+            if (!normalized) {
+                return null;
+            }
+            if (document.getElementById(normalized) && document.querySelector(`[data-tab="${normalized}"]`)) {
+                return normalized;
+            }
+            return null;
+        }
+
+        let syncingDashboardTabHash = false;
+
+        function syncDashboardTabHash(tabId) {
+            if (syncingDashboardTabHash || !tabId) {
+                return;
+            }
+            const nextHash = `#${tabId}`;
+            if (location.hash === nextHash) {
+                return;
+            }
+            history.replaceState(null, '', `${location.pathname}${location.search}${nextHash}`);
+        }
+
+        function applyDashboardTabFromHash() {
+            const tabId = resolveDashboardTabId(location.hash);
+            if (!tabId) {
+                return false;
+            }
+            syncingDashboardTabHash = true;
+            try {
+                switchTab(tabId);
+            } finally {
+                syncingDashboardTabHash = false;
+            }
+            return true;
         }
 
         let productionSummaryLoaded = false;
@@ -6262,6 +6652,8 @@
         const HISTORY_SPEED_VALUES = [0.25, 0.5, 1, 2, 3, 4, 5, 8, 10];
         const HISTORY_SPEED_STORAGE_KEY = 'tileqa_history_play_speed';
         const HISTORY_PLAYER_OPTIONS_STORAGE_KEY = 'tileqa_history_play_options';
+        const HISTORY_PLAYER_EXPANDED_STORAGE_KEY = 'tileqa_history_player_expanded';
+        let historyPlayerExpanded = false;
         const HISTORY_FADE_TRANSITION_MS = 320;
         const HISTORY_DROP_N_VALUES = [1, 2, 3, 4, 5, 8, 10, 15, 20];
         let historyCacheOverlayTimer = null;
@@ -6320,6 +6712,147 @@
                     dropN: historyPlayDropN,
                 }));
             } catch (_) { /* ignore */ }
+        }
+
+        function loadHistoryPlayerExpandedSetting() {
+            try {
+                historyPlayerExpanded = localStorage.getItem(HISTORY_PLAYER_EXPANDED_STORAGE_KEY) === '1';
+            } catch (_) {
+                historyPlayerExpanded = false;
+            }
+        }
+
+        function saveHistoryPlayerExpandedSetting() {
+            try {
+                localStorage.setItem(
+                    HISTORY_PLAYER_EXPANDED_STORAGE_KEY,
+                    historyPlayerExpanded ? '1' : '0',
+                );
+            } catch (_) { /* ignore */ }
+        }
+
+        function applyHistoryPlayerExpandedUi() {
+            const dock = document.getElementById('history-player-dock');
+            const btn = document.getElementById('history-player-expand-btn');
+            if (dock) {
+                dock.classList.toggle('is-expanded', historyPlayerExpanded);
+            }
+            if (btn) {
+                btn.textContent = historyPlayerExpanded ? '▾' : '▸';
+                btn.title = historyPlayerExpanded
+                    ? 'Collapse player options'
+                    : 'Expand player options';
+                btn.setAttribute('aria-expanded', historyPlayerExpanded ? 'true' : 'false');
+            }
+        }
+
+        function toggleHistoryPlayerExpanded() {
+            historyPlayerExpanded = !historyPlayerExpanded;
+            saveHistoryPlayerExpandedSetting();
+            applyHistoryPlayerExpandedUi();
+        }
+
+        function parseHistoryWeekKey(weekKey) {
+            const match = String(weekKey || '').match(/^(\d{4})-W(\d{1,2})$/i);
+            if (!match) return null;
+            return { year: Number(match[1]), week: Number(match[2]) };
+        }
+
+        function formatHistoryWeekKey(year, week) {
+            return `${year}-W${String(week).padStart(2, '0')}`;
+        }
+
+        function getHistoryYears() {
+            const years = new Set();
+            productionHistoryWeeks.forEach((week) => {
+                const parts = parseHistoryWeekKey(week.week_key);
+                if (parts) years.add(parts.year);
+            });
+            return Array.from(years).sort((a, b) => a - b);
+        }
+
+        function getHistoryWeeksForYear(year) {
+            return productionHistoryWeeks
+                .map((week) => ({ week, parts: parseHistoryWeekKey(week.week_key) }))
+                .filter((item) => item.parts && item.parts.year === Number(year))
+                .sort((a, b) => a.parts.week - b.parts.week);
+        }
+
+        function firstMilestoneIndexForWeekKey(weekKey) {
+            const week = productionHistoryWeeks.find((item) => item.week_key === weekKey);
+            const indices = week?.milestone_indices || [];
+            return indices.length ? indices[0] : -1;
+        }
+
+        function syncHistoryWeekNavControls(forceOptions = false) {
+            const yearSelect = document.getElementById('history-week-year');
+            const weekSelect = document.getElementById('history-week-number');
+            if (!yearSelect || !weekSelect) return;
+
+            const milestone = productionHistoryMilestones[productionHistoryIndex];
+            const current = parseHistoryWeekKey(milestone?.week_key);
+            const years = getHistoryYears();
+            if (forceOptions || yearSelect.options.length !== years.length) {
+                yearSelect.innerHTML = years.map((year) => (
+                    `<option value="${year}">${year}</option>`
+                )).join('');
+            }
+
+            let selectedYear = current?.year;
+            if (!selectedYear || !years.includes(selectedYear)) {
+                selectedYear = years[0];
+            }
+            yearSelect.value = String(selectedYear || '');
+
+            const weeksForYear = getHistoryWeeksForYear(selectedYear);
+            const weekNumbers = weeksForYear.map((item) => item.parts.week);
+            const weekOptionsHtml = weeksForYear.map((item) => (
+                `<option value="${item.parts.week}">${item.parts.week}</option>`
+            )).join('');
+            if (forceOptions || weekSelect.dataset.year !== String(selectedYear)) {
+                weekSelect.innerHTML = weekOptionsHtml;
+                weekSelect.dataset.year = String(selectedYear || '');
+            }
+
+            let selectedWeek = current?.year === selectedYear ? current.week : weekNumbers[0];
+            if (!weekNumbers.includes(selectedWeek)) {
+                selectedWeek = weekNumbers[0];
+            }
+            if (selectedWeek != null) {
+                weekSelect.value = String(selectedWeek);
+            }
+
+            const editable = !productionHistoryPlaying && years.length > 0;
+            yearSelect.disabled = !editable;
+            weekSelect.disabled = !editable;
+        }
+
+        function jumpHistoryToWeekSelection() {
+            if (productionHistoryPlaying) return;
+            const yearSelect = document.getElementById('history-week-year');
+            const weekSelect = document.getElementById('history-week-number');
+            if (!yearSelect || !weekSelect) return;
+            const year = Number(yearSelect.value);
+            const week = Number(weekSelect.value);
+            if (!year || !week) return;
+            const weekKey = formatHistoryWeekKey(year, week);
+            const index = firstMilestoneIndexForWeekKey(weekKey);
+            if (index < 0) return;
+            stopHistoryPlayback();
+            selectHistoryMilestone(index);
+        }
+
+        function seekHistoryScrubberFromPointer(event) {
+            const scrubber = event.currentTarget;
+            if (!scrubber || productionHistoryMilestones.length < 1) return;
+            const rect = scrubber.getBoundingClientRect();
+            if (rect.width <= 0) return;
+            const ratio = Math.max(0, Math.min(1, (event.clientX - rect.left) / rect.width));
+            const min = Number(scrubber.min) || 0;
+            const max = Number(scrubber.max) || 0;
+            const index = Math.round(min + ratio * (max - min));
+            stopHistoryPlayback();
+            selectHistoryMilestone(index);
         }
 
         function applyHistoryFadeTransitionSetting() {
@@ -6429,6 +6962,513 @@
             }
             return Math.max(16, Math.round(1000 / rate));
         }
+
+        let historyVideoGenerating = false;
+        let historyVideoEstimateTimer = null;
+        let historyExportMode = 'video'; // 'video' | 'slideshow' | 'slide'
+
+        function formatHistoryVideoDuration(seconds) {
+            const total = Math.max(0, Math.round(Number(seconds) || 0));
+            const mins = Math.floor(total / 60);
+            const secs = total % 60;
+            if (mins <= 0) return `${secs}s`;
+            return `${mins}m ${secs}s`;
+        }
+
+        function isHistorySlideshowMode() {
+            return historyExportMode === 'slideshow' || historyExportMode === 'slide';
+        }
+
+        function isHistorySingleSlideMode() {
+            return historyExportMode === 'slide';
+        }
+
+        function getHistoryVideoModalOptions() {
+            const speedValue = Number(document.getElementById('history-video-speed-value')?.value) || historyPlaySpeedValue;
+            const speedUnit = document.getElementById('history-video-speed-unit')?.value === 'weeks_per_second'
+                ? 'weeks_per_second'
+                : 'milestones_per_second';
+            const dropN = Number(document.getElementById('history-video-drop-n')?.value) || historyPlayDropN;
+            const options = {
+                speed_unit: speedUnit,
+                speed_value: speedValue,
+                week_last_only: Boolean(document.getElementById('history-video-week-last-only')?.checked),
+                drop_milestones: Boolean(document.getElementById('history-video-drop-milestones')?.checked),
+                drop_n: HISTORY_DROP_N_VALUES.includes(dropN) ? dropN : 1,
+                fade_transitions: isHistorySlideshowMode()
+                    ? false
+                    : Boolean(document.getElementById('history-video-fade-transitions')?.checked),
+                include_calendar_labels: Boolean(document.getElementById('history-video-include-calendar')?.checked),
+                include_comments: Boolean(document.getElementById('history-video-include-comments')?.checked),
+            };
+            if (isHistorySingleSlideMode()) {
+                options.milestone_index = productionHistoryIndex;
+            }
+            return options;
+        }
+
+        function syncHistoryVideoModalControls() {
+            const unit = document.getElementById('history-video-speed-unit')?.value;
+            const weeksMode = unit === 'weeks_per_second';
+            const milestonesMode = unit === 'milestones_per_second';
+            const slideshowMode = isHistorySlideshowMode();
+            const singleSlideMode = isHistorySingleSlideMode();
+            const dropWrap = document.getElementById('history-video-drop-wrap');
+            const weekWrap = document.getElementById('history-video-week-last-wrap');
+            const dropToggle = document.getElementById('history-video-drop-milestones');
+            const dropN = document.getElementById('history-video-drop-n');
+            const weekToggle = document.getElementById('history-video-week-last-only');
+            const speedValueWrap = document.getElementById('history-video-speed-value-wrap');
+            const speedUnitWrap = document.getElementById('history-video-speed-unit-wrap');
+            const fadeWrap = document.getElementById('history-video-fade-wrap');
+            const title = document.getElementById('history-video-modal-title');
+            const generateBtn = document.getElementById('history-video-generate-btn');
+            const downloadLink = document.getElementById('history-video-download-link');
+            const unitLabel = document.getElementById('history-video-speed-unit-label');
+
+            if (title) {
+                if (singleSlideMode) {
+                    title.textContent = 'Generate This Slide (PDF)';
+                } else if (slideshowMode) {
+                    title.textContent = 'Generate History Slideshow (PDF)';
+                } else {
+                    title.textContent = 'Generate History Video';
+                }
+            }
+            if (unitLabel) {
+                unitLabel.textContent = slideshowMode ? 'Frame selection' : 'Playback format';
+            }
+            if (speedValueWrap) speedValueWrap.classList.toggle('is-hidden', slideshowMode);
+            if (speedUnitWrap) speedUnitWrap.classList.toggle('is-hidden', singleSlideMode);
+            if (fadeWrap) fadeWrap.classList.toggle('is-hidden', slideshowMode);
+            if (dropWrap) dropWrap.classList.toggle('is-hidden', singleSlideMode || !milestonesMode);
+            if (weekWrap) weekWrap.classList.toggle('is-hidden', singleSlideMode || !weeksMode);
+            if (dropToggle) dropToggle.disabled = !milestonesMode || historyVideoGenerating;
+            if (dropN) dropN.disabled = !milestonesMode || !dropToggle?.checked || historyVideoGenerating;
+            if (weekToggle) weekToggle.disabled = !weeksMode || historyVideoGenerating;
+            if (generateBtn && !historyVideoGenerating) {
+                if (singleSlideMode) {
+                    generateBtn.textContent = 'Generate current slide';
+                } else if (slideshowMode) {
+                    generateBtn.textContent = 'Generate 1920×1080 PDF';
+                } else {
+                    generateBtn.textContent = 'Generate 1920×1080 MP4';
+                }
+            }
+            if (downloadLink && !downloadLink.classList.contains('is-hidden')) {
+                downloadLink.textContent = slideshowMode ? 'Download PDF' : 'Download MP4';
+            }
+            [
+                'history-video-speed-value',
+                'history-video-speed-unit',
+                'history-video-fade-transitions',
+                'history-video-include-calendar',
+                'history-video-include-comments',
+                'history-video-generate-btn',
+                'history-video-cancel-btn',
+                'history-video-modal-close',
+            ].forEach((id) => {
+                const el = document.getElementById(id);
+                if (el) el.disabled = historyVideoGenerating;
+            });
+        }
+
+        function setHistoryVideoStatus(message, kind = '') {
+            const status = document.getElementById('history-video-status');
+            if (!status) return;
+            status.textContent = message || '';
+            status.classList.toggle('error', kind === 'error');
+            status.classList.toggle('success', kind === 'success');
+        }
+
+        function setHistoryVideoProgress(options = {}) {
+            const wrap = document.getElementById('history-video-progress');
+            const fill = document.getElementById('history-video-progress-fill');
+            const label = document.getElementById('history-video-progress-label');
+            const percentEl = document.getElementById('history-video-progress-percent');
+            const busyOverlay = document.getElementById('history-video-busy-overlay');
+            const busyFill = document.getElementById('history-video-busy-fill');
+            const busyLabel = document.getElementById('history-video-busy-label');
+            const busyPercent = document.getElementById('history-video-busy-percent');
+            const busyText = document.getElementById('history-video-busy-text');
+            const busyTitle = document.getElementById('history-video-busy-title');
+            const show = Boolean(options.show);
+            const percent = Math.max(0, Math.min(100, Number(options.percent) || 0));
+            const text = options.text || '';
+            const countLabel = (options.done != null && options.total != null)
+                ? `${options.done} / ${options.total}${text ? ` · ${text}` : ''}`
+                : text;
+
+            if (wrap) wrap.classList.toggle('visible', show);
+            if (fill) fill.style.width = `${percent}%`;
+            if (percentEl) percentEl.textContent = `${percent.toFixed(percent % 1 ? 1 : 0)}%`;
+            if (label) label.textContent = countLabel;
+
+            if (busyOverlay) {
+                busyOverlay.classList.toggle('visible', show);
+                busyOverlay.setAttribute('aria-hidden', show ? 'false' : 'true');
+            }
+            if (busyFill) busyFill.style.width = `${percent}%`;
+            if (busyPercent) busyPercent.textContent = `${percent.toFixed(percent % 1 ? 1 : 0)}%`;
+            if (busyLabel) busyLabel.textContent = countLabel || 'Starting…';
+            if (busyText) busyText.textContent = options.message || text || 'Preparing video…';
+            if (busyTitle) busyTitle.textContent = options.title || 'Generating video';
+        }
+
+        async function refreshHistoryVideoEstimate() {
+            const estimateEl = document.getElementById('history-video-estimate');
+            if (!estimateEl) return;
+            const options = getHistoryVideoModalOptions();
+            const slideshowMode = isHistorySlideshowMode();
+            estimateEl.textContent = 'Estimating…';
+            try {
+                const endpoint = slideshowMode
+                    ? '/api/production_history/slideshow/estimate'
+                    : '/api/production_history/video/estimate';
+                const response = await fetch(endpoint, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(options),
+                });
+                const data = await response.json();
+                if (!response.ok || data.error) {
+                    estimateEl.textContent = data.error || 'Failed to estimate export size.';
+                    return;
+                }
+                if (slideshowMode) {
+                    const slideLabel = isHistorySingleSlideMode()
+                        ? `current milestone (${productionHistoryIndex + 1}/${Math.max(productionHistoryMilestones.length, 1)})`
+                        : `${data.ready} slide${data.ready === 1 ? '' : 's'}`;
+                    estimateEl.textContent = (
+                        `1920×1080 PDF · ${slideLabel}`
+                        + (data.missing ? ` · ${data.missing} missing cache` : '')
+                    );
+                } else {
+                    estimateEl.textContent = (
+                        `1920×1080 MP4 · ${data.ready} frame${data.ready === 1 ? '' : 's'}`
+                        + (data.missing ? ` · ${data.missing} missing cache` : '')
+                        + ` · ~${formatHistoryVideoDuration(data.duration_s)}`
+                    );
+                }
+            } catch (_) {
+                estimateEl.textContent = 'Failed to estimate export size.';
+            }
+        }
+
+        function scheduleHistoryVideoEstimate() {
+            if (historyVideoEstimateTimer) {
+                clearTimeout(historyVideoEstimateTimer);
+            }
+            historyVideoEstimateTimer = setTimeout(() => {
+                refreshHistoryVideoEstimate();
+            }, 120);
+        }
+
+        function closeHistoryVideoModal() {
+            if (historyVideoGenerating) return;
+            const overlay = document.getElementById('history-video-modal-overlay');
+            if (!overlay) return;
+            overlay.classList.remove('visible');
+            overlay.setAttribute('aria-hidden', 'true');
+        }
+
+        function populateHistoryVideoModalControls() {
+            const speedValue = document.getElementById('history-video-speed-value');
+            const dropN = document.getElementById('history-video-drop-n');
+            if (speedValue && !speedValue.options.length) {
+                HISTORY_SPEED_VALUES.forEach((value) => {
+                    const option = document.createElement('option');
+                    option.value = String(value);
+                    option.textContent = String(value);
+                    speedValue.appendChild(option);
+                });
+            }
+            if (dropN && !dropN.options.length) {
+                HISTORY_DROP_N_VALUES.forEach((value) => {
+                    const option = document.createElement('option');
+                    option.value = String(value);
+                    option.textContent = String(value);
+                    dropN.appendChild(option);
+                });
+            }
+        }
+
+        function openHistoryVideoModal(mode = 'video') {
+            if (mode === 'slide') {
+                historyExportMode = 'slide';
+            } else if (mode === 'slideshow') {
+                historyExportMode = 'slideshow';
+            } else {
+                historyExportMode = 'video';
+            }
+            if (isHistorySingleSlideMode() && !productionHistoryMilestones.length) {
+                alert('No milestone is loaded yet.');
+                return;
+            }
+            initHistoryVideoModal();
+            const overlay = document.getElementById('history-video-modal-overlay');
+            const speedValue = document.getElementById('history-video-speed-value');
+            const speedUnit = document.getElementById('history-video-speed-unit');
+            const dropN = document.getElementById('history-video-drop-n');
+            const dropToggle = document.getElementById('history-video-drop-milestones');
+            const weekToggle = document.getElementById('history-video-week-last-only');
+            const fadeToggle = document.getElementById('history-video-fade-transitions');
+            const calendarToggle = document.getElementById('history-video-include-calendar');
+            const commentsToggle = document.getElementById('history-video-include-comments');
+            const downloadLink = document.getElementById('history-video-download-link');
+            if (!overlay) {
+                alert('Export UI is missing. Refresh the page and try again.');
+                return;
+            }
+
+            populateHistoryVideoModalControls();
+            if (speedValue) speedValue.value = String(historyPlaySpeedValue);
+            if (speedUnit) speedUnit.value = historyPlaySpeedUnit;
+            if (dropN) dropN.value = String(historyPlayDropN);
+            if (dropToggle) dropToggle.checked = historyPlayDropMilestones;
+            if (weekToggle) weekToggle.checked = historyPlayWeekLastOnly;
+            if (fadeToggle) fadeToggle.checked = historyPlayFadeTransitions;
+            if (calendarToggle && calendarToggle.dataset.userSet !== '1') {
+                calendarToggle.checked = false;
+            }
+            if (commentsToggle && commentsToggle.dataset.userSet !== '1') {
+                commentsToggle.checked = false;
+            }
+            if (downloadLink) {
+                downloadLink.classList.add('is-hidden');
+                downloadLink.removeAttribute('href');
+                downloadLink.textContent = isHistorySlideshowMode() ? 'Download PDF' : 'Download MP4';
+            }
+            setHistoryVideoProgress({ show: false });
+            setHistoryVideoStatus('');
+            syncHistoryVideoModalControls();
+            scheduleHistoryVideoEstimate();
+            overlay.classList.add('visible');
+            overlay.setAttribute('aria-hidden', 'false');
+        }
+
+        function openHistorySlideshowModal() {
+            openHistoryVideoModal('slideshow');
+        }
+
+        function openHistorySingleSlideModal() {
+            openHistoryVideoModal('slide');
+        }
+
+        async function generateHistoryVideoFromModal() {
+            initHistoryVideoModal();
+            if (historyVideoGenerating) return;
+            const options = getHistoryVideoModalOptions();
+            const slideshowMode = isHistorySlideshowMode();
+            const singleSlideMode = isHistorySingleSlideMode();
+            const generateBtn = document.getElementById('history-video-generate-btn');
+            const downloadLink = document.getElementById('history-video-download-link');
+            historyVideoGenerating = true;
+            syncHistoryVideoModalControls();
+            if (generateBtn) {
+                generateBtn.textContent = slideshowMode
+                    ? (singleSlideMode ? 'Generating slide…' : 'Generating PDF…')
+                    : 'Generating…';
+            }
+            if (downloadLink) downloadLink.classList.add('is-hidden');
+            setHistoryVideoProgress({
+                show: true,
+                done: 0,
+                total: 0,
+                percent: 0,
+                title: singleSlideMode
+                    ? 'Generating slide'
+                    : (slideshowMode ? 'Generating slideshow' : 'Generating video'),
+                message: singleSlideMode
+                    ? 'Starting current milestone PDF…'
+                    : (slideshowMode
+                        ? 'Starting 1920×1080 PDF slideshow…'
+                        : 'Starting 1920×1080 compose…'),
+                text: 'Starting…',
+            });
+            setHistoryVideoStatus(
+                singleSlideMode
+                    ? 'Composing current slide…'
+                    : (slideshowMode
+                        ? 'Composing PDF slides…'
+                        : 'Composing frames into 1920×1080 video…'),
+            );
+
+            try {
+                const endpoint = slideshowMode
+                    ? '/api/production_history/slideshow/generate'
+                    : '/api/production_history/video/generate';
+                const response = await fetch(endpoint, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(options),
+                });
+                if (!response.ok || !response.body) {
+                    const data = await response.json().catch(() => ({}));
+                    throw new Error(data.error || `Export failed (${response.status})`);
+                }
+                const reader = response.body.getReader();
+                const decoder = new TextDecoder();
+                let buffer = '';
+                let doneEvent = null;
+                while (true) {
+                    const { value, done } = await reader.read();
+                    if (done) break;
+                    buffer += decoder.decode(value, { stream: true });
+                    const lines = buffer.split('\n');
+                    buffer = lines.pop() || '';
+                    for (const line of lines) {
+                        if (!line.trim()) continue;
+                        let event;
+                        try {
+                            event = JSON.parse(line);
+                        } catch (_) {
+                            continue;
+                        }
+                        if (event.type === 'start') {
+                            setHistoryVideoProgress({
+                                show: true,
+                                done: 0,
+                                total: event.total || 0,
+                                percent: 0,
+                                title: slideshowMode ? 'Generating slideshow' : 'Generating video',
+                                message: slideshowMode
+                                    ? `Composing ${event.total || 0} slide(s)…`
+                                    : `Composing ${event.total || 0} frame(s)…`,
+                                text: 'Composing…',
+                            });
+                            setHistoryVideoStatus(
+                                slideshowMode
+                                    ? `Composing ${event.total || 0} slides…`
+                                    : `Composing ${event.total || 0} frames…`,
+                            );
+                        } else if (event.type === 'progress') {
+                            const phaseMessage = event.phase === 'encode'
+                                ? (slideshowMode ? 'Building PDF…' : 'Encoding MP4 with ffmpeg…')
+                                : (event.label || 'Composing…');
+                            setHistoryVideoProgress({
+                                show: true,
+                                done: event.done,
+                                total: event.total,
+                                percent: event.percent,
+                                title: event.phase === 'encode'
+                                    ? (slideshowMode ? 'Building PDF' : 'Encoding MP4')
+                                    : (slideshowMode ? 'Composing slides' : 'Composing frames'),
+                                message: phaseMessage,
+                                text: event.label || event.phase || '',
+                            });
+                            setHistoryVideoStatus(phaseMessage);
+                        } else if (event.type === 'done') {
+                            doneEvent = event;
+                        } else if (event.type === 'error') {
+                            throw new Error(event.error || 'Export failed');
+                        }
+                    }
+                }
+                if (!doneEvent?.url) {
+                    throw new Error('Export finished without a download URL');
+                }
+                if (downloadLink) {
+                    downloadLink.href = doneEvent.url;
+                    downloadLink.textContent = slideshowMode ? 'Download PDF' : 'Download MP4';
+                    downloadLink.classList.remove('is-hidden');
+                }
+                const countLabel = singleSlideMode
+                    ? '1 slide'
+                    : (slideshowMode
+                        ? `${doneEvent.slides || doneEvent.frames} slides`
+                        : `${doneEvent.frames} frames · ${formatHistoryVideoDuration(doneEvent.duration_s)}`);
+                setHistoryVideoProgress({
+                    show: true,
+                    done: doneEvent.frames,
+                    total: doneEvent.frames,
+                    percent: 100,
+                    title: singleSlideMode
+                        ? 'Slide ready'
+                        : (slideshowMode ? 'Slideshow ready' : 'Video ready'),
+                    message: `Ready · ${countLabel}`,
+                    text: 'Ready',
+                });
+                setHistoryVideoStatus(
+                    `Ready · ${countLabel} · ${doneEvent.filename}`,
+                    'success',
+                );
+                const anchor = document.createElement('a');
+                anchor.href = doneEvent.url;
+                anchor.download = doneEvent.filename || (slideshowMode ? 'history.pdf' : 'history.mp4');
+                document.body.appendChild(anchor);
+                anchor.click();
+                anchor.remove();
+                setTimeout(() => {
+                    if (!historyVideoGenerating) {
+                        setHistoryVideoProgress({ show: false });
+                    }
+                }, 1200);
+            } catch (error) {
+                setHistoryVideoProgress({
+                    show: true,
+                    percent: 0,
+                    title: singleSlideMode
+                        ? 'Slide generation failed'
+                        : (slideshowMode ? 'Slideshow generation failed' : 'Video generation failed'),
+                    message: error.message || 'Export failed',
+                    text: 'Error',
+                });
+                setHistoryVideoStatus(error.message || 'Export failed', 'error');
+            } finally {
+                historyVideoGenerating = false;
+                if (generateBtn) {
+                    generateBtn.textContent = singleSlideMode
+                        ? 'Generate current slide'
+                        : (slideshowMode
+                            ? 'Generate 1920×1080 PDF'
+                            : 'Generate 1920×1080 MP4');
+                }
+                syncHistoryVideoModalControls();
+            }
+        }
+
+        function initHistoryVideoModal() {
+            const overlay = document.getElementById('history-video-modal-overlay');
+            if (!overlay) return;
+            if (overlay.dataset.bound === '1') return;
+            overlay.dataset.bound = '1';
+            populateHistoryVideoModalControls();
+            document.getElementById('history-video-modal-close')?.addEventListener('click', closeHistoryVideoModal);
+            document.getElementById('history-video-cancel-btn')?.addEventListener('click', closeHistoryVideoModal);
+            overlay.addEventListener('click', (event) => {
+                if (event.target === overlay && !historyVideoGenerating) closeHistoryVideoModal();
+            });
+            [
+                'history-video-speed-value',
+                'history-video-speed-unit',
+                'history-video-drop-milestones',
+                'history-video-drop-n',
+                'history-video-week-last-only',
+                'history-video-fade-transitions',
+                'history-video-include-calendar',
+                'history-video-include-comments',
+            ].forEach((id) => {
+                document.getElementById(id)?.addEventListener('change', () => {
+                    if (id === 'history-video-include-calendar' || id === 'history-video-include-comments') {
+                        const el = document.getElementById(id);
+                        if (el) el.dataset.userSet = '1';
+                    }
+                    syncHistoryVideoModalControls();
+                    scheduleHistoryVideoEstimate();
+                });
+            });
+            document.getElementById('history-video-generate-btn')?.addEventListener('click', (event) => {
+                event.preventDefault();
+                generateHistoryVideoFromModal();
+            });
+        }
+
+        document.addEventListener('DOMContentLoaded', initHistoryVideoModal);
+        window.openHistoryVideoModal = openHistoryVideoModal;
+        window.openHistorySlideshowModal = openHistorySlideshowModal;
+        window.generateHistoryVideoFromModal = generateHistoryVideoFromModal;
+        window.closeHistoryVideoModal = closeHistoryVideoModal;
 
         function setHistoryCacheOverlayProgress(options = {}) {
             const progress = document.getElementById('history-cache-progress');
@@ -6727,8 +7767,8 @@
                 meta.textContent = (
                     `${milestone.timestamp} · ${milestone.label}`
                     + (milestone.detail ? ` · ${milestone.detail}` : '')
-                    + ` · ${milestone.week_label}`
                 );
+                meta.title = meta.textContent;
             }
             if (scrubber) scrubber.value = String(productionHistoryIndex);
             if (indexLabel) {
@@ -6745,6 +7785,7 @@
             if (rewindBtn) {
                 rewindBtn.disabled = productionHistoryIndex === 0 && !productionHistoryPlaying;
             }
+            syncHistoryWeekNavControls();
 
             document.querySelectorAll('.history-mark').forEach((mark) => {
                 mark.classList.toggle('active', Number(mark.dataset.index) === productionHistoryIndex);
@@ -7039,69 +8080,80 @@
             // (tab panels use transform, which breaks fixed positioning).
             const playerDock = document.getElementById('history-player-dock');
             if (playerDock) {
+                loadHistoryPlayerExpandedSetting();
                 const speedValueOptions = HISTORY_SPEED_VALUES.map((value) => (
                     `<option value="${value}" ${value === historyPlaySpeedValue ? 'selected' : ''}>${value}</option>`
                 )).join('');
                 playerDock.innerHTML = `
                     <div class="history-player-header">
-                        <div class="history-player-title">Milestone Player</div>
-                        <div class="history-player-meta" id="history-player-meta"></div>
+                        <div class="history-player-title-block">
+                            <button type="button" class="history-player-expand-btn" id="history-player-expand-btn" aria-expanded="false" title="Expand player options">▸</button>
+                            <div class="history-player-title">Milestone Player</div>
+                            <div class="history-player-week-nav" title="Jump to an existing ISO week">
+                                <span>Week</span>
+                                <select id="history-week-number" aria-label="ISO week number"></select>
+                                <span>,</span>
+                                <select id="history-week-year" aria-label="Year"></select>
+                            </div>
+                            <div class="history-player-meta" id="history-player-meta"></div>
+                        </div>
                         <div class="history-player-controls">
                             <button type="button" class="history-player-btn media-icon" id="history-rewind-btn" title="Rewind to start">⏮</button>
                             <button type="button" class="history-player-btn media-icon" id="history-play-btn" title="Play">▶</button>
                             <button type="button" class="history-player-btn media-icon" id="history-pause-btn" title="Pause">⏸</button>
                             <button type="button" class="history-player-btn" id="history-prev-btn" title="Previous milestone">Prev</button>
                             <button type="button" class="history-player-btn" id="history-next-btn" title="Next milestone">Next</button>
+                            <button type="button" class="history-player-btn" id="history-video-btn" title="Generate downloadable 1920×1080 video">Generate Video</button>
+                            <button type="button" class="history-player-btn" id="history-slideshow-btn" title="Generate downloadable 1920×1080 PDF slideshow">Generate Slideshow</button>
+                            <button type="button" class="history-player-btn" id="history-slide-btn" title="Generate a 1920×1080 PDF of the current milestone only">Generate this Slide</button>
                         </div>
                     </div>
-                    <div class="history-player-speed">
-                        <div class="history-player-speed-core">
-                            <label for="history-speed-value">Speed</label>
-                            <select id="history-speed-value" aria-label="Playback speed value">${speedValueOptions}</select>
-                            <select id="history-speed-unit" aria-label="Playback speed unit">
-                                <option value="milestones_per_second" ${historyPlaySpeedUnit === 'milestones_per_second' ? 'selected' : ''}>milestones / s</option>
-                                <option value="weeks_per_second" ${historyPlaySpeedUnit === 'weeks_per_second' ? 'selected' : ''}>weeks / s</option>
-                            </select>
-                        </div>
-                        <div class="history-player-options">
-                            <div class="history-player-drop-control" id="history-drop-milestones-wrap" title="Skip n milestones between played frames">
-                                <label class="history-player-option" for="history-drop-milestones">
-                                    <input type="checkbox" id="history-drop-milestones">
-                                    Drop n
-                                </label>
-                                <select id="history-drop-n" aria-label="Number of milestones to drop">${HISTORY_DROP_N_VALUES.map((value) => (
-                                    `<option value="${value}" ${value === historyPlayDropN ? 'selected' : ''}>${value}</option>`
-                                )).join('')}</select>
-                            </div>
-                            <label class="history-player-option" id="history-week-last-only-label" for="history-week-last-only">
-                                <input type="checkbox" id="history-week-last-only">
-                                Week end only
-                            </label>
-                            <label class="history-player-option" for="history-fade-transitions" title="Cross-fade frames between milestones">
-                                <input type="checkbox" id="history-fade-transitions">
-                                Fade in / out
-                            </label>
-                        </div>
-                    </div>
-                    <div class="history-week-rail" id="history-week-rail">${weekGroupsHtml}</div>
                     <div class="history-scrubber-row">
-                        <input type="range" id="history-scrubber" min="0" max="${productionHistoryMilestones.length - 1}" value="0" step="1">
+                        <input type="range" id="history-scrubber" min="0" max="${productionHistoryMilestones.length - 1}" value="0" step="1" aria-label="Milestone progress">
                         <div class="history-scrubber-index" id="history-scrubber-index">1 / ${productionHistoryMilestones.length}</div>
                     </div>
-                    <div class="history-legend-row">
-                        <div class="history-legend-item"><span class="history-legend-dot" style="background:#636EFA"></span>Benchtest</div>
-                        <div class="history-legend-item"><span class="history-legend-dot" style="background:#AB63FA"></span>Burn-in</div>
-                        <div class="history-legend-item"><span class="history-legend-dot" style="background:#00CC96"></span>Cached milestone</div>
-                        <div class="history-legend-item"><span class="history-legend-dot" style="background:#FF9800"></span>Passed pre-burn-in</div>
-                        <div class="history-legend-item"><span class="history-legend-dot" style="background:#EF553B"></span>Failed</div>
-                        <div class="history-legend-item"><span class="history-legend-dot" style="background:#FECB52"></span>No test</div>
+                    <div class="history-player-expanded">
+                        <div class="history-player-speed">
+                            <div class="history-player-speed-core">
+                                <label for="history-speed-value">Speed</label>
+                                <select id="history-speed-value" aria-label="Playback speed value">${speedValueOptions}</select>
+                                <select id="history-speed-unit" aria-label="Playback speed unit">
+                                    <option value="milestones_per_second" ${historyPlaySpeedUnit === 'milestones_per_second' ? 'selected' : ''}>milestones / s</option>
+                                    <option value="weeks_per_second" ${historyPlaySpeedUnit === 'weeks_per_second' ? 'selected' : ''}>weeks / s</option>
+                                </select>
+                            </div>
+                            <div class="history-player-options">
+                                <div class="history-player-drop-control" id="history-drop-milestones-wrap" title="Skip n milestones between played frames">
+                                    <label class="history-player-option" for="history-drop-milestones">
+                                        <input type="checkbox" id="history-drop-milestones">
+                                        Drop n
+                                    </label>
+                                    <select id="history-drop-n" aria-label="Number of milestones to drop">${HISTORY_DROP_N_VALUES.map((value) => (
+                                        `<option value="${value}" ${value === historyPlayDropN ? 'selected' : ''}>${value}</option>`
+                                    )).join('')}</select>
+                                </div>
+                                <label class="history-player-option" id="history-week-last-only-label" for="history-week-last-only">
+                                    <input type="checkbox" id="history-week-last-only">
+                                    Week end only
+                                </label>
+                                <label class="history-player-option" for="history-fade-transitions" title="Cross-fade frames between milestones">
+                                    <input type="checkbox" id="history-fade-transitions">
+                                    Fade in / out
+                                </label>
+                            </div>
+                        </div>
+                        <div class="history-week-rail" id="history-week-rail">${weekGroupsHtml}</div>
                     </div>
                 `;
+                applyHistoryPlayerExpandedUi();
                 const onHistoryTab = document.getElementById('production-history')?.classList.contains('active');
                 playerDock.classList.toggle('visible', Boolean(onHistoryTab));
                 playerDock.setAttribute('aria-hidden', onHistoryTab ? 'false' : 'true');
             }
 
+            document.getElementById('history-player-expand-btn')?.addEventListener('click', () => {
+                toggleHistoryPlayerExpanded();
+            });
             document.getElementById('history-prev-btn')?.addEventListener('click', () => {
                 stopHistoryPlayback();
                 selectHistoryMilestone(productionHistoryIndex - 1);
@@ -7118,6 +8170,32 @@
             });
             document.getElementById('history-rewind-btn')?.addEventListener('click', () => {
                 rewindHistoryPlayback();
+            });
+            document.getElementById('history-video-btn')?.addEventListener('click', () => {
+                openHistoryVideoModal('video');
+            });
+            document.getElementById('history-slideshow-btn')?.addEventListener('click', () => {
+                openHistorySlideshowModal();
+            });
+            document.getElementById('history-slide-btn')?.addEventListener('click', () => {
+                openHistorySingleSlideModal();
+            });
+            document.getElementById('history-week-year')?.addEventListener('change', () => {
+                const yearSelect = document.getElementById('history-week-year');
+                const weekSelect = document.getElementById('history-week-number');
+                if (!yearSelect || !weekSelect) return;
+                const weeksForYear = getHistoryWeeksForYear(Number(yearSelect.value));
+                weekSelect.innerHTML = weeksForYear.map((item) => (
+                    `<option value="${item.parts.week}">${item.parts.week}</option>`
+                )).join('');
+                weekSelect.dataset.year = yearSelect.value;
+                if (weeksForYear.length) {
+                    weekSelect.value = String(weeksForYear[0].parts.week);
+                }
+                jumpHistoryToWeekSelection();
+            });
+            document.getElementById('history-week-number')?.addEventListener('change', () => {
+                jumpHistoryToWeekSelection();
             });
             document.getElementById('history-speed-value')?.addEventListener('change', (event) => {
                 historyPlaySpeedValue = Number(event.target.value) || 1;
@@ -7152,10 +8230,18 @@
                 applyHistoryFadeTransitionSetting();
             });
             syncHistoryPlayerOptionControls();
-            document.getElementById('history-scrubber')?.addEventListener('input', (event) => {
-                stopHistoryPlayback();
-                selectHistoryMilestone(Number(event.target.value));
-            });
+            syncHistoryWeekNavControls(true);
+            const scrubber = document.getElementById('history-scrubber');
+            if (scrubber) {
+                scrubber.addEventListener('input', (event) => {
+                    stopHistoryPlayback();
+                    selectHistoryMilestone(Number(event.target.value));
+                });
+                scrubber.addEventListener('pointerdown', (event) => {
+                    // Click-to-seek on the track (not only thumb drag).
+                    seekHistoryScrubberFromPointer(event);
+                });
+            }
             const recomputeBtn = document.getElementById('history-recompute-btn');
             if (recomputeBtn) {
                 recomputeBtn.onclick = () => { recomputeProductionHistory(); };
@@ -7164,6 +8250,15 @@
                 mark.addEventListener('click', () => {
                     stopHistoryPlayback();
                     selectHistoryMilestone(Number(mark.dataset.index));
+                });
+            });
+            document.querySelectorAll('.history-week-group').forEach((group) => {
+                group.addEventListener('click', (event) => {
+                    if (event.target.closest('.history-mark')) return;
+                    const indices = (group.dataset.indices || '').split(',').map(Number).filter(Number.isFinite);
+                    if (!indices.length) return;
+                    stopHistoryPlayback();
+                    selectHistoryMilestone(indices[0]);
                 });
             });
 
@@ -7864,11 +8959,18 @@
             });
         }
 
-        // Load brick wall on page load
+        // Restore tab from URL hash (e.g. #production-history or #production_history).
         document.addEventListener('DOMContentLoaded', () => {
+            if (applyDashboardTabFromHash()) {
+                return;
+            }
             loadBrickWall('brick-wall-container', 10, true).then(() => {
                 applyFilters();
             });
+            syncDashboardTabHash('brick-wall');
+        });
+        window.addEventListener('hashchange', () => {
+            applyDashboardTabFromHash();
         });
 
         // Filter functionality
@@ -8047,6 +9149,36 @@
         let currentBoardSerial = null;
         let currentBoardData = null;
 
+        function formatBenchtestDurationSeconds(totalSeconds) {
+            const secondsTotal = Number(totalSeconds);
+            if (!Number.isFinite(secondsTotal) || secondsTotal < 0) {
+                return 'N/A';
+            }
+            const hours = Math.floor(secondsTotal / 3600);
+            const minutes = Math.floor((secondsTotal % 3600) / 60);
+            const seconds = Math.floor(secondsTotal % 60);
+            if (hours > 0) {
+                return `${hours}h ${String(minutes).padStart(2, '0')}m`;
+            }
+            if (minutes > 0) {
+                return `${minutes}m ${String(seconds).padStart(2, '0')}s`;
+            }
+            return `${seconds}s`;
+        }
+
+        function formatBenchtestDurationFromRange(start, stop) {
+            if (!start || !stop) {
+                return null;
+            }
+            const startDate = new Date(String(start).replace(' ', 'T'));
+            const stopDate = new Date(String(stop).replace(' ', 'T'));
+            if (Number.isNaN(startDate.getTime()) || Number.isNaN(stopDate.getTime())) {
+                return null;
+            }
+            const seconds = Math.max(0, Math.floor((stopDate - startDate) / 1000));
+            return formatBenchtestDurationSeconds(seconds);
+        }
+
         function showModal(board) {
             currentBoardSerial = board.serial_no;
             currentBoardData = board;
@@ -8127,6 +9259,13 @@
                 html += '<div class="modal-section">';
                 html += '<div class="modal-section-title">Benchtest Information</div>';
 
+                const totalTestedSeconds = board.benchtests.reduce((sum, bt) => {
+                    const seconds = Number(bt.test_length_seconds);
+                    return sum + (Number.isFinite(seconds) ? seconds : 0);
+                }, 0);
+                const totalTestedTime = formatBenchtestDurationSeconds(totalTestedSeconds);
+                html += '<div class="modal-row"><span class="modal-label">Total tested time:</span><span class="modal-value">' + totalTestedTime + '</span></div>';
+
                 board.benchtests.forEach(bt => {
                     html += '<div class="modal-benchtest">';
 
@@ -8140,6 +9279,9 @@
                     html += '</div>';
 
                     html += '<div class="modal-row"><span class="modal-label">Test OP:</span><span class="modal-value">' + (bt.test_op || 'N/A') + '</span></div>';
+
+                    const testLength = bt.test_length || formatBenchtestDurationFromRange(bt.test_start, bt.test_stop);
+                    html += '<div class="modal-row"><span class="modal-label">Test Length:</span><span class="modal-value">' + (testLength || 'N/A') + '</span></div>';
 
                     if (bt.test_stop) {
                         const testDate = bt.test_stop.split(' ')[0];
@@ -8799,7 +9941,89 @@
             </div>
         </div>
     </div>
+    <div id="history-video-modal-overlay" class="history-video-modal-overlay" aria-hidden="true">
+        <div class="history-video-modal" role="dialog" aria-modal="true" aria-labelledby="history-video-modal-title">
+            <div class="history-video-modal-header">
+                <div class="history-video-modal-title" id="history-video-modal-title">Generate History Video</div>
+                <button type="button" class="history-video-modal-close" id="history-video-modal-close" aria-label="Close">&times;</button>
+            </div>
+            <div class="history-video-modal-grid">
+                <div class="history-video-field" id="history-video-speed-value-wrap">
+                    <label for="history-video-speed-value">Speed</label>
+                    <select id="history-video-speed-value"></select>
+                </div>
+                <div class="history-video-field" id="history-video-speed-unit-wrap">
+                    <label for="history-video-speed-unit" id="history-video-speed-unit-label">Playback format</label>
+                    <select id="history-video-speed-unit">
+                        <option value="milestones_per_second">milestones / s</option>
+                        <option value="weeks_per_second">weeks / s</option>
+                    </select>
+                </div>
+                <div class="history-video-checks">
+                    <div class="history-video-check" id="history-video-drop-wrap">
+                        <label class="history-video-check" for="history-video-drop-milestones">
+                            <input type="checkbox" id="history-video-drop-milestones">
+                            Drop n
+                        </label>
+                        <select id="history-video-drop-n" aria-label="Milestones to drop"></select>
+                    </div>
+                    <label class="history-video-check" id="history-video-week-last-wrap" for="history-video-week-last-only">
+                        <input type="checkbox" id="history-video-week-last-only">
+                        Week end only
+                    </label>
+                    <label class="history-video-check" id="history-video-fade-wrap" for="history-video-fade-transitions">
+                        <input type="checkbox" id="history-video-fade-transitions">
+                        Fade in / out
+                    </label>
+                    <label class="history-video-check" for="history-video-include-calendar" title="Add calendar events from that ISO week into the subtitle">
+                        <input type="checkbox" id="history-video-include-calendar">
+                        Include calendar labels
+                    </label>
+                    <label class="history-video-check" for="history-video-include-comments" title="Add board/benchtest comments from that ISO week into the subtitle">
+                        <input type="checkbox" id="history-video-include-comments">
+                        Include comments
+                    </label>
+                </div>
+            </div>
+            <div class="history-video-estimate" id="history-video-estimate">Estimating…</div>
+            <div class="history-video-progress" id="history-video-progress">
+                <div class="history-video-progress-meta">
+                    <span id="history-video-progress-label">0 / 0</span>
+                    <span id="history-video-progress-percent">0%</span>
+                </div>
+                <div class="history-video-progress-bar">
+                    <div class="history-video-progress-fill" id="history-video-progress-fill"></div>
+                </div>
+            </div>
+            <div class="history-video-status" id="history-video-status"></div>
+            <div class="history-video-actions">
+                <button type="button" id="history-video-cancel-btn">Close</button>
+                <a id="history-video-download-link" class="is-hidden" href="#" download>Download MP4</a>
+                <button type="button" class="primary" id="history-video-generate-btn" onclick="generateHistoryVideoFromModal()">Generate 1920×1080 MP4</button>
+            </div>
+        </div>
+    </div>
+    <div id="history-video-busy-overlay" class="history-video-busy-overlay" aria-hidden="true">
+        <div class="history-video-busy-modal">
+            <div class="history-cache-spinner"></div>
+            <div class="history-video-busy-title" id="history-video-busy-title">Generating video</div>
+            <div class="history-video-busy-text" id="history-video-busy-text">Preparing video…</div>
+            <div class="history-video-busy-meta">
+                <span id="history-video-busy-label">0 / 0</span>
+                <span id="history-video-busy-percent">0%</span>
+            </div>
+            <div class="history-video-busy-track">
+                <div class="history-video-busy-fill" id="history-video-busy-fill"></div>
+            </div>
+        </div>
+    </div>
     <div id="history-player-dock" class="history-player" aria-hidden="true"></div>
+    <script>
+        // Modal markup is above; bind controls now that the nodes exist.
+        if (typeof initHistoryVideoModal === 'function') {
+            initHistoryVideoModal();
+        }
+    </script>
 </body>
 
 </html>

@@ -89,9 +89,9 @@
         
         .var-row {
             display: grid;
-            grid-template-columns: 250px 1fr;
-            gap: 20px;
-            margin-bottom: 15px;
+            grid-template-columns: minmax(160px, 220px) minmax(120px, 1fr) 80px minmax(120px, 1fr);
+            gap: 12px;
+            margin-bottom: 12px;
             align-items: center;
         }
         
@@ -99,6 +99,7 @@
             color: #333;
             font-weight: 500;
             font-size: 14px;
+            word-break: break-word;
         }
         
         .var-value {
@@ -108,6 +109,17 @@
             background: #f8f9fa;
             padding: 8px 12px;
             border-radius: 4px;
+        }
+
+        .col-headers {
+            display: grid;
+            grid-template-columns: minmax(160px, 220px) minmax(120px, 1fr) 80px minmax(120px, 1fr);
+            gap: 12px;
+            margin-bottom: 10px;
+            color: #888;
+            font-size: 12px;
+            font-weight: 600;
+            text-transform: uppercase;
         }
         
         .back-link {
@@ -141,11 +153,25 @@
             {% for table_name, table_vars in vars_data.items() %}
                 <div class="table-section">
                     <h3 class="table-title">{{ table_name }}</h3>
+                    <div class="col-headers">
+                        <span>Variable</span>
+                        <span>Thresholds</span>
+                        <span>Essential</span>
+                        <span>Caption</span>
+                    </div>
                     
-                    {% for var_name, var_value in table_vars.items() %}
+                    {% for var_name, var_entry in table_vars.items() %}
                         <div class="var-row">
                             <span class="var-label">{{ var_name }}</span>
-                            <span class="var-value">{{ var_value }}</span>
+                            {% if var_entry is mapping %}
+                                <span class="var-value">{{ var_entry.thresholds }}</span>
+                                <span class="var-value">{{ var_entry.essential }}</span>
+                                <span class="var-value">{{ var_entry.caption }}</span>
+                            {% else %}
+                                <span class="var-value">{{ var_entry }}</span>
+                                <span class="var-value">0</span>
+                                <span class="var-value">{{ var_name }}</span>
+                            {% endif %}
                         </div>
                     {% endfor %}
                 </div>

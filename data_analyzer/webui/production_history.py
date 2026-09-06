@@ -12,17 +12,35 @@ from production_summary import (
 )
 from plot_cache import cache_banner_html, format_cache_stamp
 
+try:
+    from dbq_plot_config import format_test_length, test_length_seconds
+except ImportError:
+    import sys
+    from pathlib import Path
+    _parent = str(Path(__file__).resolve().parent.parent)
+    if _parent not in sys.path:
+        sys.path.insert(0, _parent)
+    from dbq_plot_config import format_test_length, test_length_seconds
+
 MAX_BRICK_WALL_BATCH = 13
 HISTORY_WALL_POSITIONS = 80  # rows 0 .. 79
 HISTORY_WALL_MAX_BATCH = 13  # columns B0 .. B13
 HISTORY_CACHE_DIR = Path('/var/www/html/drive/production_plots/history')
 HISTORY_INDEX_NAME = 'index.json'
-HISTORY_CACHE_VERSION = 13
+HISTORY_CACHE_VERSION = 22
 HISTORY_PNG_WALL_BRICK_H = 2
 HISTORY_PNG_WALL_BRICK_W = 14
 HISTORY_HTML_WALL_BRICK_H = 8
 HISTORY_CHART_Y_MIN = -40
 HISTORY_CHART_Y_MAX = 1000
+
+# --- Plot / PNG font sizes (edit here) ---
+HISTORY_TICK_FONT_SIZE = 14
+HISTORY_AXIS_TITLE_FONT_SIZE = 14
+HISTORY_CHART_LEGEND_FONT_SIZE = 14
+HISTORY_CALENDAR_LABEL_FONT_SIZE = 18
+HISTORY_PIE_INSIDE_FONT_SIZE = 18
+HISTORY_PIE_LEGEND_FONT_SIZE = 18
 
 
 def _fmt(dt):
@@ -289,11 +307,19 @@ def _benchtests_for_board_as_of(serial, benchtests_by_serial, as_of_dt, burn_in_
             'benchtest_id': bt.get('id'),
             'benchtest_slot': slot_name,
             'test_pass': bt.get('test_pass'),
+            'test_start': _fmt(start_dt),
             'test_stop': _fmt(stop_dt),
+            'test_length': None,
+            'test_length_seconds': None,
             'test_op': bt.get('test_op'),
             'failed_tests': None,
             'burned': None,
         })
+        if start_dt and stop_dt:
+            seconds = test_length_seconds(start_time=start_dt, stop_time=stop_dt)
+            length = format_test_length(start_time=start_dt, stop_time=stop_dt)
+            result[-1]['test_length_seconds'] = seconds
+            result[-1]['test_length'] = None if length == 'n/a' else length
         if burn_in_stop_dt and stop_dt and stop_dt > burn_in_stop_dt:
             has_post = True
     return result, has_post
@@ -748,7 +774,7 @@ def _history_xaxis(title, time_axis):
         x_range = [time_axis['start'], time_axis['end']]
     x_ticks, _ = _history_axis_tick_counts()
     return dict(
-        title=title,
+        title=dict(text=title, font=dict(size=HISTORY_AXIS_TITLE_FONT_SIZE)),
         type='date',
         range=x_range,
         autorange=not bool(x_range),
@@ -757,13 +783,14 @@ def _history_xaxis(title, time_axis):
         showticklabels=True,
         nticks=x_ticks,
         automargin=True,
+        tickfont=dict(size=HISTORY_TICK_FONT_SIZE),
     )
 
 
 def _history_yaxis():
     _, y_ticks = _history_axis_tick_counts()
     return dict(
-        title='Cumulative Board Count',
+        title=dict(text='Cumulative Board Count', font=dict(size=HISTORY_AXIS_TITLE_FONT_SIZE)),
         range=[HISTORY_CHART_Y_MIN, HISTORY_CHART_Y_MAX],
         autorange=False,
         fixedrange=True,
@@ -774,6 +801,7 @@ def _history_yaxis():
         zeroline=True,
         zerolinewidth=1,
         zerolinecolor='rgba(120,120,120,0.55)',
+        tickfont=dict(size=HISTORY_TICK_FONT_SIZE),
     )
 
 
@@ -793,7 +821,8 @@ def _lock_history_chart_y_axis(fig):
         zeroline=True,
         zerolinewidth=1,
         zerolinecolor='rgba(120,120,120,0.55)',
-        title_text='Cumulative Board Count',
+        title=dict(text='Cumulative Board Count', font=dict(size=HISTORY_AXIS_TITLE_FONT_SIZE)),
+        tickfont=dict(size=HISTORY_TICK_FONT_SIZE),
     )
 
 
@@ -816,11 +845,19 @@ def _load_history_calendar_comments():
         return []
 
 
+def _history_axis_datetime(value):
+    """Parse time-axis / config datetimes; accept date-only strings too."""
+    dt = _parse_datetime(value)
+    if dt:
+        return dt
+    return _calendar_comment_plot_dt(value)
+
+
 def _filter_comments_in_time_axis(comments, time_axis):
     if not comments:
         return []
-    start = _parse_datetime((time_axis or {}).get('start')) if time_axis else None
-    end = _parse_datetime((time_axis or {}).get('end')) if time_axis else None
+    start = _history_axis_datetime((time_axis or {}).get('start')) if time_axis else None
+    end = _history_axis_datetime((time_axis or {}).get('end')) if time_axis else None
     if not start or not end:
         return list(comments)
 
@@ -834,8 +871,8 @@ def _filter_comments_in_time_axis(comments, time_axis):
     return filtered
 
 
-def _build_calendar_label_layout(comments, y_max=HISTORY_CHART_Y_MAX):
-    """Vertical dotted lines + angled annotations (same idea as dashboard JS)."""
+def _build_calendar_label_layout(comments, y_max=HISTORY_CHART_Y_MAX, time_axis=None):
+    """Vertical dotted lines + angled annotations kept inside the plot area."""
     if not comments:
         return [], []
 
@@ -844,8 +881,18 @@ def _build_calendar_label_layout(comments, y_max=HISTORY_CHART_Y_MAX):
     except ImportError:
         return [], []
 
-    top_y = y_max * 0.98
-    step = max(y_max * 0.08, 1.0)
+    axis_start = _history_axis_datetime((time_axis or {}).get('start')) if time_axis else None
+    axis_end = _history_axis_datetime((time_axis or {}).get('end')) if time_axis else None
+    axis_span = None
+    if axis_start and axis_end and axis_end > axis_start:
+        axis_span = (axis_end - axis_start).total_seconds()
+
+    # Keep larger 2× fonts inside the plotting region (not clipped by edges).
+    top_y = y_max * 0.78
+    bottom_y = max(y_max * 0.08, 1.0)
+    lanes = 8
+    step = max((top_y - bottom_y) / max(lanes - 1, 1), 1.0)
+    max_chars = 36
     annotations = []
     traces = []
     line_point_count = 25
@@ -854,18 +901,34 @@ def _build_calendar_label_layout(comments, y_max=HISTORY_CHART_Y_MAX):
         plot_dt = _calendar_comment_plot_dt(item.get('date'))
         if not plot_dt:
             continue
-        comment = item.get('comment') or ''
+        comment = (item.get('comment') or '').strip()
+        if len(comment) > max_chars:
+            comment = comment[: max_chars - 1].rstrip() + '…'
         date_label = plot_dt.strftime('%Y-%m-%d')
+
+        # Near the right edge, anchor right so text grows left into the plot.
+        xanchor = 'left'
+        if axis_span and axis_start:
+            frac = (plot_dt - axis_start).total_seconds() / axis_span
+            if frac >= 0.72:
+                xanchor = 'right'
+            elif frac <= 0.12:
+                xanchor = 'left'
+            else:
+                xanchor = 'left'
+
         annotations.append(dict(
             x=plot_dt,
-            y=max(top_y - (index % 5) * step, step * 0.5),
+            y=max(top_y - (index % lanes) * step, bottom_y),
             xref='x',
             yref='y',
             text=comment,
             showarrow=False,
-            textangle=-55,
-            font=dict(size=9, color='#555'),
-            xanchor='left',
+            textangle=-40,
+            font=dict(size=HISTORY_CALENDAR_LABEL_FONT_SIZE, color='#555'),
+            xanchor=xanchor,
+            yanchor='middle',
+            align='left' if xanchor == 'left' else 'right',
         ))
         xs = [plot_dt] * line_point_count
         ys = [(top_y * i) / (line_point_count - 1) for i in range(line_point_count)]
@@ -874,10 +937,11 @@ def _build_calendar_label_layout(comments, y_max=HISTORY_CHART_Y_MAX):
             y=ys,
             mode='lines',
             line=dict(color='rgba(120, 120, 120, 0.45)', width=1, dash='dot'),
-            customdata=[[date_label, comment]] * line_point_count,
+            customdata=[[date_label, item.get('comment') or '']] * line_point_count,
             hovertemplate='<b>%{customdata[0]}</b><br>%{customdata[1]}<extra></extra>',
             showlegend=False,
             name='Calendar label',
+            cliponaxis=True,
         ))
 
     return annotations, traces
@@ -896,8 +960,8 @@ def _history_chart_figures(snapshot):
         _load_history_calendar_comments(),
         time_axis,
     )
-    time_annotations, time_label_traces = _build_calendar_label_layout(comments)
-    burn_annotations, burn_label_traces = _build_calendar_label_layout(comments)
+    time_annotations, time_label_traces = _build_calendar_label_layout(comments, time_axis=time_axis)
+    burn_annotations, burn_label_traces = _build_calendar_label_layout(comments, time_axis=time_axis)
 
     by_time = snapshot.get('cumulative_by_time') or {}
     fig_time = go.Figure()
@@ -936,9 +1000,9 @@ def _history_chart_figures(snapshot):
     for trace in time_label_traces:
         fig_time.add_trace(trace)
     fig_time.update_layout(
-        title='Cumulative Board Count (by Time)',
+        title=None,
         height=560,
-        margin=dict(t=50, r=30, b=140, l=60),
+        margin=dict(t=40, r=40, b=170, l=90),
         xaxis=_history_xaxis('Test Passed Time', time_axis),
         yaxis=_history_yaxis(),
         showlegend=True,
@@ -950,6 +1014,7 @@ def _history_chart_figures(snapshot):
             xanchor='left',
             bgcolor='rgba(255,255,255,0.85)',
             traceorder='normal',
+            font=dict(size=HISTORY_CHART_LEGEND_FONT_SIZE),
         ),
         paper_bgcolor='white',
         plot_bgcolor='white',
@@ -1000,9 +1065,9 @@ def _history_chart_figures(snapshot):
     for trace in burn_label_traces:
         fig_burn.add_trace(trace)
     fig_burn.update_layout(
-        title='Burn-In Timeline',
+        title=None,
         height=560,
-        margin=dict(t=50, r=30, b=140, l=60),
+        margin=dict(t=40, r=40, b=170, l=90),
         xaxis=_history_xaxis('Burn-In Time', time_axis),
         yaxis=_history_yaxis(),
         showlegend=True,
@@ -1014,6 +1079,7 @@ def _history_chart_figures(snapshot):
             xanchor='left',
             bgcolor='rgba(255,255,255,0.85)',
             traceorder='normal',
+            font=dict(size=HISTORY_CHART_LEGEND_FONT_SIZE),
         ),
         paper_bgcolor='white',
         plot_bgcolor='white',
@@ -1031,7 +1097,7 @@ def _ensure_full_pie_values(labels, values, colors, empty_label='No data yet', e
     return [empty_label], [1], [empty_color]
 
 
-def _history_pie_layout(title):
+def _history_pie_layout():
     return dict(
         title=None,
         height=360,
@@ -1046,15 +1112,10 @@ def _history_pie_layout(title):
             yanchor='top',
             bgcolor='rgba(0,0,0,0)',
             borderwidth=0,
-            font=dict(size=15),
-            title=dict(
-                text=title,
-                font=dict(size=16, color='#333'),
-                side='top',
-            ),
+            font=dict(size=HISTORY_PIE_LEGEND_FONT_SIZE),
             traceorder='normal',
             itemsizing='constant',
-            itemwidth=40,
+            itemwidth=80,
         ),
         paper_bgcolor='white',
         plot_bgcolor='white',
@@ -1072,7 +1133,7 @@ def _history_pie_trace(labels, values, colors):
         sort=False,
         textinfo='percent',
         textposition='inside',
-        textfont=dict(size=14),
+        textfont=dict(size=HISTORY_PIE_INSIDE_FONT_SIZE),
         domain=dict(x=[0.0, 0.58], y=[0.05, 0.95]),
         showlegend=True,
     )
@@ -1090,7 +1151,6 @@ def _history_pie_figures(snapshot):
     yield_data = pies.get('yield_after_burnin') or {}
     burnin = pies.get('burnin_status') or {}
     produced = pies.get('total_produced') or {}
-    failure_rate = pies.get('yield_failure_rate', 0)
 
     yield_labels, yield_values, yield_colors = _ensure_full_pie_values(
         ['Passed', 'Failed'],
@@ -1099,9 +1159,7 @@ def _history_pie_figures(snapshot):
         empty_label='No tested boards yet',
     )
     fig_yield = go.Figure(data=[_history_pie_trace(yield_labels, yield_values, yield_colors)])
-    fig_yield.update_layout(
-        **_history_pie_layout(f'Yield after Burn-In<br>(Failure Rate: {failure_rate}%)')
-    )
+    fig_yield.update_layout(**_history_pie_layout())
 
     burnin_labels, burnin_values, burnin_colors = _ensure_full_pie_values(
         ['Received Burned In', 'Received Not Burned In', 'Not Received'],
@@ -1118,10 +1176,7 @@ def _history_pie_figures(snapshot):
         empty_label='No expected boards yet',
     )
     fig_burnin = go.Figure(data=[_history_pie_trace(burnin_labels, burnin_values, burnin_colors)])
-    expected_burnin = burnin.get('expected') or sum(burnin_values)
-    fig_burnin.update_layout(
-        **_history_pie_layout(f'Burn-In Status<br>(of {expected_burnin} expected)')
-    )
+    fig_burnin.update_layout(**_history_pie_layout())
 
     produced_labels, produced_values, produced_colors = _ensure_full_pie_values(
         ['Passed after Burn-In', 'Failed after Burn-In', 'No Test / Untested', 'Not Yet Produced'],
@@ -1140,11 +1195,7 @@ def _history_pie_figures(snapshot):
         empty_label='No boards yet',
     )
     fig_produced = go.Figure(data=[_history_pie_trace(produced_labels, produced_values, produced_colors)])
-    fig_produced.update_layout(
-        **_history_pie_layout(
-            f"Total Produced vs Expected<br>({produced.get('produced', 0)} / {produced.get('expected', 0)})"
-        )
-    )
+    fig_produced.update_layout(**_history_pie_layout())
     return fig_yield, fig_burnin, fig_produced
 
 
@@ -1348,17 +1399,73 @@ def build_history_snapshot_html(snapshot, milestone=None, cached_at=None):
 
 
 def clear_history_cache():
+    return clear_history_cache_scope('all')
+
+
+def clear_history_cache_scope(scope='all'):
+    """Clear Production History cache files by scope: videos, slideshows, snapshots, index, all."""
+    scope = str(scope or 'all').strip().lower()
+    if scope not in ('videos', 'slideshows', 'snapshots', 'index', 'all'):
+        raise ValueError('scope must be videos, slideshows, snapshots, index, or all')
+
     if not HISTORY_CACHE_DIR.exists():
-        return {'removed': 0, 'cache_dir': str(HISTORY_CACHE_DIR)}
+        return {
+            'success': True,
+            'scope': scope,
+            'removed': 0,
+            'cache_dir': str(HISTORY_CACHE_DIR),
+        }
+
     removed = 0
-    for path in HISTORY_CACHE_DIR.rglob('*'):
-        if path.is_file():
+    targets = []
+    if scope in ('videos', 'all'):
+        targets.append(HISTORY_CACHE_DIR / 'videos')
+    if scope in ('slideshows', 'all'):
+        targets.append(HISTORY_CACHE_DIR / 'slideshows')
+    if scope in ('snapshots', 'all'):
+        targets.append(HISTORY_CACHE_DIR / 'snapshots')
+    if scope in ('index', 'snapshots', 'all'):
+        targets.append(HISTORY_CACHE_DIR / HISTORY_INDEX_NAME)
+
+    for target in targets:
+        if not target.exists():
+            continue
+        if target.is_file():
             try:
-                path.unlink()
+                target.unlink()
                 removed += 1
             except OSError as exc:
+                print(f'Error removing history cache {target}: {exc}')
+            continue
+        for path in sorted(target.rglob('*'), reverse=True):
+            try:
+                if path.is_file():
+                    path.unlink()
+                    removed += 1
+                elif path.is_dir():
+                    path.rmdir()
+            except OSError as exc:
                 print(f'Error removing history cache {path}: {exc}')
-    return {'removed': removed, 'cache_dir': str(HISTORY_CACHE_DIR)}
+        if scope in ('videos', 'slideshows') and target.is_dir():
+            target.mkdir(parents=True, exist_ok=True)
+
+    if scope == 'all':
+        for path in HISTORY_CACHE_DIR.iterdir():
+            if path.name in ('videos', 'slideshows', 'snapshots'):
+                continue
+            try:
+                if path.is_file():
+                    path.unlink()
+                    removed += 1
+            except OSError as exc:
+                print(f'Error removing history cache {path}: {exc}')
+
+    return {
+        'success': True,
+        'scope': scope,
+        'removed': removed,
+        'cache_dir': str(HISTORY_CACHE_DIR),
+    }
 
 
 def load_history_index():

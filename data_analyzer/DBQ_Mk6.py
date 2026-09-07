@@ -1531,6 +1531,22 @@ def DBQ_Mk6(regenerate_mode=None, specific_benchtest_ids=None, specific_daughter
                     )
                     print(f'  Wrote statistics YAML: {stats_path}')
 
+                if plot_regenerate.get(benchtest_id):
+                    try:
+                        from piro_extra_test_plots import generate_extra_plots_for_board
+                        generate_extra_plots_for_board(
+                            client,
+                            benchtest_id=benchtest_id,
+                            board_serial=board_serial,
+                            md_index=MDi,
+                            start_time=start_time,
+                            stop_time=stop_time,
+                            out_dir=str(dbDIR_fullpath),
+                            dbq_plot_style=dbq_plot_style,
+                        )
+                    except Exception as extra_exc:
+                        print(f'  Warning: piro_extra_test_plots failed: {extra_exc}')
+
     #print(f'ASS! {cursor.rowcount}')
 
 ### ######### ###

@@ -595,6 +595,10 @@ def style_dbq_figure(
     }
     for trace in fig.data:
         name = getattr(trace, 'name', None)
+        trace_type = type(trace).__name__
+        # Heatmaps / non-scatter traces must not get line/marker mode or scatter hover.
+        if trace_type not in ('Scatter', 'Scattergl'):
+            continue
         try:
             trace.hovertemplate = hovertemplate
         except Exception:

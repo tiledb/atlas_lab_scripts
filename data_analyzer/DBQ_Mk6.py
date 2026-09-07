@@ -1534,6 +1534,14 @@ def DBQ_Mk6(regenerate_mode=None, specific_benchtest_ids=None, specific_daughter
                 if plot_regenerate.get(benchtest_id):
                     try:
                         from piro_extra_test_plots import generate_extra_plots_for_board
+                        # None / [] / 'all' -> all extra plot families.
+                        # Example: ['ADC_Linearity_Samples', 'CIS_Samples', 'Link_Eye_Diagram_Samples', Integrator_Linearity_Samples, CIS_Linearity_Samples]
+                        extra_plots = ['ADC_Linearity_Samples', 
+                        'CIS_Samples', 
+                        'Link_Eye_Diagram_Samples', 
+                        'Integrator_Linearity_Samples', 
+                        'CIS_Linearity_Samples']
+                        
                         generate_extra_plots_for_board(
                             client,
                             benchtest_id=benchtest_id,
@@ -1543,6 +1551,7 @@ def DBQ_Mk6(regenerate_mode=None, specific_benchtest_ids=None, specific_daughter
                             stop_time=stop_time,
                             out_dir=str(dbDIR_fullpath),
                             dbq_plot_style=dbq_plot_style,
+                            plots=extra_plots,
                         )
                     except Exception as extra_exc:
                         print(f'  Warning: piro_extra_test_plots failed: {extra_exc}')

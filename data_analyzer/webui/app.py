@@ -198,7 +198,7 @@ def load_vars_yaml():
 
 
 def load_vars_yaml_for_edit():
-    """Normalized vars for the edit UI: thresholds/essential/caption per variable."""
+    """Normalized vars for the edit UI: thresholds/essential/caption/dimensions per variable."""
     if str(SCRIPT_DIR) not in sys.path:
         sys.path.insert(0, str(SCRIPT_DIR))
     from vars_config import (
@@ -213,7 +213,7 @@ def load_vars_yaml_for_edit():
 
 
 def save_vars_yaml(data):
-    """Save configuration to vars.yaml in the thresholds/essential/caption schema."""
+    """Save configuration to vars.yaml in the thresholds/essential/caption/dimensions schema."""
     try:
         if str(SCRIPT_DIR) not in sys.path:
             sys.path.insert(0, str(SCRIPT_DIR))
@@ -236,6 +236,7 @@ def save_vars_yaml(data):
                         'thresholds': thresholds,
                         'essential': entry.get('essential', 0),
                         'caption': entry.get('caption', var_name),
+                        'dimensions': entry.get('dimensions', ''),
                     }
                 else:
                     raw = entry
@@ -246,6 +247,7 @@ def save_vars_yaml(data):
                 emap['thresholds'] = thr
                 emap['essential'] = int(normalized['essential'])
                 emap['caption'] = normalized['caption']
+                emap['dimensions'] = normalized['dimensions']
                 tmap[var_name] = emap
             out[table_name] = tmap
 
@@ -346,6 +348,81 @@ def dashboard():
         dashboard_tab_order=tab_payload['order'],
     )
 
+def parse_benchtest_id_spec(raw):
+    """Parse '1,3-5,10' / '2-5' / '7' into a sorted unique list of ints."""
+    if raw is None:
+        return []
+    text = str(raw).strip()
+    if not text:
+        return []
+    ids = []
+    for part in text.split(','):
+        token = part.strip()
+        if not token:
+            continue
+        if '-' in token:
+            ends = token.split('-', 1)
+            try:
+                start = int(ends[0].strip())
+                end = int(ends[1].strip())
+            except ValueError as exc:
+                raise ValueError(f'Invalid benchtest range "{token}"') from exc
+            if end < start:
+                start, end = end, start
+            ids.extend(range(start, end + 1))
+        else:
+            try:
+                ids.append(int(token))
+            except ValueError as exc:
+                raise ValueError(f'Invalid benchtest id "{token}"') from exc
+    # Preserve order while uniquifying
+    seen = set()
+    ordered = []
+    for benchtest_id in ids:
+        if benchtest_id not in seen:
+            seen.add(benchtest_id)
+            ordered.append(benchtest_id)
+    return ordered
+
+
+def fetch_all_benchtest_ids():
+    """Return all benchtest IDs from the database, ascending."""
+    conn = get_db_connection()
+    if not conn:
+        raise RuntimeError('Database connection failed while listing benchtests')
+    try:
+        cursor = conn.cursor()
+        cursor.execute('SELECT id FROM benchtest ORDER BY id')
+        rows = cursor.fetchall()
+        cursor.close()
+        ids = []
+        for row in rows:
+            # Support both tuple and dict cursors
+            value = row[0] if not isinstance(row, dict) else row.get('id')
+            if value is not None:
+                ids.append(int(value))
+        return ids
+    finally:
+        conn.close()
+
+
+def run_dbq_mk6_for_benchtest(benchtest_id, regenerate_mode=None, daughterboard_id=None, timeout=1800):
+    """Run one DBQ_Mk6 process for a single benchtest ID."""
+    cmd = ['python3', str(DBQ_SCRIPT_PATH)]
+    if regenerate_mode and regenerate_mode != 'none':
+        cmd.extend(['-r', str(regenerate_mode)])
+    cmd.extend(['-b', str(benchtest_id)])
+    if daughterboard_id:
+        cmd.extend(['-d', str(daughterboard_id)])
+    return subprocess.run(
+        cmd,
+        cwd=SCRIPT_DIR,
+        capture_output=True,
+        text=True,
+        timeout=timeout,
+    )
+
+
 @app.route('/run_script', methods=['GET', 'POST'])
 def run_script():
     if not session.get('logged_in'):
@@ -358,55 +435,139 @@ def run_script():
     error = None
     
     if request.method == 'POST':
-        regenerate_mode = request.form.get('regenerate_mode')
+        regenerate_mode = request.form.get('regenerate_mode') or 'none'
         specific_benchtest_ids = request.form.get('specific_benchtest_ids')
         specific_daughterboard_id = request.form.get('specific_daughterboard_id')
         
-        # Build command
-        cmd = ['python3', str(DBQ_SCRIPT_PATH)]
-        
-        if regenerate_mode and regenerate_mode != 'none':
-            cmd.extend(['-r', regenerate_mode])
-        
-        if specific_benchtest_ids:
-            cmd.extend(['-b', specific_benchtest_ids])
-        
-        if specific_daughterboard_id:
-            cmd.extend(['-d', specific_daughterboard_id])
-        
         try:
-            # Run DBQ_Mk6 script
-            result = subprocess.run(
-                cmd,
-                cwd=SCRIPT_DIR,
-                capture_output=True,
-                text=True,
-                timeout=300  # 5 minute timeout
+            scheduled_ids = parse_benchtest_id_spec(specific_benchtest_ids)
+            run_sequential = (
+                regenerate_mode == 'all'
+                or len(scheduled_ids) > 1
             )
-            
-            if result.returncode == 0:
-                # DBQ_Mk6 succeeded, now run production plots
-                message = f"DBQ_Mk6 script executed successfully.\n{result.stdout}\n\n"
-                
-                # Run production plots
-                production_cmd = ['python3', str(PRODUCTION_PLOTS_PATH)]
-                production_result = subprocess.run(
-                    production_cmd,
+
+            if run_sequential:
+                if not scheduled_ids:
+                    scheduled_ids = fetch_all_benchtest_ids()
+                if not scheduled_ids:
+                    error = 'No benchtest IDs found to process.'
+                else:
+                    output_chunks = [
+                        f'Running DBQ_Mk6 sequentially for {len(scheduled_ids)} benchtest(s): '
+                        f'{", ".join(str(i) for i in scheduled_ids)}\n'
+                        f'(one python process at a time to limit memory use)\n'
+                    ]
+                    failures = []
+                    for benchtest_id in scheduled_ids:
+                        output_chunks.append(f'\n===== Benchtest {benchtest_id} =====\n')
+                        output_chunks.append(
+                            f'$ python3 DBQ_Mk6.py'
+                            f'{"" if regenerate_mode == "none" else f" -r {regenerate_mode}"}'
+                            f' -b {benchtest_id}'
+                            f'{"" if not specific_daughterboard_id else f" -d {specific_daughterboard_id}"}\n'
+                        )
+                        try:
+                            result = run_dbq_mk6_for_benchtest(
+                                benchtest_id,
+                                regenerate_mode=regenerate_mode,
+                                daughterboard_id=specific_daughterboard_id or None,
+                            )
+                        except subprocess.TimeoutExpired:
+                            failures.append(benchtest_id)
+                            output_chunks.append(
+                                f'ERROR: benchtest {benchtest_id} timed out.\n'
+                            )
+                            continue
+
+                        if result.stdout:
+                            output_chunks.append(result.stdout)
+                        if result.stderr:
+                            output_chunks.append(result.stderr)
+                        if result.returncode != 0:
+                            failures.append(benchtest_id)
+                            output_chunks.append(
+                                f'ERROR: benchtest {benchtest_id} failed '
+                                f'(exit {result.returncode}).\n'
+                            )
+                        else:
+                            output_chunks.append(
+                                f'OK: benchtest {benchtest_id} finished.\n'
+                            )
+
+                    if failures:
+                        output_chunks.append(
+                            f'\nFinished with failures on benchtests: '
+                            f'{", ".join(str(i) for i in failures)}\n'
+                        )
+                    else:
+                        output_chunks.append('\nAll scheduled benchtests finished successfully.\n')
+
+                    # Refresh production plots once after the sequential batch
+                    if len(failures) < len(scheduled_ids):
+                        output_chunks.append('\n===== Production plots =====\n')
+                        production_cmd = ['python3', str(PRODUCTION_PLOTS_PATH)]
+                        production_result = subprocess.run(
+                            production_cmd,
+                            cwd=SCRIPT_DIR,
+                            capture_output=True,
+                            text=True,
+                            timeout=1800,
+                        )
+                        if production_result.stdout:
+                            output_chunks.append(production_result.stdout)
+                        if production_result.stderr:
+                            output_chunks.append(production_result.stderr)
+                        if production_result.returncode == 0:
+                            output_chunks.append('Production plots updated successfully.\n')
+                        else:
+                            output_chunks.append(
+                                'Production plots update failed '
+                                '(DBQ_Mk6 sequential runs completed).\n'
+                            )
+
+                    message = ''.join(output_chunks)
+                    if failures and not message:
+                        error = f'Failed benchtests: {", ".join(str(i) for i in failures)}'
+            else:
+                # Single benchtest (or non-all mode with no / one ID): one process
+                cmd = ['python3', str(DBQ_SCRIPT_PATH)]
+                if regenerate_mode and regenerate_mode != 'none':
+                    cmd.extend(['-r', regenerate_mode])
+                if scheduled_ids:
+                    cmd.extend(['-b', str(scheduled_ids[0])])
+                if specific_daughterboard_id:
+                    cmd.extend(['-d', specific_daughterboard_id])
+
+                result = subprocess.run(
+                    cmd,
                     cwd=SCRIPT_DIR,
                     capture_output=True,
                     text=True,
-                    timeout=300  # 5 minute timeout
+                    timeout=1800,
                 )
-                
-                if production_result.returncode == 0:
-                    message += f"Production plots updated successfully.\n{production_result.stdout}"
+
+                if result.returncode == 0:
+                    message = f"DBQ_Mk6 script executed successfully.\n{result.stdout}\n\n"
+                    production_cmd = ['python3', str(PRODUCTION_PLOTS_PATH)]
+                    production_result = subprocess.run(
+                        production_cmd,
+                        cwd=SCRIPT_DIR,
+                        capture_output=True,
+                        text=True,
+                        timeout=1800,
+                    )
+                    if production_result.returncode == 0:
+                        message += f"Production plots updated successfully.\n{production_result.stdout}"
+                    else:
+                        message += (
+                            "Production plots update failed (but DBQ_Mk6 succeeded).\n"
+                            f"Error: {production_result.stderr}"
+                        )
                 else:
-                    message += f"Production plots update failed (but DBQ_Mk6 succeeded).\nError: {production_result.stderr}"
-            else:
-                error = f"DBQ_Mk6 script execution failed. Error:\n{result.stderr}"
-                
+                    error = f"DBQ_Mk6 script execution failed. Error:\n{result.stderr}"
+
         except subprocess.TimeoutExpired:
-            error = "Script execution timed out after 5 minutes."
+            error = "Script execution timed out."
         except Exception as e:
             error = f"Error running script: {str(e)}"
     
@@ -439,12 +600,14 @@ def edit_vars():
                 thresholds_str = request.form.get(f'{table_name}_{var_name}_thresholds', '')
                 essential_str = request.form.get(f'{table_name}_{var_name}_essential', '0')
                 caption_str = request.form.get(f'{table_name}_{var_name}_caption', var_name)
+                dimensions_str = request.form.get(f'{table_name}_{var_name}_dimensions', '')
                 try:
                     essential = 1 if str(essential_str).strip() in ('1', 'true', 'True', 'on') else 0
                     yaml_data[table_name][var_name] = {
                         'thresholds': parse_thresholds_text(thresholds_str),
                         'essential': essential,
                         'caption': (caption_str or var_name).strip() or var_name,
+                        'dimensions': (dimensions_str or '').strip(),
                     }
                 except Exception as e:
                     error = f"Error parsing value for {table_name}.{var_name}: {str(e)}"

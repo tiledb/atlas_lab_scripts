@@ -255,6 +255,11 @@
                         <label for="font-legend-size">Legend size</label>
                         <input type="number" id="font-legend-size" min="8" step="1">
                     </div>
+                    <div class="config-field">
+                        <label for="font-hover-size">Hover size</label>
+                        <input type="number" id="font-hover-size" min="8" step="1">
+                        <span class="hint">Font size for point hover tooltips</span>
+                    </div>
                 </div>
             </div>
 
@@ -502,8 +507,9 @@
                         <label for="output-plotlyjs">include_plotlyjs</label>
                         <div class="dual-row">
                             <select id="output-plotlyjs-preset" data-target="output-plotlyjs"></select>
-                            <input type="text" id="output-plotlyjs" placeholder="true / cdn / false">
+                            <input type="text" id="output-plotlyjs" placeholder="true / cdn / same_folder / false">
                         </div>
+                        <span class="hint">same_folder: write plotly.min.js once per DB folder; HTML files reference it locally</span>
                     </div>
                 </div>
 
@@ -556,7 +562,7 @@
             'ref-lower-dash': ['solid', 'dot', 'dash', 'longdash', 'dashdot', 'longdashdot'],
             'ref-upper-dash': ['solid', 'dot', 'dash', 'longdash', 'dashdot', 'longdashdot'],
             'legend-orientation': ['v', 'h'],
-            'output-plotlyjs': ['true', 'cdn', 'false'],
+            'output-plotlyjs': ['true', 'cdn', 'same_folder', 'false'],
         };
 
         function showMessage(text, isError = false) {
@@ -771,6 +777,7 @@
             document.getElementById('font-axis-title-size').value = font.axis_title_size ?? 13;
             document.getElementById('font-tick-size').value = font.tick_size ?? 11;
             document.getElementById('font-legend-size').value = font.legend_size ?? 11;
+            document.getElementById('font-hover-size').value = font.hover_size ?? 12;
 
             setTextAndSync('labels-x-title', labels.x_title || 'Time');
             setTextAndSync('labels-legend-title', labels.legend_title || 'Uplink Channel');
@@ -823,6 +830,7 @@
             const includeJs = output.include_plotlyjs;
             if (includeJs === false) setTextAndSync('output-plotlyjs', 'false');
             else if (includeJs === 'cdn') setTextAndSync('output-plotlyjs', 'cdn');
+            else if (includeJs === 'same_folder' || includeJs === 'directory') setTextAndSync('output-plotlyjs', 'same_folder');
             else setTextAndSync('output-plotlyjs', 'true');
 
             updateTitlePreview();
@@ -833,6 +841,7 @@
             let includeJs = document.getElementById('output-plotlyjs').value.trim();
             if (includeJs === 'true') includeJs = true;
             else if (includeJs === 'false') includeJs = false;
+            else if (includeJs === 'directory') includeJs = 'same_folder';
             return {
                 figure: {
                     template: document.getElementById('figure-template').value.trim(),
@@ -854,6 +863,7 @@
                     axis_title_size: Number(document.getElementById('font-axis-title-size').value || 13),
                     tick_size: Number(document.getElementById('font-tick-size').value || 11),
                     legend_size: Number(document.getElementById('font-legend-size').value || 11),
+                    hover_size: Number(document.getElementById('font-hover-size').value || 12),
                 },
                 labels: {
                     x_title: document.getElementById('labels-x-title').value.trim(),

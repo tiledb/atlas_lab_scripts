@@ -208,15 +208,24 @@
                         <option value="benchtest_id_log">Regenerate Benchtest ID Log</option>
                         <option value="benchtest_id_results_log">Regenerate Results Log</option>
                         <option value="plots">Regenerate Plots Only</option>
+                        <option value="statistics">Regenerate Statistics Only</option>
                     </select>
-                    <p class="help-text">Select the regeneration mode for the script execution.</p>
+                    <p class="help-text">
+                        Select the regeneration mode for the script execution.
+                        <strong>Regenerate All</strong> runs one benchtest at a time
+                        (<code>python DBQ_Mk6.py -r all -b ID</code>) to avoid memory spikes.
+                    </p>
                 </div>
 
                 <div class="form-group">
                     <label for="specific_benchtest_ids">Specific Benchtest IDs (optional)</label>
                     <input type="text" id="specific_benchtest_ids" name="specific_benchtest_ids"
-                        placeholder="e.g., 1,2,3">
-                    <p class="help-text">Comma-separated list of benchtest IDs to process. Leave empty for all.</p>
+                        placeholder="e.g., 1,2,3 or 10-20">
+                    <p class="help-text">
+                        Comma-separated IDs and/or ranges (e.g. <code>1,3,10-12</code>).
+                        Leave empty with Regenerate All to process every benchtest.
+                        Multiple IDs always run sequentially (one Python process each).
+                    </p>
                 </div>
 
                 <div class="form-group">

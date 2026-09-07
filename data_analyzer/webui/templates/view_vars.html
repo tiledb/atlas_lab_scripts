@@ -89,7 +89,7 @@
         
         .var-row {
             display: grid;
-            grid-template-columns: minmax(160px, 220px) minmax(120px, 1fr) 80px minmax(120px, 1fr);
+            grid-template-columns: minmax(140px, 200px) minmax(110px, 1fr) 70px minmax(110px, 1fr) minmax(80px, 0.7fr);
             gap: 12px;
             margin-bottom: 12px;
             align-items: center;
@@ -113,7 +113,7 @@
 
         .col-headers {
             display: grid;
-            grid-template-columns: minmax(160px, 220px) minmax(120px, 1fr) 80px minmax(120px, 1fr);
+            grid-template-columns: minmax(140px, 200px) minmax(110px, 1fr) 70px minmax(110px, 1fr) minmax(80px, 0.7fr);
             gap: 12px;
             margin-bottom: 10px;
             color: #888;
@@ -158,6 +158,7 @@
                         <span>Thresholds</span>
                         <span>Essential</span>
                         <span>Caption</span>
+                        <span>Dimensions</span>
                     </div>
                     
                     {% for var_name, var_entry in table_vars.items() %}
@@ -167,10 +168,12 @@
                                 <span class="var-value">{{ var_entry.thresholds }}</span>
                                 <span class="var-value">{{ var_entry.essential }}</span>
                                 <span class="var-value">{{ var_entry.caption }}</span>
+                                <span class="var-value">{{ var_entry.dimensions }}</span>
                             {% else %}
                                 <span class="var-value">{{ var_entry }}</span>
                                 <span class="var-value">0</span>
                                 <span class="var-value">{{ var_name }}</span>
+                                <span class="var-value"></span>
                             {% endif %}
                         </div>
                     {% endfor %}

@@ -26,6 +26,7 @@ if [[ "${curproc}" -gt 0 ]]; then
 
     echo -e "Generating Production Plots!\n"
     python3 production_plots_v1.py
+    python3 ./webui/app.py --rebuild-history-cache missing
 
     deactivate
     exit 0
@@ -50,6 +51,7 @@ if [[ "${unproc}" -gt 0 ]]; then
     if [[ "${unproctestcomp}" == "NULL" ]]; then
 	echo -e "Generating Production Plots!\n"
 	python3 production_plots_v1.py
+    python3 ./webui/app.py --rebuild-history-cache missing
 
 	echo "Unprocessed benchtest is still running (stop_time has returned 'NULL'). Exiting..."
 	deactivate
@@ -73,6 +75,7 @@ if [[ "${unproc}" -gt 0 ]]; then
 
     echo -e "Generating Production Plots!\n"
     python3 production_plots_v1.py
+    python3 ./webui/app.py --rebuild-history-cache missing
 
     deactivate
     exit
@@ -81,6 +84,7 @@ fi
 source myenv/bin/activate
 echo -e "Generating Production Plots!\n"
 python3 production_plots_v1.py
+python3 ./webui/app.py --rebuild-history-cache missing
 
 echo -e "No unproccessed benchtests found. Exiting...\n"
 deactivate

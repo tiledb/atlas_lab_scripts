@@ -17,12 +17,14 @@ font:
   axis_title_size: 20
   tick_size: 20
   legend_size: 20
+  hover_size: 15
 labels:
   x_title: Time
   y_title_is_varname: true
   y_title: Value
   legend_title: Uplink Channel
-  title_template: 'DBSNo: {serial} - PPrGTH: {ivar} (BT {benchtest_id} -> {test_length}) (Gen -> {generated_at})'
+  title_template: 'DBSNo: {serial} - PPrGTH: {ivar} (BT {benchtest_id} -> {test_length})
+    (Gen -> {generated_at})'
   title_time_format: '%Y-%m-%d %H:%M:%S'
 data_traces:
   mode: lines+markers
@@ -61,4 +63,4 @@ axes:
   border_color: '#333333'
   border_width: 1.0
 output:
-  include_plotlyjs: true
+  include_plotlyjs: same_folder

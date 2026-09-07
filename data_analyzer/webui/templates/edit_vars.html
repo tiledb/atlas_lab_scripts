@@ -90,7 +90,7 @@
         
         .var-row {
             display: grid;
-            grid-template-columns: minmax(160px, 220px) minmax(140px, 1.1fr) 90px minmax(140px, 1fr);
+            grid-template-columns: minmax(140px, 200px) minmax(120px, 1fr) 80px minmax(120px, 1fr) minmax(90px, 0.7fr);
             gap: 12px;
             margin-bottom: 12px;
             align-items: center;
@@ -131,7 +131,7 @@
 
         .col-headers {
             display: grid;
-            grid-template-columns: minmax(160px, 220px) minmax(140px, 1.1fr) 90px minmax(140px, 1fr);
+            grid-template-columns: minmax(140px, 200px) minmax(120px, 1fr) 80px minmax(120px, 1fr) minmax(90px, 0.7fr);
             gap: 12px;
             margin-bottom: 10px;
             color: #888;
@@ -231,7 +231,8 @@
             <p class="help-text" style="margin-bottom: 20px;">
                 Thresholds use list format: <code>[value]</code> or <code>[low, high]</code>.
                 <strong>essential</strong> is 0/1. <strong>caption</strong> is used in plot titles
-                (filenames still use the variable name).
+                (filenames still use the variable name). <strong>dimensions</strong> is appended on the
+                y-axis as <code>caption (dimensions)</code>; if empty, only the caption is used.
             </p>
             
             <form method="POST" action="{{ url_for('edit_vars') }}">
@@ -244,6 +245,7 @@
                             <span>Thresholds</span>
                             <span>Essential</span>
                             <span>Caption</span>
+                            <span>Dimensions</span>
                         </div>
                         
                         {% for var_name, var_entry in table_vars.items() %}
@@ -273,6 +275,14 @@
                                     value="{{ var_entry.caption }}"
                                     class="var-input"
                                     placeholder="{{ var_name }}"
+                                >
+                                <input
+                                    type="text"
+                                    id="{{ table_name }}_{{ var_name }}_dimensions"
+                                    name="{{ table_name }}_{{ var_name }}_dimensions"
+                                    value="{{ var_entry.dimensions }}"
+                                    class="var-input"
+                                    placeholder="e.g. mA"
                                 >
                                 <input type="hidden" name="{{ table_name }}_var_name" value="{{ var_name }}">
                             </div>

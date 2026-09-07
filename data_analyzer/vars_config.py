@@ -41,17 +41,37 @@ def get_var_caption(entry, default_name=''):
     return str(default_name or '')
 
 
+def get_var_dimensions(entry, default=''):
+    """Return y-axis dimensions/units string; empty if unset."""
+    if isinstance(entry, dict):
+        dimensions = entry.get('dimensions')
+        if dimensions is not None and str(dimensions).strip() != '':
+            return str(dimensions).strip()
+    return str(default or '')
+
+
+def format_y_axis_label(measurement, dimensions=None):
+    """Y-axis text: ``measurement (dimensions)`` when units are set, else measurement."""
+    name = str(measurement or '').strip()
+    units = str(dimensions or '').strip()
+    if name and units:
+        return f'{name} ({units})'
+    return name or units
+
+
 def normalize_var_entry(entry, name=''):
-    """Normalize a variable entry to {thresholds, essential, caption}."""
+    """Normalize a variable entry to {thresholds, essential, caption, dimensions}."""
     thresholds = get_var_thresholds(entry)
     essential = get_var_essential(entry)
     caption = get_var_caption(entry, default_name=name)
     if not caption:
         caption = str(name or '')
+    dimensions = get_var_dimensions(entry, default='')
     return {
         'thresholds': thresholds,
         'essential': essential,
         'caption': caption,
+        'dimensions': dimensions,
     }
 
 

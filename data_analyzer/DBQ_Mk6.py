@@ -25,7 +25,7 @@ import plotly.express as plotlyEX
 # Server Packages
 from ruamel.yaml import YAML
 
-from vars_config import get_var_caption, get_var_thresholds
+from vars_config import get_var_caption, get_var_dimensions, get_var_thresholds
 
 # MySQL for MariaDB
 import mysql.connector
@@ -339,8 +339,9 @@ def DBQ_Mk6(regenerate_mode=None, specific_benchtest_ids=None, specific_daughter
         queryResults = {}
         #print(f'queryResults = {queryResults}')
 
-        # Define plot regeneration tracking
+        # Define plot / statistics regeneration tracking
         plot_regenerate = {}
+        stats_regenerate = {}
         #print(f'plot_regenerate = {plot_regenerate}')
 
         # Define Data Array
@@ -375,8 +376,8 @@ def DBQ_Mk6(regenerate_mode=None, specific_benchtest_ids=None, specific_daughter
             
             if regenerate_mode == 'benchtest_id_log' or regenerate_mode == 'all':
                 backup_log_file(log_path)
-            elif regenerate_mode == 'benchtest_id_results_log' or regenerate_mode == 'plots':
-                # Skip writing benchtest_id.log if only regenerating results or plots
+            elif regenerate_mode in ('benchtest_id_results_log', 'plots', 'statistics'):
+                # Skip writing benchtest_id.log if only regenerating results, plots, or statistics
                 write_benchtest_log = False
             else:
                 # Default mode: backup if exists
@@ -438,13 +439,20 @@ def DBQ_Mk6(regenerate_mode=None, specific_benchtest_ids=None, specific_daughter
             # Allocate data dictionary space
             dataDict[benchtest_id] = {}
 
-            # Set plot regeneration flag for this benchtest
+            # Set plot / statistics regeneration flags for this benchtest
             if regenerate_mode == 'benchtest_id_log' or regenerate_mode == 'benchtest_id_results_log':
                 plot_regenerate[benchtest_id] = False
+                stats_regenerate[benchtest_id] = False
+            elif regenerate_mode == 'statistics':
+                plot_regenerate[benchtest_id] = False
+                stats_regenerate[benchtest_id] = True
             elif regenerate_mode == 'plots' or regenerate_mode == 'all':
                 plot_regenerate[benchtest_id] = True
+                stats_regenerate[benchtest_id] = True
             else:
+                # Default / first-pass processing: generate both
                 plot_regenerate[benchtest_id] = True
+                stats_regenerate[benchtest_id] = True
 
             # Table Loop
             for table in config.keys():
@@ -862,8 +870,8 @@ def DBQ_Mk6(regenerate_mode=None, specific_benchtest_ids=None, specific_daughter
         
         if regenerate_mode == 'benchtest_id_log' or regenerate_mode == 'all':
             backup_log_file(log_path)
-        elif regenerate_mode == 'benchtest_id_results_log' or regenerate_mode == 'plots':
-            # Skip writing benchtest_id.log if only regenerating results or plots
+        elif regenerate_mode in ('benchtest_id_results_log', 'plots', 'statistics'):
+            # Skip writing benchtest_id.log if only regenerating results, plots, or statistics
             write_benchtest_log = False
         else:
             # Default mode: backup if exists
@@ -876,8 +884,8 @@ def DBQ_Mk6(regenerate_mode=None, specific_benchtest_ids=None, specific_daughter
         
         if regenerate_mode == 'benchtest_id_results_log' or regenerate_mode == 'all':
             backup_log_file(results_path)
-        elif regenerate_mode == 'benchtest_id_log' or regenerate_mode == 'plots':
-            # Skip writing results if only regenerating main log or plots
+        elif regenerate_mode in ('benchtest_id_log', 'plots', 'statistics'):
+            # Skip writing results if only regenerating main log, plots, or statistics
             write_results_log = False
         else:
             # Default mode: backup if exists
@@ -885,8 +893,8 @@ def DBQ_Mk6(regenerate_mode=None, specific_benchtest_ids=None, specific_daughter
 
         # Handle plot regeneration
         write_plots = True
-        if regenerate_mode == 'benchtest_id_log' or regenerate_mode == 'benchtest_id_results_log':
-            # Skip plots if only regenerating logs
+        if regenerate_mode in ('benchtest_id_log', 'benchtest_id_results_log', 'statistics'):
+            # Skip plots if only regenerating logs or statistics
             write_plots = False
         elif regenerate_mode == 'plots' or regenerate_mode == 'all':
             # Regenerate plots
@@ -1392,6 +1400,11 @@ def DBQ_Mk6(regenerate_mode=None, specific_benchtest_ids=None, specific_daughter
                 dbDIR_fullpath = Path(driveDIR + btDIRName + "/" + dbDIRName)
                 dbDIR_fullpath.mkdir(parents=True, exist_ok=True)
 
+                start_time = benchtest_proc[benchtest_id]["benchtest_timestamp"][0]
+                stop_time = benchtest_proc[benchtest_id]["benchtest_timestamp"][1]
+                board_serial = benchtest_proc[benchtest_id]["benchtest_serialnos"][MDi]
+                board_stats_variables = {}
+
                 for table in config.keys():
                     print(f'      Table: {table}')
 
@@ -1409,6 +1422,38 @@ def DBQ_Mk6(regenerate_mode=None, specific_benchtest_ids=None, specific_daughter
 
                         if len(dataDict[benchtest_id][ivar]["MD"+str(MDi+1)]) != 0:
                             plot_caption = get_var_caption(config[table][ivar], default_name=ivar)
+                            plot_dimensions = get_var_dimensions(config[table][ivar])
+                            _refs = (dbq_plot_style or {}).get('reference_traces') or {}
+                            truth_name = _refs.get('truth_name') or 'TruthValue'
+                            lower_name = _refs.get('lower_name') or 'LowerLimit'
+                            upper_name = _refs.get('upper_name') or 'UpperLimit'
+                            var_thresholds = get_var_thresholds(config[table][ivar])
+
+                            channel_y_data = {}
+                            channel_stats = {}
+                            for channel, series in dataDict[benchtest_id][ivar]["MD"+str(MDi+1)].items():
+                                if channel in (truth_name, lower_name, upper_name):
+                                    continue
+                                y_values = series.get('y') or []
+                                channel_y_data[channel] = y_values
+                                stats = compute_y_stats(y_values)
+                                if stats:
+                                    channel_stats[channel] = stats
+
+                            if stats_regenerate.get(benchtest_id):
+                                board_stats_variables[ivar] = build_variable_stats_payload(
+                                    ivar,
+                                    plot_caption,
+                                    var_thresholds,
+                                    channel_y_data,
+                                    table=table,
+                                    dimensions=plot_dimensions,
+                                )
+
+                            # Statistics-only mode skips Plotly figure build/save.
+                            if not plot_regenerate.get(benchtest_id):
+                                continue
+
                             plotDict[benchtest_id][benchtest_proc[benchtest_id]["benchtest_serialnos"][MDi]][ivar] = plotlyEX.line(
                                 dfDict[benchtest_id][benchtest_proc[benchtest_id]["benchtest_serialnos"][MDi]][ivar]["Full"],
                                 x="x",
@@ -1417,6 +1462,7 @@ def DBQ_Mk6(regenerate_mode=None, specific_benchtest_ids=None, specific_daughter
                                 labels=px_line_labels(
                                     dbq_plot_style,
                                     plot_caption,
+                                    dimensions=plot_dimensions,
                                 ),
                             )
 
@@ -1424,36 +1470,66 @@ def DBQ_Mk6(regenerate_mode=None, specific_benchtest_ids=None, specific_daughter
                             print(f'          Post Define-plotDict Date/Time: {testtime.strftime("%y/%m/%d - %H:%M:%S")}')
 
                             threshold_mode = None
-                            var_thresholds = get_var_thresholds(config[table][ivar])
+                            truth_value = None
+                            lower_value = None
+                            upper_value = None
                             if len(var_thresholds) == 1:
                                 print('            LENGTH = 1')
                                 threshold_mode = 'truth'
+                                truth_value = var_thresholds[0]
                             elif len(var_thresholds) == 2:
                                 print('            LENGTH = 2')
                                 threshold_mode = 'limits'
+                                lower_value = var_thresholds[0]
+                                upper_value = var_thresholds[1]
 
                             style_dbq_figure(
                                 plotDict[benchtest_id][benchtest_proc[benchtest_id]["benchtest_serialnos"][MDi]][ivar],
                                 dbq_plot_style,
-                                serial=benchtest_proc[benchtest_id]["benchtest_serialnos"][MDi],
+                                serial=board_serial,
                                 ivar=plot_caption,
+                                dimensions=plot_dimensions,
                                 threshold_mode=threshold_mode,
                                 start_time=start_time,
                                 stop_time=stop_time,
                                 benchtest_id=benchtest_id,
                             )
+                            apply_plot_legend_stats(
+                                plotDict[benchtest_id][benchtest_proc[benchtest_id]["benchtest_serialnos"][MDi]][ivar],
+                                channel_stats,
+                                truth_name=truth_name,
+                                lower_name=lower_name,
+                                upper_name=upper_name,
+                                truth_value=truth_value,
+                                lower_value=lower_value,
+                                upper_value=upper_value,
+                            )
                             testtime = datetime.now()
                             print(f'          Post Style-plotDict Date/Time: {testtime.strftime("%y/%m/%d - %H:%M:%S")}')
 
-                            if plot_regenerate[benchtest_id]:
-                                # Filenames keep the raw variable key (ivar), not the caption.
-                                plot_path = driveDIR+btDIRName+"/"+dbDIRName + "/DBSNo_"+str(benchtest_proc[benchtest_id]["benchtest_serialnos"][MDi])+"_PPrGTH_"+ivar+".html"
-                                plotDict[benchtest_id][benchtest_proc[benchtest_id]["benchtest_serialnos"][MDi]][ivar].write_html(
-                                    plot_path,
-                                    **write_html_options(dbq_plot_style),
-                                )
-                                testtime = datetime.now()
-                                print(f'          Post Final Save-plotDict Date/Time: {testtime.strftime("%y/%m/%d - %H:%M:%S")}')
+                            # Filenames keep the raw variable key (ivar), not the caption.
+                            plot_path = driveDIR+btDIRName+"/"+dbDIRName + "/DBSNo_"+str(board_serial)+"_PPrGTH_"+ivar+".html"
+                            plotDict[benchtest_id][benchtest_proc[benchtest_id]["benchtest_serialnos"][MDi]][ivar].write_html(
+                                plot_path,
+                                **write_html_options(dbq_plot_style),
+                            )
+                            testtime = datetime.now()
+                            print(f'          Post Final Save-plotDict Date/Time: {testtime.strftime("%y/%m/%d - %H:%M:%S")}')
+
+                if stats_regenerate.get(benchtest_id) and board_stats_variables:
+                    stats_path = (
+                        driveDIR + btDIRName + "/" + dbDIRName
+                        + "/DBSNo_" + str(board_serial) + "_PPrGTH_Statistics.yaml"
+                    )
+                    write_board_statistics_yaml(
+                        stats_path,
+                        serial=board_serial,
+                        benchtest_id=benchtest_id,
+                        variables_payload=board_stats_variables,
+                        start_time=start_time,
+                        stop_time=stop_time,
+                    )
+                    print(f'  Wrote statistics YAML: {stats_path}')
 
     #print(f'ASS! {cursor.rowcount}')
 
@@ -1476,8 +1552,9 @@ except Exception as exc:
     print(f'Warning: DBQ plot style config unavailable ({exc}); using built-in defaults.')
     dbq_plot_style = None
 
-    def px_line_labels(_style, ivar):
-        return {"x": "Time", "y": ivar, "channel": "Uplink Channel"}
+    def px_line_labels(_style, ivar, dimensions=None):
+        from vars_config import format_y_axis_label
+        return {"x": "Time", "y": format_y_axis_label(ivar, dimensions), "channel": "Uplink Channel"}
 
     def style_dbq_figure(fig, _style=None, **_kwargs):
         return fig
@@ -1485,10 +1562,32 @@ except Exception as exc:
     def write_html_options(_style=None):
         return {}
 
+try:
+    from dbq_measurement_stats import (
+        apply_plot_legend_stats,
+        build_variable_stats_payload,
+        compute_y_stats,
+        write_board_statistics_yaml,
+    )
+except Exception as exc:
+    print(f'Warning: DBQ measurement stats unavailable ({exc}); legend/stats YAML disabled.')
+
+    def apply_plot_legend_stats(fig, *_args, **_kwargs):
+        return fig
+
+    def build_variable_stats_payload(*_args, **_kwargs):
+        return {}
+
+    def compute_y_stats(_y):
+        return None
+
+    def write_board_statistics_yaml(*_args, **_kwargs):
+        return None
+
 # Setup argparse for regeneration options
 parser = argparse.ArgumentParser(description='DaughterBoard Qualification Program')
-parser.add_argument('-r', '--regenerate', type=str, choices=['benchtest_id_results_log', 'benchtest_id_log', 'plots', 'all'],
-                    help='Force regeneration: benchtest_id_results_log, benchtest_id_log, plots, or all')
+parser.add_argument('-r', '--regenerate', type=str, choices=['benchtest_id_results_log', 'benchtest_id_log', 'plots', 'statistics', 'all'],
+                    help='Force regeneration: benchtest_id_results_log, benchtest_id_log, plots, statistics, or all')
 parser.add_argument('-b', '--benchtest_id', type=str,
                     help='Specific benchtest ID or range (e.g., "1" or "2-5") to regenerate (if not specified, processes all in regeneration mode)')
 parser.add_argument('-d', '--daughterboard_id', type=str,
@@ -1548,6 +1647,7 @@ if DEBUG_CONFIG:
                 #print(f'      type(k) = {type(k)}')
                 print(f'      thresholds[{k}] = {val}')
             print(f'      caption = {get_var_caption(config[i][j], default_name=j)}')
+            print(f'      dimensions = {get_var_dimensions(config[i][j])}')
 
     print("\n")
 

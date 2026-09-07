@@ -30,6 +30,7 @@ DEFAULT_DBQ_PLOT_CONFIG = {
         'axis_title_size': 13,
         'tick_size': 11,
         'legend_size': 11,
+        'hover_size': 12,
     },
     'labels': {
         'x_title': 'Time',
@@ -214,6 +215,7 @@ def normalize_dbq_plot_config(raw=None):
         ('axis_title_size', 13),
         ('tick_size', 11),
         ('legend_size', 11),
+        ('hover_size', 12),
     ):
         font[key] = int(_as_float(font.get(key), default))
 
@@ -297,8 +299,16 @@ def normalize_dbq_plot_config(raw=None):
     include_js = output.get('include_plotlyjs', True)
     if isinstance(include_js, str):
         text = include_js.strip().lower()
-        if text in ('cdn', 'directory', 'true', 'false'):
-            include_js = False if text == 'false' else (True if text == 'true' else text)
+        # same_folder is our alias for Plotly's "directory" mode (one plotly.min.js per folder).
+        if text in ('cdn', 'directory', 'same_folder', 'true', 'false'):
+            if text == 'false':
+                include_js = False
+            elif text == 'true':
+                include_js = True
+            elif text in ('directory', 'same_folder'):
+                include_js = 'same_folder'
+            else:
+                include_js = text
         else:
             include_js = True
     elif not isinstance(include_js, bool):
@@ -421,10 +431,17 @@ def format_dbq_plot_title(
         )
 
 
-def px_line_labels(style, ivar):
-    """Labels dict for plotly.express.line."""
+def px_line_labels(style, ivar, dimensions=None):
+    """Labels dict for plotly.express.line.
+
+    Y-axis is ``measurement (dimensions)`` when units are set; otherwise the
+    caption/variable name (``ivar``).
+    """
+    from vars_config import format_y_axis_label
+
     labels = (style or {}).get('labels') or {}
-    y_title = ivar if labels.get('y_title_is_varname', True) else (labels.get('y_title') or 'Value')
+    measurement = ivar if labels.get('y_title_is_varname', True) else (labels.get('y_title') or 'Value')
+    y_title = format_y_axis_label(measurement, dimensions)
     return {
         'x': labels.get('x_title') or 'Time',
         'y': y_title,
@@ -438,6 +455,7 @@ def style_dbq_figure(
     *,
     serial=None,
     ivar=None,
+    dimensions=None,
     threshold_mode=None,
     test_length=None,
     start_time=None,
@@ -456,7 +474,12 @@ def style_dbq_figure(
     legend = style['legend']
     axes = style['axes']
 
-    y_title = ivar if labels.get('y_title_is_varname', True) else labels.get('y_title')
+    if dimensions is not None and str(dimensions).strip() != '':
+        from vars_config import format_y_axis_label
+        measurement = ivar if labels.get('y_title_is_varname', True) else labels.get('y_title')
+        y_title = format_y_axis_label(measurement, dimensions)
+    else:
+        y_title = ivar if labels.get('y_title_is_varname', True) else labels.get('y_title')
     title_text = format_dbq_plot_title(
         style,
         serial=serial,
@@ -509,6 +532,13 @@ def style_dbq_figure(
             b=fig_cfg['margin_b'],
         ),
         hovermode=fig_cfg['hovermode'],
+        hoverlabel=dict(
+            font=dict(
+                family=font['family'],
+                size=font['hover_size'],
+                color=font['color'],
+            ),
+        ),
         font=dict(
             family=font['family'],
             size=font['size'],
@@ -554,7 +584,10 @@ def style_dbq_figure(
         layout_update['height'] = fig_cfg['height']
     fig.update_layout(**layout_update)
 
-    # Style data channel traces (skip reference names).
+    # Compact one-line hover: "trace: x=… y=…" (no "Uplink Channel:" / long axis titles).
+    hovertemplate = '%{fullData.name}: x=%{x} y=%{y}<extra></extra>'
+
+    # Style data channel traces (skip reference names for line/marker styling).
     ref_names = {
         refs['truth_name'],
         refs['lower_name'],
@@ -562,6 +595,10 @@ def style_dbq_figure(
     }
     for trace in fig.data:
         name = getattr(trace, 'name', None)
+        try:
+            trace.hovertemplate = hovertemplate
+        except Exception:
+            pass
         if name in ref_names:
             continue
         try:
@@ -604,8 +641,15 @@ def style_dbq_figure(
     return fig
 
 
+def resolve_include_plotlyjs(value):
+    """Map config value to a Plotly write_html include_plotlyjs argument."""
+    if value == 'same_folder' or value == 'directory':
+        return 'directory'
+    return value
+
+
 def write_html_options(style=None):
     style = normalize_dbq_plot_config(style)
     return {
-        'include_plotlyjs': style['output']['include_plotlyjs'],
+        'include_plotlyjs': resolve_include_plotlyjs(style['output']['include_plotlyjs']),
     }

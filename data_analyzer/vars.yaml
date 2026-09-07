@@ -3,273 +3,340 @@ Link Status:
     thresholds: [1]
     essential: 0
     caption: uplink gbtrx_rdy
+    dimensions: logic
   crc:
     thresholds: [0]
     essential: 0
     caption: uplink crc
+    dimensions: logic
   ber:
     thresholds: [0]
     essential: 0
     caption: uplink ber
+    dimensions: logic
   latency:
     thresholds: [22, 23]
     essential: 0
     caption: round trip time
+    dimensions: BC (25ns)
 V:
   0v95:
     thresholds: [-10, 10]
     essential: 0
     caption: voltage 0v95
+    dimensions: V
   1v0:
     thresholds: [-10, 10]
     essential: 0
     caption: voltage 1v0
+    dimensions: V
   1v2:
     thresholds: [-10, 10]
     essential: 0
     caption: voltage 1v2
+    dimensions: V
   1v5:
     thresholds: [-10, 10]
     essential: 0
     caption: voltage 1v5
+    dimensions: V
   1v8:
     thresholds: [-10, 10]
     essential: 0
     caption: voltage 1v8
+    dimensions: V
   2v5:
     thresholds: [-10, 10]
     essential: 0
     caption: voltage 2v5
+    dimensions: V
   3v3:
     thresholds: [-10, 10]
     essential: 0
     caption: voltage 3v3
+    dimensions: V
   5v0:
     thresholds: [-10, 10]
     essential: 0
     caption: voltage 5v0
+    dimensions: V
   5v0p:
     thresholds: [-10, 10]
     essential: 0
     caption: voltage 5v0p
+    dimensions: V
   pg1:
     thresholds: [-10, 10]
     essential: 0
     caption: pg1_0v95_1v0
+    dimensions: V
   pg2:
     thresholds: [-10, 10]
     essential: 0
     caption: pg2_1v8_2v5
+    dimensions: V
   pg3:
     thresholds: [-10, 10]
     essential: 0
     caption: pg2_1v2_5v0
+    dimensions: V
   pg4:
     thresholds: [-10, 10]
     essential: 0
     caption: pg4_1v3_3v3
+    dimensions: V
 xADC:
   db_mon_0.95v(vaux0):
     thresholds: [600, 1600]
     essential: 0
     caption: current 0.95v(vaux0)
+    dimensions: mA
   db_mon_1.0v(vaux5):
     thresholds: [340, 490]
     essential: 0
     caption: current 1.0v(vaux5)
+    dimensions: mA
   db_mon_1.2v(vaux9):
     thresholds: [110, 180]
     essential: 0
     caption: current 1.2v(vaux9)
+    dimensions: mA
   db_mon_1.5v(vaux3):
     thresholds: [710, 800]
     essential: 0
     caption: current 1.5v(vaux3)
+    dimensions: mA
   db_mon_1.8v(vaux8):
     thresholds: [560, 720]
     essential: 0
     caption: current 1.8v(vaux8)
+    dimensions: mA
   db_mon_2.5v(vaux1):
     thresholds: [5, 25]
     essential: 0
     caption: current 2.5v(vaux1)
+    dimensions: mA
   db_mon_3.3v(vaux11):
     thresholds: [360, 410]
     essential: 0
     caption: current 3.3v(vaux11)
+    dimensions: mA
   mb_mon_+5v(vaux10):
     thresholds: [500, 700]
     essential: 0
     caption: current +5v(vaux10)
+    dimensions: mA
   mb_mon_-5v(vaux7):
     thresholds: [370, 520]
     essential: 0
     caption: current -5v(vaux7)
+    dimensions: mA
   mb_mon_1.2v(vaux14):
     thresholds: [25, 35]
     essential: 0
     caption: current 1.2v(vaux14)
+    dimensions: mA
   mb_mon_1.8v(vaux12):
     thresholds: [540, 590]
     essential: 0
     caption: current 1.8v(vaux12)
+    dimensions: mA
   mb_mon_2.5v(vaux15):
     thresholds: [1350, 1650]
     essential: 0
     caption: current 2.5v(vaux15)
+    dimensions: mA
   max_temp:
     thresholds: [25, 80]
     essential: 0
-    caption: max_temp
+    caption: ku_max_temp
+    dimensions: °C
   db_temperature:
     thresholds: [25, 70]
     essential: 0
     caption: ku_temperature
+    dimensions: °C
   min_temp:
     thresholds: [25, 70]
     essential: 0
     caption: ku_min_temp
+    dimensions: °C
   max_vram:
     thresholds: [900, 950]
     essential: 0
     caption: ku_max_vram
+    dimensions: mV
   min_vram:
     thresholds: [900, 950]
     essential: 0
     caption: ku_min_vram
+    dimensions: mV
   max_vccint:
     thresholds: [1760, 1800]
     essential: 0
     caption: ku_max_vccint
+    dimensions: mV
   max_vccout:
     thresholds: [900, 950]
     essential: 0
     caption: ku_max_vccout
+    dimensions: mV
   min_vccint:
     thresholds: [1755, 1795]
     essential: 0
     caption: ku_min_vccint
+    dimensions: mV
   min_vccout:
     thresholds: [900, 950]
     essential: 0
     caption: ku_min_vccout
+    dimensions: mV
   pgood_db_0v95:
     thresholds: [1]
     essential: 0
     caption: pgood_db_0v95
+    dimensions: logic
   pgood_db_1v0:
     thresholds: [1]
     essential: 0
     caption: pgood_db_1v0
+    dimensions: logic
   pgood_db_1v2:
     thresholds: [1]
     essential: 0
     caption: pgood_db_1v2
+    dimensions: logic
   pgood_db_1v5:
     thresholds: [1]
     essential: 0
     caption: pgood_db_1v5
+    dimensions: logic
   pgood_db_1v8:
     thresholds: [1]
     essential: 0
     caption: pgood_db_1v8
+    dimensions: logic
   pgood_db_2v5:
     thresholds: [1]
     essential: 0
     caption: pgood_db_2v5
+    dimensions: logic
   pgood_db_3v3:
     thresholds: [1]
     essential: 0
     caption: pgood_db_3v3
+    dimensions: logic
   pgood_mb_5v0:
     thresholds: [1]
     essential: 0
     caption: pgood_mb_5v0
+    dimensions: logic
   pgood_mb_5v0_n:
     thresholds: [0]
     essential: 0
     caption: pgood_mb_5v0_n
+    dimensions: logic
   pgood_mb_1v2:
     thresholds: [1]
     essential: 0
     caption: pgood_mb_1v2
+    dimensions: logic
   pgood_mb_1v8:
     thresholds: [1]
     essential: 0
     caption: pgood_mb_1v8
+    dimensions: logic
   pgood_mb_2v5:
     thresholds: [1]
     essential: 0
     caption: pgood_mb_2v5
+    dimensions: logic
 ADC_Linearity:
   maxdev_hg:
     thresholds: [0.2, 7]
     essential: 0
     caption: adc_lin_maxdev_hg
+    dimensions: BC (25ns)
   maxdev_lg:
     thresholds: [0.2, 7]
     essential: 0
     caption: adc_lin_maxdev_lg
+    dimensions: BC (25ns)
   slope_hg:
     thresholds: [0.95, 1.05]
     essential: 0
     caption: adc_lin_slope_hg
+    dimensions: a.u.
   slope_lg:
     thresholds: [0.95, 1.05]
     essential: 0
     caption: adc_lin_slope_lg
+    dimensions: a.u.
   r2_hg:
     thresholds: [0.5, 1.5]
     essential: 0
     caption: adc_lin_r2_hg
+    dimensions: a.u.
   r2_lg:
     thresholds: [0.5, 1.5]
     essential: 0
     caption: adc_lin_r2_lg
+    dimensions: a.u.
 CIS_Linearity:
   hg_slope:
     thresholds: [0.5, 1.0]
     essential: 0
     caption: cis_lin_hg_slope
+    dimensions: a.u.
   lg_slope:
     thresholds: [0.5, 1.0]
     essential: 0
     caption: cis_lin_lg_slope
+    dimensions: a.u.
   hg_r2:
     thresholds: [0.5, 1.5]
     essential: 0
     caption: cis_lin_hg_r2
+    dimensions: a.u.
   lg_r2:
     thresholds: [0.5, 1.5]
     essential: 0
     caption: cis_lin_lg_r2
+    dimensions: a.u.
   hg_center_mean:
     thresholds: [5, 9]
     essential: 0
     caption: cis_hg_center_mean
+    dimensions: BC (25ns)
   lg_center_mean:
     thresholds: [4, 7]
     essential: 0
     caption: cis_lg_center_mean
+    dimensions: BC (25ns)
 CIS:
   hg_center:
     thresholds: [4.5, 8]
     essential: 0
     caption: cis_hg_center
+    dimensions: BC (25ns)
   lg_center:
     thresholds: [4.5, 8]
     essential: 0
     caption: cislg_center
+    dimensions: BC (25ns)
 Integrator_Linearity:
   maxdev:
     thresholds: [0, 600]
     essential: 0
     caption: integrator_maxdev
+    dimensions: a.u.
   slope:
     thresholds: [15, 17]
     essential: 0
     caption: integrator_slope
+    dimensions: a.u.
   r2:
     thresholds: [0.5, 1.5]
     essential: 0
     caption: integrator_r2
+    dimensions: a.u.

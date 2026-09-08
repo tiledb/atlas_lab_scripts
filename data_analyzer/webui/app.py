@@ -1130,151 +1130,188 @@ def brick_wall_data():
         return jsonify({'error': str(e)}), 500
 
 
+def _build_benchtest_list_payload():
+    """Live build of the Benchtests wall payload (DB + per-board CSV/burn flags)."""
+    try:
+        from dbq_plot_config import format_test_length, test_length_seconds
+    except Exception:
+        def format_test_length(**_kwargs):
+            return 'n/a'
+
+        def test_length_seconds(**_kwargs):
+            return None
+
+    conn = get_db_connection()
+    if not conn:
+        raise RuntimeError('Database connection failed')
+
+    cursor = conn.cursor(dictionary=True)
+    cursor.execute(
+        """
+        SELECT id, test_start, test_stop, test_op, test_pass,
+               db_slot1, db_slot2, db_slot3, db_slot4
+        FROM benchtest
+        ORDER BY id DESC
+        """
+    )
+    benchtest_rows = cursor.fetchall()
+
+    cursor.execute(
+        """
+        SELECT serial_no, db_status, e_test, p_test, burn_in,
+               burn_in_start, burn_in_stop, sfp_lot, a0, a1, b0, b1
+        FROM daughterboard
+        """
+    )
+    db_rows = {str(row['serial_no']): row for row in cursor.fetchall()}
+    cursor.close()
+    conn.close()
+
+    benchtests = []
+    for bt in benchtest_rows:
+        slots = []
+        for md_index, slot_key in enumerate(
+            ('db_slot1', 'db_slot2', 'db_slot3', 'db_slot4'),
+            start=1,
+        ):
+            serial = bt.get(slot_key)
+            md_name = f'MD{md_index}'
+            if not serial:
+                slots.append({
+                    'md': md_name,
+                    'serial_no': None,
+                    'empty': True,
+                    'test_pass': None,
+                    'burned': None,
+                    'burn_in_stop': None,
+                    'missing_sfp': False,
+                    'tag': None,
+                    'batch': None,
+                    'position': None,
+                })
+                continue
+
+            serial_str = str(serial)
+            board = db_rows.get(serial_str) or {}
+            try:
+                decoded = decode_serial(serial)
+            except Exception:
+                decoded = {'tag': None, 'batch': None, 'position': None}
+            _failed, board_pass_fail = get_failed_tests_for_serial(
+                serial_str, bt['id']
+            )
+            if board_pass_fail is not None:
+                try:
+                    test_pass_value = int(board_pass_fail)
+                except (ValueError, TypeError):
+                    test_pass_value = bt.get('test_pass')
+            else:
+                # Per-board CSV missing: fall back only if this is a single-board
+                # result; otherwise leave unknown rather than copy whole-run flag.
+                occupied = sum(
+                    1 for key in ('db_slot1', 'db_slot2', 'db_slot3', 'db_slot4')
+                    if bt.get(key)
+                )
+                test_pass_value = bt.get('test_pass') if occupied == 1 else None
+
+            burned_status = get_burned_status(serial_str, bt['id'])
+            burn_in_stop = (
+                str(board['burn_in_stop']) if board.get('burn_in_stop') else None
+            )
+            missing_sfp = not any([
+                board.get('sfp_lot'),
+                board.get('a0'),
+                board.get('a1'),
+                board.get('b0'),
+                board.get('b1'),
+            ])
+
+            slots.append({
+                'md': md_name,
+                'serial_no': int(serial) if str(serial).isdigit() else serial,
+                'empty': False,
+                'test_pass': test_pass_value,
+                'burned': burned_status,
+                'burn_in': board.get('burn_in'),
+                'burn_in_stop': burn_in_stop,
+                'db_status': board.get('db_status'),
+                'e_test': board.get('e_test'),
+                'p_test': board.get('p_test'),
+                'missing_sfp': missing_sfp,
+                'tag': decoded.get('tag'),
+                'batch': decoded.get('batch'),
+                'position': decoded.get('position'),
+            })
+
+        test_start = str(bt['test_start']) if bt.get('test_start') else None
+        test_stop = str(bt['test_stop']) if bt.get('test_stop') else None
+        benchtests.append({
+            'benchtest_id': bt['id'],
+            'test_start': test_start,
+            'test_stop': test_stop,
+            'test_op': bt.get('test_op'),
+            'test_length': format_test_length(
+                start_time=test_start,
+                stop_time=test_stop,
+            ),
+            'test_length_seconds': test_length_seconds(
+                start_time=test_start,
+                stop_time=test_stop,
+            ),
+            'slots': slots,
+        })
+
+    return {
+        'success': True,
+        'benchtests': benchtests,
+        'count': len(benchtests),
+    }
+
+
 @app.route('/api/benchtest_list')
 def benchtest_list():
-    """Vertical benchtest list: each row has up to 4 MD bricks with pass/burn state."""
+    """Vertical benchtest list: each row has up to 4 MD bricks with pass/burn state.
+
+    Cached like production-history snapshots: return latest cache unless
+    ?recompute=1; rebuild + write cache on miss/recompute; fall back to cache
+    if the live build fails.
+    """
     if not session.get('logged_in'):
         return jsonify({'error': 'Not logged in'}), 401
 
+    from benchtest_wall_cache import load_benchtest_wall_cache, save_benchtest_wall_cache
+
+    force = request.args.get('recompute', '').lower() in ('1', 'true', 'yes')
+
+    if not force:
+        cached = load_benchtest_wall_cache()
+        if cached:
+            payload = dict(cached)
+            payload['cached'] = True
+            payload['newly_cached'] = False
+            payload['count'] = payload.get('count', len(payload.get('benchtests') or []))
+            return jsonify(payload)
+
     try:
-        try:
-            from dbq_plot_config import format_test_length, test_length_seconds
-        except Exception:
-            def format_test_length(**_kwargs):
-                return 'n/a'
-
-            def test_length_seconds(**_kwargs):
-                return None
-
-        conn = get_db_connection()
-        if not conn:
-            return jsonify({'error': 'Database connection failed'}), 500
-
-        cursor = conn.cursor(dictionary=True)
-        cursor.execute(
-            """
-            SELECT id, test_start, test_stop, test_op, test_pass,
-                   db_slot1, db_slot2, db_slot3, db_slot4
-            FROM benchtest
-            ORDER BY id DESC
-            """
-        )
-        benchtest_rows = cursor.fetchall()
-
-        cursor.execute(
-            """
-            SELECT serial_no, db_status, e_test, p_test, burn_in,
-                   burn_in_start, burn_in_stop, sfp_lot, a0, a1, b0, b1
-            FROM daughterboard
-            """
-        )
-        db_rows = {str(row['serial_no']): row for row in cursor.fetchall()}
-        cursor.close()
-        conn.close()
-
-        benchtests = []
-        for bt in benchtest_rows:
-            slots = []
-            for md_index, slot_key in enumerate(
-                ('db_slot1', 'db_slot2', 'db_slot3', 'db_slot4'),
-                start=1,
-            ):
-                serial = bt.get(slot_key)
-                md_name = f'MD{md_index}'
-                if not serial:
-                    slots.append({
-                        'md': md_name,
-                        'serial_no': None,
-                        'empty': True,
-                        'test_pass': None,
-                        'burned': None,
-                        'burn_in_stop': None,
-                        'missing_sfp': False,
-                        'tag': None,
-                        'batch': None,
-                        'position': None,
-                    })
-                    continue
-
-                serial_str = str(serial)
-                board = db_rows.get(serial_str) or {}
-                try:
-                    decoded = decode_serial(serial)
-                except Exception:
-                    decoded = {'tag': None, 'batch': None, 'position': None}
-                _failed, board_pass_fail = get_failed_tests_for_serial(
-                    serial_str, bt['id']
-                )
-                if board_pass_fail is not None:
-                    try:
-                        test_pass_value = int(board_pass_fail)
-                    except (ValueError, TypeError):
-                        test_pass_value = bt.get('test_pass')
-                else:
-                    # Per-board CSV missing: fall back only if this is a single-board
-                    # result; otherwise leave unknown rather than copy whole-run flag.
-                    occupied = sum(
-                        1 for key in ('db_slot1', 'db_slot2', 'db_slot3', 'db_slot4')
-                        if bt.get(key)
-                    )
-                    test_pass_value = bt.get('test_pass') if occupied == 1 else None
-
-                burned_status = get_burned_status(serial_str, bt['id'])
-                burn_in_stop = (
-                    str(board['burn_in_stop']) if board.get('burn_in_stop') else None
-                )
-                missing_sfp = not any([
-                    board.get('sfp_lot'),
-                    board.get('a0'),
-                    board.get('a1'),
-                    board.get('b0'),
-                    board.get('b1'),
-                ])
-
-                slots.append({
-                    'md': md_name,
-                    'serial_no': int(serial) if str(serial).isdigit() else serial,
-                    'empty': False,
-                    'test_pass': test_pass_value,
-                    'burned': burned_status,
-                    'burn_in': board.get('burn_in'),
-                    'burn_in_stop': burn_in_stop,
-                    'db_status': board.get('db_status'),
-                    'e_test': board.get('e_test'),
-                    'p_test': board.get('p_test'),
-                    'missing_sfp': missing_sfp,
-                    'tag': decoded.get('tag'),
-                    'batch': decoded.get('batch'),
-                    'position': decoded.get('position'),
-                })
-
-            test_start = str(bt['test_start']) if bt.get('test_start') else None
-            test_stop = str(bt['test_stop']) if bt.get('test_stop') else None
-            benchtests.append({
-                'benchtest_id': bt['id'],
-                'test_start': test_start,
-                'test_stop': test_stop,
-                'test_op': bt.get('test_op'),
-                'test_length': format_test_length(
-                    start_time=test_start,
-                    stop_time=test_stop,
-                ),
-                'test_length_seconds': test_length_seconds(
-                    start_time=test_start,
-                    stop_time=test_stop,
-                ),
-                'slots': slots,
-            })
-
-        return jsonify({
-            'success': True,
-            'benchtests': benchtests,
-            'count': len(benchtests),
-        })
+        payload = _build_benchtest_list_payload()
+        cache_info = save_benchtest_wall_cache(payload)
+        payload['cached'] = False
+        payload['newly_cached'] = True
+        payload['cached_at'] = cache_info.get('cached_at')
+        return jsonify(payload)
     except Exception as e:
         print(f'Error fetching benchtest list: {e}')
         import traceback
         traceback.print_exc()
+        cached = load_benchtest_wall_cache()
+        if cached:
+            payload = dict(cached)
+            payload['cached'] = True
+            payload['newly_cached'] = False
+            payload['cache_fallback'] = True
+            payload['cache_fallback_reason'] = str(e)
+            payload['count'] = payload.get('count', len(payload.get('benchtests') or []))
+            return jsonify(payload)
         return jsonify({'error': str(e)}), 500
 
 

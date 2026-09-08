@@ -15,7 +15,10 @@ import argparse
 import shutil
 import csv
 import gc
-
+import os
+import signal
+import sys
+import time
 # Mathematics Packages
 import numpy as np
 import pandas as pd
@@ -110,13 +113,273 @@ def backup_log_file(filepath):
     return False
 
 
+TIMING_CSV_FIELDS = [
+    'md',
+    'serial_no',
+    'operation',
+    'detail',
+    'duration_seconds',
+]
+
+TIMING_LOG_DIRNAME = 'timing logs'
+
+
+def timing_log_dir():
+    """CSV timing logs live next to this script: <script_dir>/timing logs/."""
+    return Path(__file__).resolve().parent / TIMING_LOG_DIRNAME
+
+
+def timing_log_path(timestamp_str, benchtest_id=None):
+    """Filename carries timestamp + benchtest_id (no run_id column/name)."""
+    bt = '' if benchtest_id is None else str(benchtest_id).strip()
+    if not bt:
+        name = f'Timing_{timestamp_str}_session.csv'
+    else:
+        name = f'Timing_{timestamp_str}_BT{bt}.csv'
+    return timing_log_dir() / name
+
+
+def open_timing_log(path):
+    """Open a timing CSV for append; write header if the file is new/empty."""
+    path = Path(path)
+    path.parent.mkdir(parents=True, exist_ok=True)
+    write_header = (not path.exists()) or path.stat().st_size == 0
+    fh = open(path, 'a', newline='', buffering=1)
+    writer = csv.DictWriter(fh, fieldnames=TIMING_CSV_FIELDS)
+    if write_header:
+        writer.writeheader()
+        fh.flush()
+        try:
+            os.fsync(fh.fileno())
+        except OSError:
+            pass
+    return fh, writer
+
+
+def flush_timing_log(fh):
+    if fh is None:
+        return
+    try:
+        fh.flush()
+        os.fsync(fh.fileno())
+    except OSError:
+        pass
+
+
+class TimingLogSession:
+    """One CSV per benchtest under timing logs/; session rows use *_session.csv."""
+
+    def __init__(self, timestamp_str):
+        self.timestamp_str = timestamp_str
+        self._files = {}  # key '' or str(btid) -> (fh, writer, path)
+        self._closed = False
+
+    def writer_for(self, benchtest_id=''):
+        if self._closed:
+            return None, None
+        key = '' if benchtest_id is None else str(benchtest_id).strip()
+        if key not in self._files:
+            path = timing_log_path(self.timestamp_str, key or None)
+            fh, writer = open_timing_log(path)
+            self._files[key] = (fh, writer, path)
+            print(f'Timing: writing CSV log to {path}')
+        fh, writer, _path = self._files[key]
+        return writer, fh
+
+    def paths(self):
+        return [path for (_fh, _writer, path) in self._files.values()]
+
+    def close(self):
+        if self._closed:
+            return
+        for fh, _writer, _path in self._files.values():
+            close_timing_log(fh)
+        self._files.clear()
+        self._closed = True
+
+
+def write_timing_row(session, operation, duration_seconds,
+                     benchtest_id='', md='', serial_no='', detail='',
+                     progress=None):
+    """Append one CSV timing row and force it to disk immediately."""
+    if session is None:
+        return
+    writer, fh = session.writer_for(benchtest_id)
+    if writer is None:
+        return
+    writer.writerow({
+        'md': '' if md is None else md,
+        'serial_no': '' if serial_no is None else serial_no,
+        'operation': operation,
+        'detail': '' if detail is None else detail,
+        'duration_seconds': f'{float(duration_seconds):.6f}',
+    })
+    flush_timing_log(fh)
+    if progress is not None:
+        progress['last_operation'] = operation
+        progress['last_detail'] = detail
+        progress['last_benchtest_id'] = benchtest_id
+        progress['last_md'] = md
+        progress['last_serial_no'] = serial_no
+        progress['active_operation'] = ''
+        progress['active_detail'] = ''
+        progress['active_t0'] = None
+
+
+def timing_mark(progress, operation, benchtest_id='', md='', serial_no='', detail=''):
+    """Record the operation about to start (used if Ctrl+C interrupts mid-step)."""
+    if progress is None:
+        return
+    progress['active_operation'] = operation
+    progress['active_detail'] = detail
+    progress['active_benchtest_id'] = benchtest_id
+    progress['active_md'] = md
+    progress['active_serial_no'] = serial_no
+    progress['active_t0'] = time.perf_counter()
+
+
+def write_timing_break(session, progress=None, reason='KeyboardInterrupt'):
+    """Append a break row for an interrupted run and force the log to disk."""
+    if session is None:
+        return
+    benchtest_id = ''
+    md = ''
+    serial_no = ''
+    detail = reason
+    duration = 0.0
+    if progress:
+        if progress.get('active_operation'):
+            benchtest_id = progress.get('active_benchtest_id', '')
+            md = progress.get('active_md', '')
+            serial_no = progress.get('active_serial_no', '')
+            active = progress['active_operation']
+            active_detail = progress.get('active_detail') or ''
+            detail = f'{reason} during {active}'
+            if active_detail:
+                detail += f' ({active_detail})'
+            if progress.get('active_t0') is not None:
+                duration = max(0.0, time.perf_counter() - progress['active_t0'])
+        elif progress.get('last_operation'):
+            benchtest_id = progress.get('last_benchtest_id', '')
+            md = progress.get('last_md', '')
+            serial_no = progress.get('last_serial_no', '')
+            last = progress['last_operation']
+            last_detail = progress.get('last_detail') or ''
+            detail = f'{reason} after {last}'
+            if last_detail:
+                detail += f' ({last_detail})'
+    write_timing_row(
+        session, 'break', duration,
+        benchtest_id=benchtest_id, md=md, serial_no=serial_no, detail=detail,
+        progress=progress,
+    )
+
+
+def close_timing_log(fh):
+    if fh is None:
+        return
+    flush_timing_log(fh)
+    try:
+        fh.close()
+    except Exception:
+        pass
+
 
 # Main
-def DBQ_Mk6(regenerate_mode=None, specific_benchtest_ids=None, specific_daughterboard_id=None):
+def DBQ_Mk6(regenerate_mode=None, specific_benchtest_ids=None, specific_daughterboard_id=None,
+            enable_timing=False):
 
     timenow = datetime.now()
     print(f'Current Date/Time: {timenow}')
-    
+    timing_stamp = timenow.strftime('%Y%m%dT%H%M%S')
+    timing_session = None
+    timing_progress = {
+        'active_operation': '',
+        'active_detail': '',
+        'active_benchtest_id': '',
+        'active_md': '',
+        'active_serial_no': '',
+        'active_t0': None,
+        'last_operation': '',
+        'last_detail': '',
+        'last_benchtest_id': '',
+        'last_md': '',
+        'last_serial_no': '',
+    }
+    driveDIR = "/var/www/html/drive/benchtests/"
+    _prev_sigint = None
+    _timing_closed = False
+
+    def _close_timing_once():
+        nonlocal timing_session, _timing_closed
+        if _timing_closed:
+            return
+        if timing_session is not None:
+            timing_session.close()
+        timing_session = None
+        _timing_closed = True
+
+    def _sigint_handler(signum, frame):
+        print('\nTiming: Ctrl+C received — writing break row to timing log')
+        write_timing_break(
+            timing_session,
+            progress=timing_progress, reason='KeyboardInterrupt',
+        )
+        _close_timing_once()
+        raise KeyboardInterrupt
+
+    if enable_timing:
+        timing_session = TimingLogSession(timing_stamp)
+        print(
+            f'Timing: CSV logs under {timing_log_dir()} '
+            f'(filename stamp={timing_stamp})'
+        )
+        write_timing_row(
+            timing_session,
+            'run_start', 0.0, detail='begin', progress=timing_progress,
+            )
+        try:
+            _prev_sigint = signal.signal(signal.SIGINT, _sigint_handler)
+        except Exception:
+            _prev_sigint = None
+
+    try:
+        _dbq_mk6_run(
+            regenerate_mode=regenerate_mode,
+            specific_benchtest_ids=specific_benchtest_ids,
+            specific_daughterboard_id=specific_daughterboard_id,
+            enable_timing=enable_timing,
+            timing_session=timing_session,
+            timing_progress=timing_progress,
+            driveDIR=driveDIR,
+        )
+    except KeyboardInterrupt:
+        print('\nTiming: interrupted by Ctrl+C — ensuring break row is in timing log')
+        write_timing_break(
+            timing_session,
+            progress=timing_progress, reason='KeyboardInterrupt',
+        )
+        raise
+    finally:
+        if _prev_sigint is not None:
+            try:
+                signal.signal(signal.SIGINT, _prev_sigint)
+            except Exception:
+                pass
+        if enable_timing and not _timing_closed:
+            paths = timing_session.paths() if timing_session else []
+            _close_timing_once()
+            if paths:
+                print('Timing: closed ' + ', '.join(str(p) for p in paths))
+            else:
+                print(f'Timing: closed (stamp={timing_stamp})')
+
+
+def _dbq_mk6_run(regenerate_mode=None, specific_benchtest_ids=None, specific_daughterboard_id=None,
+                 enable_timing=False, timing_session=None,
+                 timing_progress=None, driveDIR="/var/www/html/drive/benchtests/"):
+    mariadb_read_seconds = None
+
     ### ####### ###
     ### MariaDB ###
     ### ####### ###
@@ -124,6 +387,8 @@ def DBQ_Mk6(regenerate_mode=None, specific_benchtest_ids=None, specific_daughter
     try:
         ### Connect to MariaDB ###
         print("\n==================== MariaDB Tree ====================")
+        timing_mark(timing_progress, 'mariadb_read', detail='benchtest_table')
+        _t_mariadb = time.perf_counter()
         print(f"🔗 Connecting to MariaDB at {secrets['tiledb-mariadb']['host']}...")
         connection = mysql.connector.connect(
             host=secrets["tiledb-mariadb"]["host"],
@@ -270,8 +535,19 @@ def DBQ_Mk6(regenerate_mode=None, specific_benchtest_ids=None, specific_daughter
         #for key, value in benchtest_proc.items():
         #    print(f"{key} : {value}")
 
+        mariadb_read_seconds = time.perf_counter() - _t_mariadb
+        if enable_timing:
+            print(f'Timing: MariaDB read took {mariadb_read_seconds:.3f} s')
+            write_timing_row(
+                timing_session,
+                'mariadb_read', mariadb_read_seconds,
+                detail='benchtest_table', progress=timing_progress,
+                )
+
     except Error as e:
         print("\u274C MariaDB Connection Failed")
+        if enable_timing and '_t_mariadb' in locals():
+            mariadb_read_seconds = time.perf_counter() - _t_mariadb
 
 
 
@@ -470,6 +746,7 @@ def DBQ_Mk6(regenerate_mode=None, specific_benchtest_ids=None, specific_daughter
             with open(bt_log_path, "a") as logfile:
                 logfile.write(f'  benchtest ID: {benchtest_id}\n')
 
+            _t_benchtest = time.perf_counter()
             for MDi in range(0, 4):
                 if benchtest_proc[benchtest_id]["benchtest_serialnos"][MDi] is None:
                     continue
@@ -487,11 +764,18 @@ def DBQ_Mk6(regenerate_mode=None, specific_benchtest_ids=None, specific_daughter
 
                 # Hold series data for this MD only
                 dataDict[benchtest_id] = {}
+                _t_md = time.perf_counter()
 
                 # Table Loop (query Influx for this MD only)
+                _t_influx = time.perf_counter()
                 for table in config.keys():
                     print("----------------------------")
                     print(f'Table: {table} (MD{MDi+1} only)')
+                    timing_mark(
+                        timing_progress, 'influx_read',
+                        benchtest_id=benchtest_id, md=md_key, serial_no=board_serial, detail=str(table),
+                    )
+                    _t_influx_table = time.perf_counter()
 
                     # InfluxDB Query Construction
                     # Handling Variable based queries
@@ -625,7 +909,26 @@ def DBQ_Mk6(regenerate_mode=None, specific_benchtest_ids=None, specific_daughter
 
                         del query_points
 
+                    write_timing_row(
+                        timing_session,
+                        'influx_read', time.perf_counter() - _t_influx_table,
+                        benchtest_id=benchtest_id, md=md_key, serial_no=board_serial,
+                        detail=str(table), progress=timing_progress,
+                        )
+
+                write_timing_row(
+                    timing_session,
+                    'influx_read', time.perf_counter() - _t_influx,
+                    benchtest_id=benchtest_id, md=md_key, serial_no=board_serial,
+                    detail='all_tables', progress=timing_progress,
+                    )
+
                 # --- Statistical tests for this MD only ---
+                timing_mark(
+                    timing_progress, 'analysis',
+                    benchtest_id=benchtest_id, md=md_key, serial_no=board_serial, detail='statistical_tests',
+                )
+                _t_analysis = time.perf_counter()
                 with open(bt_log_path, "a") as logfile:
                     print(f'\n    DaughterBoard Serial Number: {board_serial}')
                     logfile.write(f'\n    DaughterBoard Serial Number: {board_serial}\n')
@@ -642,6 +945,12 @@ def DBQ_Mk6(regenerate_mode=None, specific_benchtest_ids=None, specific_daughter
                         logfile.write(f'      Table: {table}\n')
 
                         for ivar in config[table].keys():
+                            timing_mark(
+                                timing_progress, 'analysis_test',
+                                benchtest_id=benchtest_id, md=md_key, serial_no=board_serial,
+                                detail=f'{table}/{ivar}',
+                            )
+                            _t_analysis_test = time.perf_counter()
                             print(f'        Variable:  {ivar}')
                             print(f'        config[{table}][{ivar}] = {config[table][ivar]}')
                             logfile.write(f'        Variable:  {ivar}\n')
@@ -732,9 +1041,29 @@ def DBQ_Mk6(regenerate_mode=None, specific_benchtest_ids=None, specific_daughter
                                 print(f'        Warning: Data Not Found for Variable {ivar} in Table {table}! Tentatively Ignoring Check and "Passing" Board, Please Consult Log.')
                                 statDict[benchtest_id][board_serial][ivar]["fPass"] = -1.0
 
+                            write_timing_row(
+                                timing_session,
+                                'analysis_test', time.perf_counter() - _t_analysis_test,
+                                benchtest_id=benchtest_id, md=md_key, serial_no=board_serial,
+                                detail=f'{table}/{ivar}', progress=timing_progress,
+                                )
+
+                write_timing_row(
+                    timing_session,
+                    'analysis', time.perf_counter() - _t_analysis,
+                    benchtest_id=benchtest_id, md=md_key, serial_no=board_serial,
+                    detail='statistical_tests', progress=timing_progress,
+                    )
+
                 # --- DataFrames + plots / statistics YAML for this MD only (if needed) ---
                 # Isolate failures so remaining MDs still get query/stats into statDict.
                 need_plots_or_stats = plot_regenerate.get(benchtest_id) or stats_regenerate.get(benchtest_id)
+                timing_mark(
+                    timing_progress, 'plots_and_ops',
+                    benchtest_id=benchtest_id, md=md_key, serial_no=board_serial,
+                    detail='dataframes_plots_extra' if need_plots_or_stats else 'skipped',
+                )
+                _t_ops = time.perf_counter()
                 if need_plots_or_stats:
                     try:
                         print(f'\nDataFrames / Plotly for serial={board_serial}')
@@ -747,6 +1076,12 @@ def DBQ_Mk6(regenerate_mode=None, specific_benchtest_ids=None, specific_daughter
                             for table in config.keys():
                                 print(f'      Table: {table}')
                                 for ivar in config[table].keys():
+                                    timing_mark(
+                                        timing_progress, 'dataframe_test',
+                                        benchtest_id=benchtest_id, md=md_key, serial_no=board_serial,
+                                        detail=f'{table}/{ivar}',
+                                    )
+                                    _t_df_test = time.perf_counter()
                                     print(f'        Variable: {ivar}')
                                     dfDict[benchtest_id][board_serial][ivar] = {}
                                     dfCombo = []
@@ -774,6 +1109,12 @@ def DBQ_Mk6(regenerate_mode=None, specific_benchtest_ids=None, specific_daughter
                                     full_df = pd.concat(dfCombo) if dfCombo else pd.DataFrame(columns=['channel', 'x', 'y'])
                                     dfDict[benchtest_id][board_serial][ivar] = {"Full": full_df}
                                     del dfCombo, full_df
+                                    write_timing_row(
+                                        timing_session,
+                                        'dataframe_test', time.perf_counter() - _t_df_test,
+                                        benchtest_id=benchtest_id, md=md_key, serial_no=board_serial,
+                                        detail=f'{table}/{ivar}', progress=timing_progress,
+                                        )
 
                         # plotly Plotting / statistics YAML for this MD
                         print(f'\n  Plotly: serial={board_serial}')
@@ -786,6 +1127,12 @@ def DBQ_Mk6(regenerate_mode=None, specific_benchtest_ids=None, specific_daughter
                         for table in config.keys():
                             print(f'      Table: {table}')
                             for ivar in config[table].keys():
+                                timing_mark(
+                                    timing_progress, 'plot_test',
+                                    benchtest_id=benchtest_id, md=md_key, serial_no=board_serial,
+                                    detail=f'{table}/{ivar}',
+                                )
+                                _t_plot_test = time.perf_counter()
                                 print(f'        Variable: {ivar}')
                                 md_channels = dataDict[benchtest_id].get(ivar, {}).get(md_key, {})
                                 print(f'        nChannels: {len(md_channels)}')
@@ -825,6 +1172,12 @@ def DBQ_Mk6(regenerate_mode=None, specific_benchtest_ids=None, specific_daughter
                                         )
 
                                     if not plot_regenerate.get(benchtest_id):
+                                        write_timing_row(
+                                            timing_session,
+                                            'plot_test', time.perf_counter() - _t_plot_test,
+                                            benchtest_id=benchtest_id, md=md_key, serial_no=board_serial,
+                                            detail=f'{table}/{ivar}', progress=timing_progress,
+                                            )
                                         continue
 
                                     plotDict[benchtest_id][board_serial][ivar] = plotlyEX.line(
@@ -895,6 +1248,13 @@ def DBQ_Mk6(regenerate_mode=None, specific_benchtest_ids=None, specific_daughter
                                     testtime = datetime.now()
                                     print(f'          Post Final Save-plotDict Date/Time: {testtime.strftime("%y/%m/%d - %H:%M:%S")}')
 
+                                write_timing_row(
+                                    timing_session,
+                                    'plot_test', time.perf_counter() - _t_plot_test,
+                                    benchtest_id=benchtest_id, md=md_key, serial_no=board_serial,
+                                    detail=f'{table}/{ivar}', progress=timing_progress,
+                                    )
+
                         if stats_regenerate.get(benchtest_id) and board_stats_variables:
                             stats_path = (
                                 driveDIR + btDIRName + "/" + dbDIRName
@@ -919,21 +1279,48 @@ def DBQ_Mk6(regenerate_mode=None, specific_benchtest_ids=None, specific_daughter
                                 'Integrator_Linearity_Samples',
                                 'CIS_Linearity_Samples']
 
-                                generate_extra_plots_for_board(
-                                    client,
-                                    benchtest_id=benchtest_id,
-                                    board_serial=board_serial,
-                                    md_index=MDi,
-                                    start_time=start_time,
-                                    stop_time=stop_time,
-                                    out_dir=str(dbDIR_fullpath),
-                                    dbq_plot_style=dbq_plot_style,
-                                    plots=extra_plots,
-                                )
+                                for extra_plot in extra_plots:
+                                    timing_mark(
+                                        timing_progress, 'extra_plot',
+                                        benchtest_id=benchtest_id, md=md_key, serial_no=board_serial,
+                                        detail=extra_plot,
+                                    )
+                                    _t_extra = time.perf_counter()
+                                    generate_extra_plots_for_board(
+                                        client,
+                                        benchtest_id=benchtest_id,
+                                        board_serial=board_serial,
+                                        md_index=MDi,
+                                        start_time=start_time,
+                                        stop_time=stop_time,
+                                        out_dir=str(dbDIR_fullpath),
+                                        dbq_plot_style=dbq_plot_style,
+                                        plots=[extra_plot],
+                                    )
+                                    write_timing_row(
+                                        timing_session,
+                                        'extra_plot', time.perf_counter() - _t_extra,
+                                        benchtest_id=benchtest_id, md=md_key, serial_no=board_serial,
+                                        detail=extra_plot, progress=timing_progress,
+                                        )
                             except Exception as extra_exc:
                                 print(f'  Warning: piro_extra_test_plots failed: {extra_exc}')
                     except Exception as plot_exc:
                         print(f'  Warning: DF/plot/stats-YAML pipeline failed for serial={board_serial}: {plot_exc}')
+
+                write_timing_row(
+                    timing_session,
+                    'plots_and_ops', time.perf_counter() - _t_ops,
+                    benchtest_id=benchtest_id, md=md_key, serial_no=board_serial,
+                    detail='dataframes_plots_extra' if need_plots_or_stats else 'skipped',
+                    progress=timing_progress,
+                    )
+                write_timing_row(
+                    timing_session,
+                    'md_total', time.perf_counter() - _t_md,
+                    benchtest_id=benchtest_id, md=md_key, serial_no=board_serial,
+                    progress=timing_progress,
+                    )
 
                 # Free per-board / per-MD series data before next MD
                 if benchtest_id in dataDict:
@@ -946,6 +1333,12 @@ def DBQ_Mk6(regenerate_mode=None, specific_benchtest_ids=None, specific_daughter
                 print(
                     f'  Freed in-memory data for serial={board_serial} '
                     f'{md_key} (benchtest {benchtest_id})'
+                )
+
+            write_timing_row(
+                timing_session,
+                'benchtest_total', time.perf_counter() - _t_benchtest,
+                benchtest_id=benchtest_id, progress=timing_progress,
                 )
 
             # Free remaining per-benchtest containers after all MDs.
@@ -989,6 +1382,11 @@ def DBQ_Mk6(regenerate_mode=None, specific_benchtest_ids=None, specific_daughter
 
     for btid, dbDict in statDict.items():
         print(f'\nFor benchtest with id: {btid}')
+        timing_mark(
+            timing_progress, 'results_output',
+            benchtest_id=btid, detail='logs_csv_mariadb_updates',
+        )
+        _t_results = time.perf_counter()
 
         # Reopen output directory
         btDIRName = "benchtest_id_" + str(btid)
@@ -1391,6 +1789,12 @@ def DBQ_Mk6(regenerate_mode=None, specific_benchtest_ids=None, specific_daughter
                 csvfile.write(",".join(row) + "\n")
             csvfile.close()
 
+        write_timing_row(
+            timing_session,
+            'results_output', time.perf_counter() - _t_results,
+            benchtest_id=btid, detail='logs_csv_mariadb_updates', progress=timing_progress,
+            )
+
     print(f'statDict = {statDict}')
 
 ### ######### ###
@@ -1452,6 +1856,9 @@ parser.add_argument('-b', '--benchtest_id', type=str,
                     help='Specific benchtest ID or range (e.g., "1" or "2-5") to regenerate (if not specified, processes all in regeneration mode)')
 parser.add_argument('-d', '--daughterboard_id', type=str,
                     help='Specific daughterboard ID to analyze (if not specified, processes all daughterboards in the benchtest)')
+parser.add_argument('--timing', action='store_true',
+                    help='Write per-step CSV timing logs under "<script>/timing logs/" '
+                         '(filename Timing_<timestamp>_BT<id>.csv)')
 args = parser.parse_args()
 
 # Parse benchtest_id parameter
@@ -1522,4 +1929,13 @@ if DEBUG_SECRETS:
 
 
 # Execute main()
-DBQ_Mk6(regenerate_mode=args.regenerate, specific_benchtest_ids=specific_benchtest_ids, specific_daughterboard_id=specific_daughterboard_id)
+try:
+    DBQ_Mk6(
+        regenerate_mode=args.regenerate,
+        specific_benchtest_ids=specific_benchtest_ids,
+        specific_daughterboard_id=specific_daughterboard_id,
+        enable_timing=bool(args.timing),
+    )
+except KeyboardInterrupt:
+    print('Interrupted (Ctrl+C). Timing log has been updated with a break row if --timing was set.')
+    sys.exit(130)

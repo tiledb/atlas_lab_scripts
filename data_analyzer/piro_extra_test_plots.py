@@ -6,6 +6,7 @@ passes labels/timeframe/board identity; this module queries Influx itself.
 
 from __future__ import annotations
 
+import math
 from collections import defaultdict
 from pathlib import Path
 
@@ -29,10 +30,10 @@ CIS_SAMPLES_READOUT_ERROR_VALUE = 4095
 
 # Max most-recent timestamp traces / eye diagrams kept per plot family.
 # Use 0 to keep all traces / diagrams (no limit).
-DEFAULT_MAX_TRACES_ADC_LINEARITY_SAMPLES = 500
-DEFAULT_MAX_TRACES_CIS_LINEARITY_SAMPLES = 500
-DEFAULT_MAX_TRACES_INTEGRATOR_LINEARITY_SAMPLES = 500
-DEFAULT_MAX_TRACES_CIS_SAMPLES = 500
+DEFAULT_MAX_TRACES_ADC_LINEARITY_SAMPLES = 100
+DEFAULT_MAX_TRACES_CIS_LINEARITY_SAMPLES = 100
+DEFAULT_MAX_TRACES_INTEGRATOR_LINEARITY_SAMPLES = 100
+DEFAULT_MAX_TRACES_CIS_SAMPLES = 100
 DEFAULT_MAX_EYES = 10  # Link_Eye_Diagram_Samples; 0 = all
 
 DEFAULT_MAX_TRACES_BY_TEST = {
@@ -41,6 +42,12 @@ DEFAULT_MAX_TRACES_BY_TEST = {
     'Integrator_Linearity_Samples': DEFAULT_MAX_TRACES_INTEGRATOR_LINEARITY_SAMPLES,
     'CIS_Samples': DEFAULT_MAX_TRACES_CIS_SAMPLES,
 }
+
+# Influx row-limit slack vs theoretical points needed (max_traces * series * steps).
+# Extra headroom covers incomplete stamps / CIS all-4095 drops / channel time skew.
+INFLUX_LIMIT_SLACK_LINEARITY = 2.0
+INFLUX_LIMIT_SLACK_CIS_SAMPLES = 3.0  # higher: many stamps may be dropped as 4095
+INFLUX_LIMIT_SLACK_EYE = 1.25
 
 # Link eye diagram geometry / uplink tags.
 EYE_H_MAX = 131  # inclusive
@@ -165,8 +172,60 @@ def _format_time_display(iso_z):
     return text.replace('T', ' ')
 
 
-def linearity_samples_query(measurement, md_number, start_time, stop_time, extra_filters=()):
-    """InfluxQL for all samples of one measurement/MD in the time window."""
+def _linearity_influx_point_limit(spec, max_traces):
+    """Estimate Influx LIMIT for the newest stamps needed by max_traces.
+
+    One (channel, gain) stamp has up to len(indices) points. The single MD
+    query returns all channels/gains interleaved, so multiply by those series.
+    Returns None when max_traces is unlimited (None / <=0) — full window.
+    """
+    if max_traces is None:
+        return None
+    try:
+        mt = int(max_traces)
+    except (TypeError, ValueError):
+        return None
+    if mt <= 0:
+        return None
+    n_ch = len(CHANNEL_INDEXES)
+    n_gain = len(GAINS) if spec.get('has_gain', True) else 1
+    n_idx = len(spec.get('indices') or spec.get('steps') or ()) or 1
+    measurement = spec.get('measurement') or ''
+    slack = (
+        INFLUX_LIMIT_SLACK_CIS_SAMPLES
+        if measurement == 'CIS_Samples'
+        else INFLUX_LIMIT_SLACK_LINEARITY
+    )
+    return max(1, int(math.ceil(mt * n_ch * n_gain * n_idx * float(slack))))
+
+
+def _eye_influx_point_limit(max_eyes):
+    """Estimate Influx LIMIT for the newest eye diagrams needed by max_eyes."""
+    if max_eyes is None:
+        return None
+    try:
+        me = int(max_eyes)
+    except (TypeError, ValueError):
+        return None
+    if me <= 0:
+        return None
+    pts_per_eye = (EYE_H_MAX + 1) * (EYE_V_MAX + 1)
+    return max(1, int(math.ceil(me * pts_per_eye * float(INFLUX_LIMIT_SLACK_EYE))))
+
+
+def linearity_samples_query(
+    measurement,
+    md_number,
+    start_time,
+    stop_time,
+    extra_filters=(),
+    limit=None,
+):
+    """InfluxQL for samples of one measurement/MD in the time window.
+
+    When limit is set (>0), append ORDER BY time DESC LIMIT so Influx only
+    returns the newest rows needed for max_traces (not the full MD range).
+    """
     channel_clause = ' OR '.join(
         f'"channel"=\'{channel_tag(md_number, ch)}\'' for ch in CHANNEL_INDEXES
     )
@@ -178,9 +237,16 @@ def linearity_samples_query(measurement, md_number, start_time, stop_time, extra
     for tag_key, tag_value in extra_filters or ():
         clauses.append(f'"{tag_key}"=\'{tag_value}\'')
     # SELECT * so tag values (channel, gain, step/sample, …) are returned.
-    return (
+    query = (
         f'SELECT * FROM "{measurement}" WHERE ' + ' AND '.join(clauses)
     )
+    try:
+        lim = int(limit) if limit is not None else 0
+    except (TypeError, ValueError):
+        lim = 0
+    if lim > 0:
+        query += f' ORDER BY time DESC LIMIT {lim}'
+    return query
 
 
 def _prune_oldest_stamps(stamp_dict, max_keep):
@@ -615,14 +681,22 @@ def write_linearity_samples_plots(
     out_path = Path(out_dir)
     out_path.mkdir(parents=True, exist_ok=True)
 
+    point_limit = _linearity_influx_point_limit(spec, max_traces)
     query = linearity_samples_query(
         measurement,
         md_number,
         start_time,
         stop_time,
         extra_filters=spec.get('extra_filters') or (),
+        limit=point_limit,
     )
-    print(f'  [piro_extra] {measurement} query MD{md_number}: {query}')
+    if point_limit:
+        print(
+            f'  [piro_extra] {measurement} query MD{md_number} '
+            f'(LIMIT {point_limit} for max_traces={max_traces}): {query}'
+        )
+    else:
+        print(f'  [piro_extra] {measurement} query MD{md_number}: {query}')
     drop_cis_4095 = (
         measurement == 'CIS_Samples' and CIS_SAMPLES_DROP_ALL_4095
     )
@@ -810,13 +884,20 @@ def _uplink_file_token(uplink):
     return text.replace(' ', '_')
 
 
-def link_eye_diagram_query(md_number, uplink, start_time, stop_time):
+def link_eye_diagram_query(md_number, uplink, start_time, stop_time, limit=None):
     md_tag = _md_tag_key(md_number)
-    return (
+    query = (
         f'SELECT * FROM "{MEASUREMENT_LINK_EYE}" '
         f'WHERE time >= \'{start_time}\' AND time <= \'{stop_time}\' '
         f'AND "{md_tag}"=\'{uplink}\''
     )
+    try:
+        lim = int(limit) if limit is not None else 0
+    except (TypeError, ValueError):
+        lim = 0
+    if lim > 0:
+        query += f' ORDER BY time DESC LIMIT {lim}'
+    return query
 
 
 def _group_eye_diagrams(points, *, md_number, max_eyes=None):
@@ -1271,9 +1352,20 @@ def write_link_eye_diagram_plots(
     except Exception:
         html_opts = {}
 
+    eye_limit = _eye_influx_point_limit(max_eyes)
     for uplink in EYE_UPLINKS:
-        query = link_eye_diagram_query(md_number, uplink, start_time, stop_time)
-        print(f'  [piro_extra] {MEASUREMENT_LINK_EYE} query MD{md_number} {uplink}')
+        query = link_eye_diagram_query(
+            md_number, uplink, start_time, stop_time, limit=eye_limit,
+        )
+        if eye_limit:
+            print(
+                f'  [piro_extra] {MEASUREMENT_LINK_EYE} query MD{md_number} '
+                f'{uplink} (LIMIT {eye_limit} for max_eyes={max_eyes})'
+            )
+        else:
+            print(
+                f'  [piro_extra] {MEASUREMENT_LINK_EYE} query MD{md_number} {uplink}'
+            )
         try:
             result = client.query(query)
             diagrams, n_available = _group_eye_diagrams(

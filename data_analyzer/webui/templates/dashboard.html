@@ -1453,7 +1453,7 @@
             margin-bottom: 16px;
             display: flex;
             flex-wrap: wrap;
-            align-items: baseline;
+            align-items: center;
             gap: 10px 14px;
         }
 
@@ -1467,6 +1467,14 @@
             color: #666;
             font-size: 14px;
             margin: 0;
+            flex: 1 1 auto;
+        }
+
+        .benchtests-header-controls {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-left: auto;
         }
 
         .benchtests-legend {
@@ -3742,6 +3750,9 @@
                 <div class="benchtests-header">
                     <h3>Benchtests</h3>
                     <span id="benchtests-subtitle" class="benchtests-count">Loading...</span>
+                    <div class="benchtests-header-controls">
+                        <button type="button" id="benchtests-recompute-btn" class="burn-in-recompute-btn">Recompute</button>
+                    </div>
                 </div>
                 <div class="benchtests-controls">
                     <div class="benchtests-filters">
@@ -9434,6 +9445,9 @@
 
         let benchtestListLoaded = false;
         let benchtestListData = [];
+        let benchtestListCached = false;
+        let benchtestListCachedAt = '';
+        let benchtestListCacheFallback = false;
         let benchtestSortOrder = 'desc'; // newest first
         let benchtestHeatmapMode = null;
         const BENCHTEST_HEATMAP_OPTIONS = [
@@ -10182,7 +10196,16 @@
             });
 
             if (subtitle) {
-                subtitle.textContent = `${visibleCount} of ${sorted.length} benchtest(s)`;
+                let text = `${visibleCount} of ${sorted.length} benchtest(s)`;
+                if (benchtestListCached && benchtestListCachedAt) {
+                    text += ` · Cached: ${benchtestListCachedAt}`;
+                } else if (benchtestListCachedAt) {
+                    text += ` · Cache updated: ${benchtestListCachedAt}`;
+                }
+                if (benchtestListCacheFallback) {
+                    text += ' · offline cache';
+                }
+                subtitle.textContent = text;
             }
             applyBenchtestHeatmap(benchtestHeatmapMode);
         }
@@ -10246,12 +10269,20 @@
                     setBenchtestSortOrder(sortSelect.value);
                 });
             }
+            const recomputeBtn = document.getElementById('benchtests-recompute-btn');
+            if (recomputeBtn && recomputeBtn.dataset.wired !== '1') {
+                recomputeBtn.dataset.wired = '1';
+                recomputeBtn.addEventListener('click', () => {
+                    recomputeBenchtestList();
+                });
+            }
         }
 
         async function loadBenchtestList(force = false) {
             const listEl = document.getElementById('benchtests-list');
             const subtitle = document.getElementById('benchtests-subtitle');
             const legendEl = document.getElementById('benchtests-legend');
+            const recomputeBtn = document.getElementById('benchtests-recompute-btn');
             if (!listEl) return;
             wireBenchtestListControls();
             if (benchtestListLoaded && !force) {
@@ -10261,10 +10292,16 @@
 
             renderBenchtestsLegend(legendEl);
             listEl.innerHTML = '<div class="loading">Loading benchtests...</div>';
-            if (subtitle) subtitle.textContent = 'Loading...';
+            if (subtitle) {
+                subtitle.textContent = force ? 'Recomputing...' : 'Loading...';
+            }
+            if (recomputeBtn) recomputeBtn.disabled = true;
 
             try {
-                const response = await fetch('/api/benchtest_list');
+                const url = force
+                    ? '/api/benchtest_list?recompute=1'
+                    : '/api/benchtest_list';
+                const response = await fetch(url);
                 const data = await response.json();
                 if (data.error) {
                     listEl.innerHTML = `<div class="summary-error">Error: ${data.error}</div>`;
@@ -10274,13 +10311,22 @@
 
                 benchtestListData = data.benchtests || [];
                 benchtestListLoaded = true;
+                benchtestListCached = Boolean(data.cached);
+                benchtestListCachedAt = data.cached_at || '';
+                benchtestListCacheFallback = Boolean(data.cache_fallback);
                 populateBenchtestOperatorDatalist();
                 renderBenchtestList();
             } catch (error) {
                 console.error('Error loading benchtest list:', error);
                 listEl.innerHTML = '<div class="summary-error">Error loading benchtests.</div>';
                 if (subtitle) subtitle.textContent = 'Failed to load';
+            } finally {
+                if (recomputeBtn) recomputeBtn.disabled = false;
             }
+        }
+
+        async function recomputeBenchtestList() {
+            await loadBenchtestList(true);
         }
 
         async function loadBrickWall(containerId = 'brick-wall-container', brickHeight = 10, showLegend = true) {

@@ -405,6 +405,21 @@
             font-size: 12px;
         }
 
+        .heatmap-legend-body {
+            display: flex;
+            flex-direction: row;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .heatmap-legend-scale-block {
+            flex: 1 1 auto;
+            min-width: 0;
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+        }
+
         .heatmap-legend-bar {
             height: 14px;
             border-radius: 3px;
@@ -433,6 +448,8 @@
             gap: 6px;
             font-size: 11px;
             color: #666;
+            flex: 0 0 auto;
+            white-space: nowrap;
         }
 
         .batch-label {
@@ -1422,6 +1439,481 @@
         .brick.clicked {
             animation: click-pulse 0.6s ease-out;
             z-index: 30;
+        }
+
+        /* Benchtests vertical list (4 MD bricks per row) */
+        .benchtests-section {
+            background: white;
+            border-radius: 12px;
+            padding: 20px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+        }
+
+        .benchtests-header {
+            margin-bottom: 16px;
+            display: flex;
+            flex-wrap: wrap;
+            align-items: baseline;
+            gap: 10px 14px;
+        }
+
+        .benchtests-header h3 {
+            color: #333;
+            font-size: 22px;
+            margin: 0;
+        }
+
+        .benchtests-header .benchtests-count {
+            color: #666;
+            font-size: 14px;
+            margin: 0;
+        }
+
+        .benchtests-legend {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            margin-bottom: 10px;
+            align-items: center;
+            font-size: 11px;
+        }
+
+        .benchtests-legend .legend-item {
+            font-size: 11px;
+            gap: 5px;
+        }
+
+        .benchtests-legend .legend-color {
+            width: 14px;
+            height: 14px;
+            font-size: 10px;
+        }
+
+        .benchtests-controls {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 12px 20px;
+            align-items: flex-end;
+            justify-content: space-between;
+            margin-bottom: 12px;
+        }
+
+        .benchtests-filters,
+        .benchtests-order {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 12px;
+            align-items: flex-end;
+        }
+
+        .benchtests-order {
+            margin-left: auto;
+            padding-left: 16px;
+            border-left: 1px solid #e1e5ea;
+        }
+
+        .benchtests-filters .search-field,
+        .benchtests-order .search-field {
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+        }
+
+        .benchtests-filters .search-field label,
+        .benchtests-order .search-field label {
+            font-size: 12px;
+            color: #666;
+            font-weight: 500;
+        }
+
+        .benchtests-filters .search-field input,
+        .benchtests-order .search-field select {
+            padding: 6px 10px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-size: 13px;
+            min-width: 110px;
+            background: #fff;
+        }
+
+        .benchtests-filters .search-field input#bt-filter-operator {
+            min-width: 140px;
+        }
+
+        .benchtests-order .search-field select {
+            min-width: 150px;
+            cursor: pointer;
+        }
+
+        .benchtests-toolbar-actions {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            align-items: center;
+        }
+
+        .benchtests-apply-btn {
+            background: #0066cc;
+            color: white;
+            border: none;
+            padding: 7px 12px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 13px;
+            font-weight: 500;
+        }
+
+        .benchtests-apply-btn:hover {
+            filter: brightness(0.95);
+        }
+
+        .benchtests-hide-label {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            font-size: 13px;
+            color: #555;
+            user-select: none;
+        }
+
+        .benchtests-layout {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .benchtests-table-row {
+            display: flex;
+            flex-direction: row;
+            align-items: stretch;
+            gap: 14px;
+            min-width: 0;
+        }
+
+        .benchtests-heatmap-side {
+            flex: 0 0 210px;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            min-height: 0;
+            align-self: stretch;
+        }
+
+        .benchtests-heatmap-side .heatmap-overlays-panel {
+            flex: 1 1 auto;
+            width: 100%;
+            box-sizing: border-box;
+            min-height: 0;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .benchtests-heatmap-side.heatmap-active .heatmap-overlays-panel {
+            flex: 0 0 auto;
+        }
+
+        .benchtests-heatmap-side .heatmap-overlays-list {
+            flex: 1 1 auto;
+        }
+
+        .benchtests-heatmap-legend {
+            display: none;
+            width: 100%;
+            box-sizing: border-box;
+            flex: 0 0 auto;
+            background: #f9f9f9;
+            border: 1px solid #e4e8ee;
+            border-radius: 8px;
+            padding: 10px;
+        }
+
+        .benchtests-heatmap-legend.visible {
+            display: block;
+        }
+
+        .benchtests-heatmap-legend.brick-wall-legend.heatmap-legend {
+            min-width: 0;
+            max-width: none;
+            margin: 0;
+            padding: 0;
+            background: transparent;
+            border: none;
+        }
+
+        .benchtests-heatmap-minimap {
+            display: none;
+            width: 100%;
+            box-sizing: border-box;
+            background: #f9f9f9;
+            border: 1px solid #e4e8ee;
+            border-radius: 8px;
+            padding: 10px;
+            min-height: 0;
+        }
+
+        .benchtests-heatmap-minimap.visible {
+            display: flex;
+            flex-direction: column;
+            flex: 1 1 auto;
+        }
+
+        .benchtests-minimap-title {
+            font-size: 12px;
+            font-weight: 700;
+            color: #333;
+            margin-bottom: 8px;
+            flex: 0 0 auto;
+        }
+
+        .benchtests-minimap-track {
+            position: relative;
+            flex: 1 1 auto;
+            min-height: 80px;
+            height: auto;
+            border-radius: 4px;
+            border: 1px solid #d0d5dd;
+            overflow: hidden;
+            background: #fff;
+            cursor: pointer;
+            user-select: none;
+            touch-action: none;
+        }
+
+        .benchtests-minimap-canvas {
+            display: block;
+            width: 100%;
+            height: 100%;
+        }
+
+        .benchtests-minimap-viewport {
+            position: absolute;
+            left: 0;
+            right: 0;
+            top: 0;
+            height: 20%;
+            border: 2px solid #111;
+            box-sizing: border-box;
+            background: rgba(255, 255, 255, 0.18);
+            pointer-events: none;
+            border-radius: 2px;
+        }
+
+        .benchtests-list-wrap {
+            display: flex;
+            flex-direction: column;
+            flex: 1 1 auto;
+            min-width: 0;
+            height: calc(100vh - 380px);
+            max-height: calc(100vh - 380px);
+            border: 1px solid #e8ebef;
+            border-radius: 8px;
+            background: #fff;
+            overflow: hidden;
+        }
+
+        .benchtests-col-header {
+            display: grid;
+            grid-template-columns: 280px minmax(0, 1fr);
+            gap: 8px;
+            align-items: center;
+            padding: 6px 8px;
+            background: #f3f5f8;
+            border-bottom: 1px solid #e1e5ea;
+            font-size: 11px;
+            font-weight: 700;
+            color: #445;
+            letter-spacing: 0.02em;
+            text-transform: uppercase;
+            flex: 0 0 auto;
+        }
+
+        .benchtests-col-header-mds {
+            display: grid;
+            grid-template-columns: repeat(4, minmax(0, 1fr));
+            gap: 4px;
+            text-align: center;
+        }
+
+        .benchtests-list {
+            display: flex;
+            flex-direction: column;
+            gap: 0;
+            flex: 1 1 auto;
+            min-height: 0;
+            max-height: none;
+            overflow-y: auto;
+            padding-right: 0;
+            border: none;
+            border-radius: 0;
+            background: #fff;
+        }
+
+        .benchtest-row {
+            display: grid;
+            grid-template-columns: 280px minmax(0, 1fr);
+            gap: 8px;
+            align-items: center;
+            padding: 3px 8px;
+            border: none;
+            border-bottom: 1px solid #eef1f5;
+            border-radius: 0;
+            background: #fff;
+        }
+
+        .benchtest-row.heatmap-row .benchtest-row-meta {
+            background: #fff;
+            opacity: 1;
+            border-radius: 4px;
+            padding: 2px 6px;
+        }
+
+        .benchtest-row.heatmap-row .benchtest-md-brick {
+            opacity: 0.8; /* keep MD cells translucent so the row heatmap shows through */
+        }
+
+        .benchtest-row.heatmap-na {
+            background: #ffffff;
+            outline: 1px dashed #888;
+            outline-offset: -1px;
+        }
+
+        .benchtest-row.heatmap-na .benchtest-row-meta {
+            background: #fff;
+            opacity: 1;
+            border-radius: 4px;
+            padding: 2px 6px;
+        }
+
+        .benchtest-row.heatmap-na .benchtest-md-brick {
+            opacity: 0.8;
+        }
+
+        @media (max-width: 900px) {
+            .benchtests-table-row {
+                flex-direction: column;
+            }
+            .benchtests-heatmap-side {
+                flex: 1 1 auto;
+                width: 100%;
+                height: auto;
+                max-height: none;
+            }
+            .benchtests-list-wrap {
+                height: calc(100vh - 420px);
+                max-height: calc(100vh - 420px);
+            }
+            .benchtests-order {
+                margin-left: 0;
+                padding-left: 0;
+                border-left: none;
+                width: 100%;
+            }
+        }
+
+        .benchtest-row:last-child {
+            border-bottom: none;
+        }
+
+        .benchtest-row.filtered-out {
+            opacity: 0.22;
+            filter: grayscale(0.6);
+        }
+
+        .benchtest-md-brick.slot-filtered-out {
+            opacity: 0.28;
+            filter: grayscale(0.75);
+        }
+
+        .benchtest-row-meta {
+            display: flex;
+            flex-direction: column;
+            gap: 1px;
+            min-width: 0;
+            cursor: help;
+        }
+
+        .benchtest-row-id {
+            font-weight: 700;
+            color: #333;
+            font-size: 11px;
+            line-height: 1.25;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .benchtest-row-sub {
+            font-size: 10px;
+            color: #666;
+            white-space: normal;
+            line-height: 1.25;
+            word-break: break-word;
+        }
+
+        .benchtest-md-row {
+            display: grid;
+            grid-template-columns: repeat(4, minmax(0, 1fr));
+            gap: 4px;
+        }
+
+        .benchtest-md-brick {
+            position: relative;
+            min-height: 18px;
+            height: 20px;
+            border-radius: 3px;
+            border: 1px solid rgba(0, 0, 0, 0.08);
+            display: flex;
+            flex-direction: row;
+            justify-content: flex-start;
+            align-items: center;
+            gap: 3px;
+            padding: 0 18px 0 5px;
+            cursor: default;
+            color: #1a1a1a;
+            font-size: 10px;
+            font-weight: 600;
+            text-align: left;
+            white-space: nowrap;
+            overflow: hidden;
+        }
+
+        .benchtest-md-brick.has-board {
+            cursor: pointer;
+        }
+
+        .benchtest-md-brick.has-board:hover {
+            filter: brightness(0.96);
+            box-shadow: 0 0 0 2px rgba(0, 0, 0, 0.12);
+        }
+
+        .benchtest-md-brick.empty {
+            background: transparent;
+            border: 1px dashed #d0d5dd;
+            color: #aaa;
+            font-weight: 500;
+        }
+
+        .benchtest-md-brick.slot-match {
+            box-shadow: inset 0 0 0 2px #333;
+        }
+
+        .benchtest-md-text {
+            font-size: 10px;
+            font-weight: 700;
+            line-height: 1;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .benchtest-md-emojis {
+            position: absolute;
+            top: 50%;
+            right: 3px;
+            transform: translateY(-50%);
+            font-size: 9px;
+            line-height: 1;
+            display: flex;
+            gap: 1px;
         }
 
         @keyframes highlight-pulse {
@@ -3160,6 +3652,7 @@
 
         <div class="tabs">
             <button class="tab active" data-tab="brick-wall" onclick="switchTab('brick-wall', this)">Production Brick Wall</button>
+            <button class="tab" data-tab="benchtests" onclick="switchTab('benchtests', this)">Benchtests</button>
             <button class="tab" data-tab="production-summary" onclick="switchTab('production-summary', this)">Production Summary</button>
             <button class="tab" data-tab="production-statistics" onclick="switchTab('production-statistics', this)">Production Statistics</button>
             <button class="tab" data-tab="burn-in" onclick="switchTab('burn-in', this)">Burn In</button>
@@ -3240,6 +3733,78 @@
                 </div>
                 <div class="filters-container" id="benchtest-filters">
                     <!-- Dynamically populated with benchtest filters -->
+                </div>
+            </div>
+        </div>
+
+        <div id="benchtests" class="tab-content">
+            <div class="benchtests-section">
+                <div class="benchtests-header">
+                    <h3>Benchtests</h3>
+                    <span id="benchtests-subtitle" class="benchtests-count">Loading...</span>
+                </div>
+                <div class="benchtests-controls">
+                    <div class="benchtests-filters">
+                        <div class="search-field">
+                            <label for="bt-filter-benchtest-id">Benchtest</label>
+                            <input type="text" id="bt-filter-benchtest-id" placeholder="e.g. 42">
+                        </div>
+                        <div class="search-field">
+                            <label for="bt-filter-board-id">Board ID</label>
+                            <input type="text" id="bt-filter-board-id" placeholder="Board ID">
+                        </div>
+                        <div class="search-field">
+                            <label for="bt-filter-batch">Batch</label>
+                            <input type="text" id="bt-filter-batch" placeholder="Batch">
+                        </div>
+                        <div class="search-field">
+                            <label for="bt-filter-position">Position</label>
+                            <input type="text" id="bt-filter-position" placeholder="Position">
+                        </div>
+                        <div class="search-field">
+                            <label for="bt-filter-operator">Operator</label>
+                            <input type="text" id="bt-filter-operator" list="bt-operator-datalist" placeholder="Type or select" autocomplete="off">
+                            <datalist id="bt-operator-datalist"></datalist>
+                        </div>
+                        <div class="benchtests-toolbar-actions">
+                            <button type="button" class="benchtests-apply-btn" id="bt-filter-apply">Filter</button>
+                            <label class="benchtests-hide-label">
+                                <input type="checkbox" id="bt-hide-unfiltered" checked>
+                                Hide unfiltered
+                            </label>
+                        </div>
+                    </div>
+                    <div class="benchtests-order">
+                        <div class="search-field">
+                            <label for="bt-sort-order">Order</label>
+                            <select id="bt-sort-order">
+                                <option value="desc" selected>By number</option>
+                                <option value="asc">Oldest</option>
+                                <option value="longest">Longest</option>
+                                <option value="shortest">Shortest</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+                <div class="benchtests-layout">
+                    <div class="benchtests-legend" id="benchtests-legend"></div>
+                    <div class="benchtests-table-row">
+                        <div class="benchtests-list-wrap">
+                            <div class="benchtests-col-header" aria-hidden="true">
+                                <div>Benchtest</div>
+                                <div class="benchtests-col-header-mds">
+                                    <div>MD1</div>
+                                    <div>MD2</div>
+                                    <div>MD3</div>
+                                    <div>MD4</div>
+                                </div>
+                            </div>
+                            <div class="benchtests-list" id="benchtests-list">
+                                <div class="loading">Loading benchtests...</div>
+                            </div>
+                        </div>
+                        <div class="benchtests-heatmap-side" id="benchtests-heatmap-host"></div>
+                    </div>
                 </div>
             </div>
         </div>
@@ -3667,6 +4232,8 @@
                 loadBrickWall('brick-wall-container', 10, true).then(() => {
                     applyFilters();
                 });
+            } else if (resolvedTabId === 'benchtests') {
+                loadBenchtestList();
             } else if (resolvedTabId === 'production-summary') {
                 loadProductionSummary();
             } else if (resolvedTabId === 'production-statistics') {
@@ -8711,6 +9278,9 @@
                 || mode === 'total_failed_benchtests'
                 || mode === 'total_passed_benchtests'
                 || mode === 'total_comments'
+                || mode === 'occupied_slots'
+                || mode === 'passed_slots'
+                || mode === 'failed_slots'
             ) {
                 return String(Math.round(value));
             }
@@ -8746,19 +9316,23 @@
             });
         }
 
-        function renderBrickWallHeatmapLegend(legend, mode, minValue, maxValue) {
-            const option = BRICK_WALL_HEATMAP_OPTIONS.find((item) => item.id === mode);
+        function renderBrickWallHeatmapLegend(legend, mode, minValue, maxValue, options = BRICK_WALL_HEATMAP_OPTIONS) {
+            const option = options.find((item) => item.id === mode);
             legend.className = 'brick-wall-legend heatmap-legend';
             legend.innerHTML = `
                 <div class="heatmap-legend-title">${option ? option.label : mode}</div>
-                <div class="heatmap-legend-bar"></div>
-                <div class="heatmap-legend-scale">
-                    <span>${formatHeatmapValue(mode, minValue)}</span>
-                    <span>${formatHeatmapValue(mode, maxValue)}</span>
-                </div>
-                <div class="heatmap-legend-na">
-                    <div class="legend-color"></div>
-                    <span>No data</span>
+                <div class="heatmap-legend-body">
+                    <div class="heatmap-legend-scale-block">
+                        <div class="heatmap-legend-bar"></div>
+                        <div class="heatmap-legend-scale">
+                            <span>${formatHeatmapValue(mode, minValue)}</span>
+                            <span>${formatHeatmapValue(mode, maxValue)}</span>
+                        </div>
+                    </div>
+                    <div class="heatmap-legend-na">
+                        <div class="legend-color"></div>
+                        <span>No data</span>
+                    </div>
                 </div>
             `;
         }
@@ -8856,6 +9430,857 @@
                 list.appendChild(label);
             });
             return panel;
+        }
+
+        let benchtestListLoaded = false;
+        let benchtestListData = [];
+        let benchtestSortOrder = 'desc'; // newest first
+        let benchtestHeatmapMode = null;
+        const BENCHTEST_HEATMAP_OPTIONS = [
+            { id: 'length_hours', label: 'length' },
+            { id: 'occupied_slots', label: 'occupied MD slots' },
+            { id: 'passed_slots', label: 'passed MD slots' },
+            { id: 'failed_slots', label: 'failed MD slots' },
+        ];
+
+        function benchtestSlotColor(slot) {
+            if (!slot || slot.empty || slot.serial_no == null) {
+                return null;
+            }
+            const pass = slot.test_pass;
+            if (pass === 1 || pass === '1') return '#00CC96';
+            if (pass === 0 || pass === '0') return '#EF553B';
+            if (pass === -1 || pass === '-1') return '#FF9800';
+            return '#FECB52';
+        }
+
+        function getBenchtestHeatmapMetrics(bt) {
+            const slots = bt.slots || [];
+            let occupied = 0;
+            let passed = 0;
+            let failed = 0;
+            slots.forEach((slot) => {
+                if (!slot || slot.empty || slot.serial_no == null) return;
+                occupied += 1;
+                const pass = Number(slot.test_pass);
+                if (pass === 1) passed += 1;
+                else if (pass === 0) failed += 1;
+            });
+
+            let seconds = null;
+            if (bt.test_length_seconds != null && bt.test_length_seconds !== '') {
+                const parsed = Number(bt.test_length_seconds);
+                if (Number.isFinite(parsed) && parsed >= 0) seconds = parsed;
+            }
+            if (seconds == null) {
+                seconds = durationSecondsFromRange(bt.test_start, bt.test_stop);
+            }
+
+            return {
+                length_hours: seconds == null ? null : seconds / 3600,
+                occupied_slots: occupied,
+                passed_slots: passed,
+                failed_slots: failed,
+            };
+        }
+
+        function getBenchtestFilterValues() {
+            return {
+                benchtestId: (document.getElementById('bt-filter-benchtest-id')?.value || '').trim(),
+                boardId: (document.getElementById('bt-filter-board-id')?.value || '').trim(),
+                batch: (document.getElementById('bt-filter-batch')?.value || '').trim(),
+                position: (document.getElementById('bt-filter-position')?.value || '').trim(),
+                operator: (document.getElementById('bt-filter-operator')?.value || '').trim(),
+                hideUnfiltered: Boolean(document.getElementById('bt-hide-unfiltered')?.checked),
+            };
+        }
+
+        function slotMatchesBenchtestFilter(slot, filters) {
+            if (!slot || slot.empty || slot.serial_no == null) return false;
+            // Row-level-only filters: all occupied slots count as matches.
+            const rowOnly =
+                (filters.benchtestId || filters.operator)
+                && !filters.boardId
+                && !filters.batch
+                && !filters.position;
+            if (rowOnly) return true;
+            const hasAny = filters.boardId || filters.batch || filters.position;
+            if (!hasAny) return true;
+            if (filters.boardId && String(slot.serial_no) !== filters.boardId) return false;
+            if (filters.batch && String(slot.batch) !== filters.batch) return false;
+            if (filters.position && String(slot.position) !== filters.position) return false;
+            return true;
+        }
+
+        function benchtestRowMatchesFilter(bt, filters) {
+            if (filters.benchtestId) {
+                return String(bt.benchtest_id) === filters.benchtestId;
+            }
+            if (filters.operator) {
+                const op = String(bt.test_op || '').toLowerCase();
+                if (!op.includes(filters.operator.toLowerCase())) return false;
+            }
+            const hasBoard = filters.boardId || filters.batch || filters.position;
+            if (!hasBoard) return true;
+            return (bt.slots || []).some((slot) => slotMatchesBenchtestFilter(slot, filters));
+        }
+
+        function clearBenchtestIdFilter() {
+            const btInput = document.getElementById('bt-filter-benchtest-id');
+            if (btInput) btInput.value = '';
+        }
+
+        function clearOperatorFilter() {
+            const opInput = document.getElementById('bt-filter-operator');
+            if (opInput) opInput.value = '';
+        }
+
+        function clearBoardBatchPositionFilters() {
+            const boardInput = document.getElementById('bt-filter-board-id');
+            const batchInput = document.getElementById('bt-filter-batch');
+            const positionInput = document.getElementById('bt-filter-position');
+            if (boardInput) boardInput.value = '';
+            if (batchInput) batchInput.value = '';
+            if (positionInput) positionInput.value = '';
+        }
+
+        function syncBenchtestFilterFields(changedId) {
+            if (changedId === 'bt-filter-benchtest-id') {
+                const btInput = document.getElementById('bt-filter-benchtest-id');
+                if (btInput && btInput.value.trim()) {
+                    clearBoardBatchPositionFilters();
+                    clearOperatorFilter();
+                }
+                return;
+            }
+
+            // Editing board/batch/position/operator clears the benchtest-only filter.
+            clearBenchtestIdFilter();
+            if (changedId === 'bt-filter-operator') return;
+            syncBoardBatchPositionFields(changedId);
+        }
+
+        function populateBenchtestOperatorDatalist() {
+            const listEl = document.getElementById('bt-operator-datalist');
+            if (!listEl) return;
+            const operators = [
+                ...new Set(
+                    benchtestListData
+                        .map((bt) => String(bt.test_op || '').trim())
+                        .filter(Boolean)
+                ),
+            ].sort((a, b) => a.localeCompare(b, undefined, { sensitivity: 'base' }));
+            listEl.innerHTML = '';
+            operators.forEach((op) => {
+                const option = document.createElement('option');
+                option.value = op;
+                listEl.appendChild(option);
+            });
+        }
+
+        function syncBoardBatchPositionFields(changedId) {
+            const boardInput = document.getElementById('bt-filter-board-id');
+            const batchInput = document.getElementById('bt-filter-batch');
+            const positionInput = document.getElementById('bt-filter-position');
+            if (!boardInput || !batchInput || !positionInput) return;
+
+            if (changedId === 'bt-filter-board-id') {
+                const serial = boardInput.value.trim();
+                if (/^\d+$/.test(serial) && serial.length >= 7) {
+                    const padded = serial.padStart(7, '0');
+                    batchInput.value = String(parseInt(padded.slice(2, 4), 10));
+                    positionInput.value = String(parseInt(padded.slice(4, 7), 10));
+                }
+                return;
+            }
+
+            const batch = batchInput.value.trim();
+            const position = positionInput.value.trim();
+            if (batch !== '' && position !== '' && /^\d+$/.test(batch) && /^\d+$/.test(position)) {
+                const serial =
+                    '11'
+                    + String(parseInt(batch, 10)).padStart(2, '0')
+                    + String(parseInt(position, 10)).padStart(3, '0');
+                boardInput.value = String(parseInt(serial, 10));
+            }
+        }
+
+        function renderBenchtestsLegend(legendEl) {
+            if (!legendEl) return;
+            legendEl.className = 'benchtests-legend brick-wall-legend';
+            legendEl.innerHTML = '';
+            const items = [
+                { color: '#00CC96', label: 'Passed on this bench' },
+                { color: '#EF553B', label: 'Failed on this bench' },
+                { color: '#FF9800', label: 'Ignored' },
+                { color: '#FECB52', label: 'Unknown / no result' },
+                { color: '#e0e0e0', label: 'Empty MD slot', dashed: true },
+                { color: '#90EE90', label: 'Not burned in', emoji: '📛' },
+                { color: '#90EE90', label: 'Missing SFP', emoji: '📱' },
+            ];
+            items.forEach((item) => {
+                const legendItem = document.createElement('div');
+                legendItem.className = 'legend-item';
+                const swatch = document.createElement('div');
+                swatch.className = 'legend-color';
+                swatch.style.background = item.color;
+                if (item.dashed) {
+                    swatch.style.background = 'transparent';
+                    swatch.style.border = '1px dashed #d0d5dd';
+                }
+                if (item.emoji) swatch.textContent = item.emoji;
+                const label = document.createElement('span');
+                label.textContent = item.label;
+                legendItem.appendChild(swatch);
+                legendItem.appendChild(label);
+                legendEl.appendChild(legendItem);
+            });
+        }
+
+        function setBenchtestHeatmapSideVisibility(active) {
+            const host = document.getElementById('benchtests-heatmap-host');
+            const legendEl = document.getElementById('benchtests-heatmap-legend');
+            const minimapEl = document.getElementById('benchtests-heatmap-minimap');
+            if (host) host.classList.toggle('heatmap-active', Boolean(active));
+            if (legendEl) legendEl.classList.toggle('visible', Boolean(active));
+            if (minimapEl) minimapEl.classList.toggle('visible', Boolean(active));
+        }
+
+        function updateBenchtestMinimapViewport() {
+            const listEl = document.getElementById('benchtests-list');
+            const viewport = document.getElementById('benchtests-minimap-viewport');
+            if (!listEl || !viewport) return;
+
+            const scrollHeight = listEl.scrollHeight || 1;
+            const clientHeight = listEl.clientHeight || 0;
+            const scrollTop = listEl.scrollTop || 0;
+            const trackHeight = viewport.parentElement ? viewport.parentElement.clientHeight : 0;
+            if (!trackHeight) return;
+
+            const visibleRatio = Math.min(1, clientHeight / scrollHeight);
+            const topRatio = scrollHeight > clientHeight
+                ? scrollTop / (scrollHeight - clientHeight)
+                : 0;
+            const viewportHeight = Math.max(12, visibleRatio * trackHeight);
+            const maxTop = Math.max(0, trackHeight - viewportHeight);
+            const top = topRatio * maxTop;
+
+            viewport.style.height = `${viewportHeight}px`;
+            viewport.style.top = `${top}px`;
+        }
+
+        function paintBenchtestHeatmapMinimap() {
+            const listEl = document.getElementById('benchtests-list');
+            const canvas = document.getElementById('benchtests-minimap-canvas');
+            const minimapEl = document.getElementById('benchtests-heatmap-minimap');
+            if (!listEl || !canvas || !minimapEl || !minimapEl.classList.contains('visible')) {
+                return;
+            }
+
+            const rows = [...listEl.querySelectorAll('.benchtest-row')];
+            const track = canvas.parentElement;
+            const cssWidth = track ? track.clientWidth : 160;
+            const cssHeight = track ? track.clientHeight : 220;
+            const dpr = window.devicePixelRatio || 1;
+            canvas.width = Math.max(1, Math.floor(cssWidth * dpr));
+            canvas.height = Math.max(1, Math.floor(cssHeight * dpr));
+            canvas.style.width = `${cssWidth}px`;
+            canvas.style.height = `${cssHeight}px`;
+
+            const ctx = canvas.getContext('2d');
+            if (!ctx) return;
+            ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+            ctx.fillStyle = '#ffffff';
+            ctx.fillRect(0, 0, cssWidth, cssHeight);
+
+            if (!rows.length) {
+                updateBenchtestMinimapViewport();
+                return;
+            }
+
+            const rowHeight = cssHeight / rows.length;
+            rows.forEach((row, index) => {
+                let color = '#ffffff';
+                if (row.classList.contains('heatmap-na')) {
+                    color = '#f3f3f3';
+                } else if (row.style.background) {
+                    color = row.style.background;
+                } else if (row.dataset.heatmapColor) {
+                    color = row.dataset.heatmapColor;
+                }
+                if (row.classList.contains('filtered-out')) {
+                    ctx.globalAlpha = 0.25;
+                } else {
+                    ctx.globalAlpha = 1;
+                }
+                ctx.fillStyle = color;
+                const y = index * rowHeight;
+                ctx.fillRect(0, y, cssWidth, Math.ceil(rowHeight) + 0.5);
+            });
+            ctx.globalAlpha = 1;
+            updateBenchtestMinimapViewport();
+        }
+
+        function scrollBenchtestListFromMinimapY(clientY, centerViewport = true) {
+            const listEl = document.getElementById('benchtests-list');
+            const track = document.getElementById('benchtests-minimap-track');
+            const viewport = document.getElementById('benchtests-minimap-viewport');
+            if (!listEl || !track || !viewport) return;
+
+            const rect = track.getBoundingClientRect();
+            const y = Math.max(0, Math.min(rect.height, clientY - rect.top));
+            const scrollRange = Math.max(0, listEl.scrollHeight - listEl.clientHeight);
+            if (scrollRange <= 0) {
+                listEl.scrollTop = 0;
+                updateBenchtestMinimapViewport();
+                return;
+            }
+
+            const viewportHeight = viewport.offsetHeight || 12;
+            let ratio;
+            if (centerViewport) {
+                const center = y;
+                const usable = Math.max(1, rect.height - viewportHeight);
+                ratio = Math.max(0, Math.min(1, (center - viewportHeight / 2) / usable));
+            } else {
+                ratio = Math.max(0, Math.min(1, y / rect.height));
+            }
+            listEl.scrollTop = ratio * scrollRange;
+            updateBenchtestMinimapViewport();
+        }
+
+        function wireBenchtestMinimapControls() {
+            const listEl = document.getElementById('benchtests-list');
+            const track = document.getElementById('benchtests-minimap-track');
+            if (listEl && listEl.dataset.minimapScrollWired !== '1') {
+                listEl.dataset.minimapScrollWired = '1';
+                listEl.addEventListener('scroll', () => updateBenchtestMinimapViewport(), { passive: true });
+            }
+            if (!window.__btMinimapResizeWired) {
+                window.__btMinimapResizeWired = true;
+                window.addEventListener('resize', () => {
+                    if (benchtestHeatmapMode) paintBenchtestHeatmapMinimap();
+                });
+            }
+            if (!track || track.dataset.wired === '1') return;
+            track.dataset.wired = '1';
+
+            let dragging = false;
+            const onMove = (event) => {
+                if (!dragging) return;
+                event.preventDefault();
+                const point = event.touches ? event.touches[0] : event;
+                scrollBenchtestListFromMinimapY(point.clientY, true);
+            };
+            const onUp = () => {
+                dragging = false;
+                window.removeEventListener('pointermove', onMove);
+                window.removeEventListener('pointerup', onUp);
+                window.removeEventListener('touchmove', onMove);
+                window.removeEventListener('touchend', onUp);
+            };
+
+            track.addEventListener('pointerdown', (event) => {
+                if (!benchtestHeatmapMode) return;
+                dragging = true;
+                scrollBenchtestListFromMinimapY(event.clientY, true);
+                window.addEventListener('pointermove', onMove);
+                window.addEventListener('pointerup', onUp);
+            });
+            track.addEventListener('touchstart', (event) => {
+                if (!benchtestHeatmapMode || !event.touches.length) return;
+                dragging = true;
+                scrollBenchtestListFromMinimapY(event.touches[0].clientY, true);
+                window.addEventListener('touchmove', onMove, { passive: false });
+                window.addEventListener('touchend', onUp);
+            }, { passive: true });
+        }
+
+        function applyBenchtestHeatmap(mode = benchtestHeatmapMode) {
+            const listEl = document.getElementById('benchtests-list');
+            const statusLegendEl = document.getElementById('benchtests-legend');
+            const heatmapLegendEl = document.getElementById('benchtests-heatmap-legend');
+            if (!listEl) return;
+
+            const rows = [...listEl.querySelectorAll('.benchtest-row')];
+            rows.forEach((row) => {
+                row.classList.remove('heatmap-row', 'heatmap-na');
+                row.style.background = '';
+                delete row.dataset.heatmapValue;
+                delete row.dataset.heatmapColor;
+            });
+
+            if (!mode) {
+                setBenchtestHeatmapSideVisibility(false);
+                if (statusLegendEl) renderBenchtestsLegend(statusLegendEl);
+                if (heatmapLegendEl) heatmapLegendEl.innerHTML = '';
+                return;
+            }
+
+            setBenchtestHeatmapSideVisibility(true);
+            if (statusLegendEl) renderBenchtestsLegend(statusLegendEl);
+
+            const values = [];
+            rows.forEach((row) => {
+                if (row.classList.contains('filtered-out')) return;
+                const btId = row.dataset.benchtestId;
+                const bt = benchtestListData.find((item) => String(item.benchtest_id) === String(btId));
+                if (!bt) return;
+                const metrics = getBenchtestHeatmapMetrics(bt);
+                const value = metrics[mode];
+                if (value != null && Number.isFinite(Number(value))) {
+                    values.push(Number(value));
+                }
+            });
+
+            let minValue = values.length ? Math.min(...values) : 0;
+            let maxValue = values.length ? Math.max(...values) : 1;
+            if (minValue === maxValue) {
+                maxValue = minValue + 1;
+            }
+
+            rows.forEach((row) => {
+                const btId = row.dataset.benchtestId;
+                const bt = benchtestListData.find((item) => String(item.benchtest_id) === String(btId));
+                if (!bt) {
+                    row.classList.add('heatmap-na');
+                    return;
+                }
+                const metrics = getBenchtestHeatmapMetrics(bt);
+                const raw = metrics[mode];
+                const value = raw == null ? null : Number(raw);
+                if (value == null || !Number.isFinite(value)) {
+                    row.classList.add('heatmap-na');
+                    row.dataset.heatmapValue = '';
+                    return;
+                }
+                const t = (value - minValue) / (maxValue - minValue);
+                const color = interpolateHeatmapColor(t);
+                row.classList.add('heatmap-row');
+                row.style.background = color;
+                row.dataset.heatmapColor = color;
+                row.dataset.heatmapValue = String(value);
+            });
+
+            if (heatmapLegendEl) {
+                const displayMax = values.length ? Math.max(...values) : maxValue;
+                const displayMin = values.length ? Math.min(...values) : minValue;
+                renderBrickWallHeatmapLegend(
+                    heatmapLegendEl,
+                    mode,
+                    displayMin,
+                    displayMax,
+                    BENCHTEST_HEATMAP_OPTIONS
+                );
+                heatmapLegendEl.classList.add('benchtests-heatmap-legend', 'visible');
+            }
+
+            requestAnimationFrame(() => {
+                paintBenchtestHeatmapMinimap();
+            });
+        }
+
+        function createBenchtestHeatmapOverlaysPanel() {
+            const panel = document.createElement('div');
+            panel.className = 'heatmap-overlays-panel';
+            panel.innerHTML = `
+                <div class="heatmap-overlays-title">Heatmap overlays</div>
+                <div class="heatmap-overlays-list"></div>
+            `;
+            const list = panel.querySelector('.heatmap-overlays-list');
+            BENCHTEST_HEATMAP_OPTIONS.forEach((option) => {
+                const label = document.createElement('label');
+                label.className = 'heatmap-overlay-option';
+                const input = document.createElement('input');
+                input.type = 'checkbox';
+                input.name = 'benchtest-heatmap';
+                input.value = option.id;
+                input.checked = benchtestHeatmapMode === option.id;
+                input.addEventListener('change', () => {
+                    if (input.checked) {
+                        list.querySelectorAll('input[type="checkbox"]').forEach((other) => {
+                            if (other !== input) other.checked = false;
+                        });
+                        benchtestHeatmapMode = option.id;
+                    } else {
+                        benchtestHeatmapMode = null;
+                    }
+                    applyBenchtestHeatmap(benchtestHeatmapMode);
+                });
+                const text = document.createElement('span');
+                text.textContent = option.label;
+                label.appendChild(input);
+                label.appendChild(text);
+                list.appendChild(label);
+            });
+            return panel;
+        }
+
+        function ensureBenchtestHeatmapPanel() {
+            const host = document.getElementById('benchtests-heatmap-host');
+            if (!host || host.dataset.wired === '1') return;
+            host.dataset.wired = '1';
+            host.appendChild(createBenchtestHeatmapOverlaysPanel());
+
+            const legendEl = document.createElement('div');
+            legendEl.id = 'benchtests-heatmap-legend';
+            legendEl.className = 'benchtests-heatmap-legend';
+            host.appendChild(legendEl);
+
+            const minimapEl = document.createElement('div');
+            minimapEl.id = 'benchtests-heatmap-minimap';
+            minimapEl.className = 'benchtests-heatmap-minimap';
+            minimapEl.innerHTML = `
+                <div class="benchtests-minimap-title">Overview</div>
+                <div class="benchtests-minimap-track" id="benchtests-minimap-track">
+                    <canvas class="benchtests-minimap-canvas" id="benchtests-minimap-canvas"></canvas>
+                    <div class="benchtests-minimap-viewport" id="benchtests-minimap-viewport"></div>
+                </div>
+            `;
+            host.appendChild(minimapEl);
+            wireBenchtestMinimapControls();
+        }
+
+        function openBoardFromBenchtestSlot(serial) {
+            if (serial == null) return;
+            const serialStr = String(serial);
+            const bricks = document.querySelectorAll('#brick-wall-container .brick');
+            let found = null;
+            bricks.forEach((brick) => {
+                if (String(brick.dataset.serial) === serialStr) {
+                    found = brick;
+                }
+            });
+            if (found) {
+                found.click();
+                return;
+            }
+            loadBrickWall('brick-wall-container', 10, true).then(() => {
+                document.querySelectorAll('#brick-wall-container .brick').forEach((brick) => {
+                    if (String(brick.dataset.serial) === serialStr) {
+                        brick.click();
+                    }
+                });
+            });
+        }
+
+        function formatBenchtestPassLabel(value) {
+            if (value === 1 || value === '1') return 'Passed';
+            if (value === 0 || value === '0') return 'Failed';
+            if (value === -1 || value === '-1') return 'Ignored';
+            return 'Unknown';
+        }
+
+        function buildBenchtestMetaTooltipHtml(bt) {
+            const lengthText = (bt.test_length && bt.test_length !== 'n/a')
+                ? bt.test_length
+                : 'n/a';
+            const slotsHtml = (bt.slots || []).map((slot) => {
+                if (slot.empty || slot.serial_no == null) {
+                    return `<div class="tooltip-row"><span class="tooltip-label">${slot.md}:</span>empty</div>`;
+                }
+                return (
+                    `<div class="tooltip-row"><span class="tooltip-label">${slot.md}:</span>`
+                    + `DB ${slot.serial_no} · ${formatBenchtestPassLabel(slot.test_pass)}`
+                    + ` · batch ${slot.batch ?? 'n/a'} pos ${slot.position ?? 'n/a'}`
+                    + ` · burned-in ${slot.burn_in_stop ? 'yes' : 'no'}`
+                    + `${slot.missing_sfp ? ' · missing SFP' : ''}`
+                    + `</div>`
+                );
+            }).join('');
+
+            let heatmapExtra = '';
+            if (benchtestHeatmapMode) {
+                const metrics = getBenchtestHeatmapMetrics(bt);
+                const raw = metrics[benchtestHeatmapMode];
+                heatmapExtra = (
+                    `<div class="tooltip-row"><span class="tooltip-label">Heatmap:</span>`
+                    + `${formatHeatmapValue(benchtestHeatmapMode, raw == null ? null : Number(raw))}`
+                    + `</div>`
+                );
+            }
+
+            return `
+                <div class="tooltip-row"><span class="tooltip-label">Benchtest:</span>${bt.benchtest_id}</div>
+                <div class="tooltip-row"><span class="tooltip-label">Operator:</span>${bt.test_op || 'n/a'}</div>
+                <div class="tooltip-row"><span class="tooltip-label">Length:</span>${lengthText}</div>
+                <div class="tooltip-row"><span class="tooltip-label">From:</span>${bt.test_start || 'n/a'}</div>
+                <div class="tooltip-row"><span class="tooltip-label">To:</span>${bt.test_stop || 'n/a'}</div>
+                ${heatmapExtra}
+                ${slotsHtml}
+            `;
+        }
+
+        function wireBenchtestMetaTooltip(metaEl, bt) {
+            const tooltip = document.getElementById('tooltip');
+            if (!metaEl || !tooltip) return;
+            metaEl.addEventListener('mouseenter', (e) => {
+                tooltip.innerHTML = buildBenchtestMetaTooltipHtml(bt);
+                tooltip.style.left = `${e.pageX + 10}px`;
+                tooltip.style.top = `${e.pageY + 10}px`;
+                tooltip.classList.add('show');
+            });
+            metaEl.addEventListener('mousemove', (e) => {
+                tooltip.style.left = `${e.pageX + 10}px`;
+                tooltip.style.top = `${e.pageY + 10}px`;
+            });
+            metaEl.addEventListener('mouseleave', () => {
+                tooltip.classList.remove('show');
+            });
+        }
+
+        function getBenchtestLengthSeconds(bt) {
+            if (!bt) return null;
+            if (bt.test_length_seconds != null && bt.test_length_seconds !== '') {
+                const parsed = Number(bt.test_length_seconds);
+                if (Number.isFinite(parsed) && parsed >= 0) return parsed;
+            }
+            return durationSecondsFromRange(bt.test_start, bt.test_stop);
+        }
+
+        function compareBenchtestsForSort(a, b) {
+            if (benchtestSortOrder === 'longest' || benchtestSortOrder === 'shortest') {
+                const leftLen = getBenchtestLengthSeconds(a);
+                const rightLen = getBenchtestLengthSeconds(b);
+                const leftMissing = leftLen == null || !Number.isFinite(leftLen);
+                const rightMissing = rightLen == null || !Number.isFinite(rightLen);
+                if (leftMissing && rightMissing) {
+                    return (Number(b.benchtest_id) || 0) - (Number(a.benchtest_id) || 0);
+                }
+                if (leftMissing) return 1;
+                if (rightMissing) return -1;
+                const diff = benchtestSortOrder === 'longest'
+                    ? rightLen - leftLen
+                    : leftLen - rightLen;
+                if (diff !== 0) return diff;
+                return (Number(b.benchtest_id) || 0) - (Number(a.benchtest_id) || 0);
+            }
+
+            const left = Number(a.benchtest_id) || 0;
+            const right = Number(b.benchtest_id) || 0;
+            return benchtestSortOrder === 'asc' ? left - right : right - left;
+        }
+
+        function benchtestSortOrderLabel(order = benchtestSortOrder) {
+            if (order === 'asc') return 'oldest first';
+            if (order === 'longest') return 'longest first';
+            if (order === 'shortest') return 'shortest first';
+            return 'newest first';
+        }
+
+        function renderBenchtestList() {
+            const listEl = document.getElementById('benchtests-list');
+            const subtitle = document.getElementById('benchtests-subtitle');
+            if (!listEl) return;
+
+            const filters = getBenchtestFilterValues();
+            const sorted = [...benchtestListData].sort(compareBenchtestsForSort);
+
+            listEl.innerHTML = '';
+            if (!sorted.length) {
+                listEl.innerHTML = '<div class="loading">No benchtests found.</div>';
+                if (subtitle) subtitle.textContent = '0 benchtests';
+                applyBenchtestHeatmap(benchtestHeatmapMode);
+                return;
+            }
+
+            let visibleCount = 0;
+            sorted.forEach((bt) => {
+                const matches = benchtestRowMatchesFilter(bt, filters);
+                if (!matches && filters.hideUnfiltered) {
+                    return;
+                }
+                visibleCount += 1;
+
+                const row = document.createElement('div');
+                row.className = 'benchtest-row';
+                row.dataset.benchtestId = String(bt.benchtest_id);
+                if (!matches) row.classList.add('filtered-out');
+
+                const meta = document.createElement('div');
+                meta.className = 'benchtest-row-meta';
+                const idEl = document.createElement('div');
+                idEl.className = 'benchtest-row-id';
+                const lengthText = (bt.test_length && bt.test_length !== 'n/a')
+                    ? bt.test_length
+                    : 'n/a';
+                const opText = bt.test_op || 'n/a';
+                idEl.textContent = `BT${bt.benchtest_id}-> ${lengthText} (${opText})`;
+                const subEl = document.createElement('div');
+                subEl.className = 'benchtest-row-sub';
+                const fromText = bt.test_start || 'n/a';
+                const toText = bt.test_stop || 'n/a';
+                subEl.textContent = `${fromText} → ${toText}`;
+                meta.appendChild(idEl);
+                meta.appendChild(subEl);
+                wireBenchtestMetaTooltip(meta, bt);
+
+                const mdRow = document.createElement('div');
+                mdRow.className = 'benchtest-md-row';
+                const filterActive = Boolean(
+                    filters.benchtestId
+                    || filters.boardId
+                    || filters.batch
+                    || filters.position
+                    || filters.operator
+                );
+                (bt.slots || []).forEach((slot) => {
+                    const brick = document.createElement('div');
+                    brick.className = 'benchtest-md-brick';
+                    const text = document.createElement('div');
+                    text.className = 'benchtest-md-text';
+                    const slotMatches = slotMatchesBenchtestFilter(slot, filters);
+
+                    if (slot.empty || slot.serial_no == null) {
+                        brick.classList.add('empty');
+                        text.textContent = `${slot.md || 'MD'} —`;
+                        if (filterActive && matches) {
+                            brick.classList.add('slot-filtered-out');
+                        }
+                        brick.appendChild(text);
+                    } else {
+                        brick.classList.add('has-board');
+                        if (filterActive && matches) {
+                            if (slotMatches) {
+                                brick.classList.add('slot-match');
+                            } else {
+                                brick.classList.add('slot-filtered-out');
+                            }
+                        }
+                        const color = benchtestSlotColor(slot);
+                        if (color) brick.style.background = color;
+                        text.textContent = `${slot.md} ${slot.serial_no}`;
+                        brick.title = [
+                            `${slot.md}: DB ${slot.serial_no}`,
+                            `Batch ${slot.batch} · Position ${slot.position}`,
+                            `Pass: ${slot.test_pass}`,
+                            `Burned-in: ${slot.burn_in_stop ? 'yes' : 'no'}`,
+                        ].join('\n');
+
+                        const emojis = document.createElement('div');
+                        emojis.className = 'benchtest-md-emojis';
+                        // Same as brick wall: only mark boards that are not burned in.
+                        if (!slot.burn_in_stop) {
+                            emojis.appendChild(document.createTextNode('📛'));
+                        }
+                        if (slot.missing_sfp) {
+                            emojis.appendChild(document.createTextNode('📱'));
+                        }
+
+                        brick.appendChild(text);
+                        if (emojis.childNodes.length) brick.appendChild(emojis);
+                        brick.addEventListener('click', () => {
+                            openBoardFromBenchtestSlot(slot.serial_no);
+                        });
+                    }
+                    mdRow.appendChild(brick);
+                });
+
+                row.appendChild(meta);
+                row.appendChild(mdRow);
+                listEl.appendChild(row);
+            });
+
+            if (subtitle) {
+                subtitle.textContent = `${visibleCount} of ${sorted.length} benchtest(s)`;
+            }
+            applyBenchtestHeatmap(benchtestHeatmapMode);
+        }
+
+        function setBenchtestSortOrder(order) {
+            const allowed = new Set(['asc', 'desc', 'longest', 'shortest']);
+            benchtestSortOrder = allowed.has(order) ? order : 'desc';
+            const select = document.getElementById('bt-sort-order');
+            if (select && select.value !== benchtestSortOrder) {
+                select.value = benchtestSortOrder;
+            }
+            renderBenchtestList();
+        }
+
+        function wireBenchtestListControls() {
+            const applyBtn = document.getElementById('bt-filter-apply');
+            const hideCb = document.getElementById('bt-hide-unfiltered');
+            const sortSelect = document.getElementById('bt-sort-order');
+            ensureBenchtestHeatmapPanel();
+            [
+                'bt-filter-benchtest-id',
+                'bt-filter-board-id',
+                'bt-filter-batch',
+                'bt-filter-position',
+                'bt-filter-operator',
+            ].forEach((id) => {
+                const el = document.getElementById(id);
+                if (!el || el.dataset.wired === '1') return;
+                el.dataset.wired = '1';
+                el.addEventListener('change', () => syncBenchtestFilterFields(id));
+                el.addEventListener('input', () => syncBenchtestFilterFields(id));
+                el.addEventListener('keydown', (event) => {
+                    if (event.key === 'Enter') {
+                        syncBenchtestFilterFields(id);
+                        renderBenchtestList();
+                    }
+                });
+            });
+            if (applyBtn && applyBtn.dataset.wired !== '1') {
+                applyBtn.dataset.wired = '1';
+                applyBtn.addEventListener('click', () => {
+                    const btId = (document.getElementById('bt-filter-benchtest-id')?.value || '').trim();
+                    if (btId) {
+                        syncBenchtestFilterFields('bt-filter-benchtest-id');
+                    } else if ((document.getElementById('bt-filter-operator')?.value || '').trim()) {
+                        syncBenchtestFilterFields('bt-filter-operator');
+                    } else {
+                        syncBenchtestFilterFields('bt-filter-board-id');
+                    }
+                    renderBenchtestList();
+                });
+            }
+            if (hideCb && hideCb.dataset.wired !== '1') {
+                hideCb.dataset.wired = '1';
+                hideCb.addEventListener('change', () => renderBenchtestList());
+            }
+            if (sortSelect && sortSelect.dataset.wired !== '1') {
+                sortSelect.dataset.wired = '1';
+                sortSelect.value = benchtestSortOrder;
+                sortSelect.addEventListener('change', () => {
+                    setBenchtestSortOrder(sortSelect.value);
+                });
+            }
+        }
+
+        async function loadBenchtestList(force = false) {
+            const listEl = document.getElementById('benchtests-list');
+            const subtitle = document.getElementById('benchtests-subtitle');
+            const legendEl = document.getElementById('benchtests-legend');
+            if (!listEl) return;
+            wireBenchtestListControls();
+            if (benchtestListLoaded && !force) {
+                renderBenchtestList();
+                return;
+            }
+
+            renderBenchtestsLegend(legendEl);
+            listEl.innerHTML = '<div class="loading">Loading benchtests...</div>';
+            if (subtitle) subtitle.textContent = 'Loading...';
+
+            try {
+                const response = await fetch('/api/benchtest_list');
+                const data = await response.json();
+                if (data.error) {
+                    listEl.innerHTML = `<div class="summary-error">Error: ${data.error}</div>`;
+                    if (subtitle) subtitle.textContent = 'Failed to load';
+                    return;
+                }
+
+                benchtestListData = data.benchtests || [];
+                benchtestListLoaded = true;
+                populateBenchtestOperatorDatalist();
+                renderBenchtestList();
+            } catch (error) {
+                console.error('Error loading benchtest list:', error);
+                listEl.innerHTML = '<div class="summary-error">Error loading benchtests.</div>';
+                if (subtitle) subtitle.textContent = 'Failed to load';
+            }
         }
 
         async function loadBrickWall(containerId = 'brick-wall-container', brickHeight = 10, showLegend = true) {

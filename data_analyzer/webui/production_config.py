@@ -157,6 +157,7 @@ DEFAULT_BURNIN_CACHE_DIR = '/var/www/html/drive/production_plots/burn_in'
 
 DEFAULT_DASHBOARD_TAB_ORDER = [
     'brick-wall',
+    'benchtests',
     'production-summary',
     'production-statistics',
     'burn-in',
@@ -166,6 +167,7 @@ DEFAULT_DASHBOARD_TAB_ORDER = [
 
 DASHBOARD_TAB_LABELS = {
     'brick-wall': 'Production Brick Wall',
+    'benchtests': 'Benchtests',
     'production-summary': 'Production Summary',
     'production-statistics': 'Production Statistics',
     'burn-in': 'Burn In',

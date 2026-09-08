@@ -110,6 +110,7 @@ dashboard_tab_order:
 - production-summary
 - production-statistics
 - production-history
+- benchtests
 - burn-in
 - long-burn-in
 production_plot_start_date: ''

@@ -14,6 +14,7 @@ from pathlib import Path
 import argparse
 import shutil
 import csv
+import gc
 
 # Mathematics Packages
 import numpy as np
@@ -283,6 +284,8 @@ def DBQ_Mk6(regenerate_mode=None, specific_benchtest_ids=None, specific_daughter
     ### Likewise, the use of the "benchtest_id" parameter is clear either. It's just a number, but if we're going to loop over it, it has to correspond to something (maybe a direcory name?)
     ### Add output flags for each benchtest_id that needs to be processed
     ### Likewise, add flags for which MDs are filled
+    # Accumulated pass/fail stats (small); series data is held per-MD only inside the Influx loop.
+    statDict = {}
     try:
         ### Connect to influxDB ###
         print("\n==================== InfluxDB Tree ====================")
@@ -335,7 +338,7 @@ def DBQ_Mk6(regenerate_mode=None, specific_benchtest_ids=None, specific_daughter
         # Define output directroy
         driveDIR = "/var/www/html/drive/benchtests/"
 
-        # Define Query Output Storage Dictionary
+        # Define Query Output Storage Dictionary (transient; cleared after parse)
         queryResults = {}
         #print(f'queryResults = {queryResults}')
 
@@ -344,8 +347,10 @@ def DBQ_Mk6(regenerate_mode=None, specific_benchtest_ids=None, specific_daughter
         stats_regenerate = {}
         #print(f'plot_regenerate = {plot_regenerate}')
 
-        # Define Data Array
+        # Define Data Array (series held for one MD at a time)
         dataDict = {}
+        dfDict = {}
+        plotDict = {}
 
         # Define InfluxDB Tables
         VarTables = ["Link Status", "xADC", "ADC_Linearity", "CIS_Linearity", "CIS", "Integrator_Linearity"]
@@ -454,218 +459,506 @@ def DBQ_Mk6(regenerate_mode=None, specific_benchtest_ids=None, specific_daughter
                 plot_regenerate[benchtest_id] = True
                 stats_regenerate[benchtest_id] = True
 
-            # Table Loop
-            for table in config.keys():
+            # Per-MD processing: query -> stats -> (DF/plots if needed) -> free.
+            # Peak RAM should be ~1 daughterboard of series data, not all 4.
+            print(f'\nStatistical Tests / per-MD ingest for benchtest {benchtest_id}')
+            statDict[benchtest_id] = {}
+            dfDict[benchtest_id] = {}
+            plotDict[benchtest_id] = {}
+
+            bt_log_path = driveDIR + str(btDIRName) + "/" + "benchtest_id_" + str(benchtest_id) + ".log"
+            with open(bt_log_path, "a") as logfile:
+                logfile.write(f'  benchtest ID: {benchtest_id}\n')
+
+            for MDi in range(0, 4):
+                if benchtest_proc[benchtest_id]["benchtest_serialnos"][MDi] is None:
+                    continue
+
+                # Skip if specific daughterboard ID is provided and doesn't match
+                if specific_daughterboard_id is not None:
+                    if benchtest_proc[benchtest_id]["benchtest_serialnos"][MDi] != specific_daughterboard_id:
+                        print(f'    Skipping DaughterBoard {benchtest_proc[benchtest_id]["benchtest_serialnos"][MDi]} (not the specified daughterboard)')
+                        continue
+
+                board_serial = benchtest_proc[benchtest_id]["benchtest_serialnos"][MDi]
+                md_key = "MD" + str(MDi + 1)
                 print("----------------------------")
-                print(f'Table: {table}')
+                print(f'Processing Mini-Drawer {MDi+1} (serial={board_serial}) for benchtest {benchtest_id}')
 
-                # InfluxDB Query Construction
-                # Query used to download data from InfluxDB changes depending on which table is considered
-                # Handling Variable based queries
-                if table in VarTables:
-                    print(f'{table} is in VarTables')
+                # Hold series data for this MD only
+                dataDict[benchtest_id] = {}
 
-                    # Define DaughterBoards
-                    querystr_channels = ''
-                    my_channels = []
+                # Table Loop (query Influx for this MD only)
+                for table in config.keys():
+                    print("----------------------------")
+                    print(f'Table: {table} (MD{MDi+1} only)')
 
-                    # Loop over present DaughterBoards
-                    for MDi in range(0,4):
-                        if benchtest_proc[benchtest_id]["benchtest_serialnos"][MDi] != None:
-                            print(f'Mini-Drawer {MDi+1} contains DaughterBoard with Serial Number: {benchtest_proc[benchtest_id]["benchtest_serialnos"][MDi]}')
-                            querystr_channels = querystr_channels + '"PprGTH MD' + str(MDi+1) + '", '
-                            my_channels.append("PprGTH MD" + str(MDi+1))
+                    # InfluxDB Query Construction
+                    # Handling Variable based queries
+                    if table in VarTables:
+                        print(f'{table} is in VarTables')
 
-                    querystr_channels = querystr_channels[:-2]
-                    print(f'querystr_channels = {querystr_channels}')
-                    print(f'my_channels = {my_channels}')
+                        querystr_channels = '"PprGTH MD' + str(MDi+1) + '"'
+                        my_channels = ["PprGTH MD" + str(MDi+1)]
+                        print(f'Mini-Drawer {MDi+1} contains DaughterBoard with Serial Number: {board_serial}')
+                        print(f'querystr_channels = {querystr_channels}')
+                        print(f'my_channels = {my_channels}')
 
-                    # Define Table
-                    querystr_table = f'"{table}"'
-                    print(f'querystr_table = {querystr_table}')
+                        querystr_table = f'"{table}"'
+                        print(f'querystr_table = {querystr_table}')
 
-                    # Define Variables
-                    querystr_variables = ''
-                    my_variables = []
+                        querystr_variables = ''
+                        my_variables = []
 
-                    # Loop over chosen Variables
-                    for ivar in config[table].keys():
-                        querystr_variables = querystr_variables + '"' + ivar + '", '
-                        my_variables.append(ivar)
-                        dataDict[benchtest_id][ivar] = {}
-
-                        for chan in my_channels:
-                            if chan[7:10] not in dataDict[benchtest_id][ivar]:
-                                dataDict[benchtest_id][ivar][chan[7:10]] = {}
-
-                    #print(f'dataDict = {dataDict}')
-
-                    querystr_variables = querystr_variables[:-2]
-                    print(f'querystr_variables = {querystr_variables}')
-                    print(f'my_variables = {my_variables}')
-
-                    # Define Time Range
-                    start_time = benchtest_proc[benchtest_id]["benchtest_timestamp"][0]
-                    stop_time  = benchtest_proc[benchtest_id]["benchtest_timestamp"][1]
-                    querystr_time_range = f'time >= \'{benchtest_proc[benchtest_id]["benchtest_timestamp"][0]}\' AND time <= \'{benchtest_proc[benchtest_id]["benchtest_timestamp"][1]}\''
-                    print(f'querystr_time_range = {querystr_time_range}')
-
-                    # Construct Query
-                    my_query = f'SELECT {querystr_channels}, {querystr_variables} FROM {querystr_table} WHERE {querystr_time_range}'
-                    print(f'my_query = {my_query}')
-
-                    # Query database
-                    queryResults[benchtest_id][table] = client.query(my_query)
-                    
-                    # Check if query returned any data
-                    query_points = list(queryResults[benchtest_id][table].get_points())
-                    if not query_points:
-                        print(f'Warning: No data returned from InfluxDB for table {table} in benchtest {benchtest_id}')
-                        # Initialize empty data structure for this table to prevent errors later
-                        for ivar in my_variables:
-                            for chan in my_channels:
-                                if chan[7:10] not in dataDict[benchtest_id][ivar]:
-                                    dataDict[benchtest_id][ivar][chan[7:10]] = {}
-                        print(f'Querying Table: {table} - No data available\n')
-                    else:
-                        print(f'Querying Table: {table} - Success!\n')
-                    
-                    #print(f'queryResults = {queryResults}')
-                    #print(f'queryResults[{benchtest_id}] = {queryResults[benchtest_id]}')
-                    #print(f'queryResults[{benchtest_id}][{table}] = {queryResults[benchtest_id][table]}')
-
-                    # Data Loop
-                    for point in query_points:
-                        #print(f'point = {point}')
-                        #print(f'Time: {point['time']}')
-
-                        for ppr in my_channels:
-                            if point[ppr] != None:
-                                #print(f'{ppr} : {point[ppr]}')
-                                #print(f'PprGTH {ppr[7:10]} : {point[ppr]}')
-                                #print(f'ppr = "{ppr}"')
-                                #print(f'ppr[7:10] = "{ppr[7:10]}"')
-                                #print(f'point = {point}')
-                                #print(f'point[ppr] = {point[ppr]}')
-
-                                for ivar in my_variables:
-                                    #print(f'ivar = {ivar}')
-                                    #print(f'point[ivar] = {point[ivar]}')
-
-                                    if point[ppr] not in dataDict[benchtest_id][ivar][ppr[7:10]]:
-                                        dataDict[benchtest_id][ivar][ppr[7:10]][point[ppr]] = {}
-
-                                    if "x" not in dataDict[benchtest_id][ivar][ppr[7:10]][point[ppr]]:
-                                        dataDict[benchtest_id][ivar][ppr[7:10]][point[ppr]]["x"] = []
-
-                                    if "y" not in dataDict[benchtest_id][ivar][ppr[7:10]][point[ppr]]:
-                                        dataDict[benchtest_id][ivar][ppr[7:10]][point[ppr]]["y"] = []
-
-                                    #if (ivar == "hg_max_dev" or ivar == "lg_max_dev" or ivar == "hg_slope" or ivar == "lg_slope" or ivar == "hg_r2" or ivar == "lg_r2"):
-                                        #print(f'{ivar}: {point[ivar]}')
-
-                                    if point[ivar] != None:
-                                        #Filtering zeroes from table CIS_Linearity variables hg_center and lg_center
-                                        if table == "CIS" and point[ivar] == 0:
-                                            print(f"  Warning: Variable {ivar} in Table {table} has value {point[ivar]} at {datetime.fromisoformat(point['time'])}. Filtering out.")
-                                        else:
-                                            dataDict[benchtest_id][ivar][ppr[7:10]][point[ppr]]["x"].append(datetime.fromisoformat(point['time']))
-                                            dataDict[benchtest_id][ivar][ppr[7:10]][point[ppr]]["y"].append(point[ivar])
-                                    else:
-                                        print(f"  Warning: NULL value encountered for variable {ivar} in Table {table} at {datetime.fromisoformat(point['time'])}. Skipping this point.")
-
-                # Handling Tag based queries
-                elif table in TagTables:
-                    print(f'{table} is in TagTables')
-
-                    # Define Table
-                    querystr_table = f'"{table}"'
-                    print(f'querystr_table = {querystr_table}')
-
-                    # Define Time Range
-                    start_time = benchtest_proc[benchtest_id]["benchtest_timestamp"][0]
-                    stop_time  = benchtest_proc[benchtest_id]["benchtest_timestamp"][1]
-                    querystr_time_range = f'time >= \'{benchtest_proc[benchtest_id]["benchtest_timestamp"][0]}\' AND time <= \'{benchtest_proc[benchtest_id]["benchtest_timestamp"][1]}\''
-                    print(f'querystr_time_range = {querystr_time_range}')
-
-                    # Define Tags
-                    querystr_tags = ''
-                    my_tags = []
-
-                    # Contruct Tags
-                    for ivar in config[table].keys():
-                        #print(f'ivar: {ivar}')
-                        #print(f'dataDict[{benchtest_id}] = {dataDict[benchtest_id]}')
-                        dataDict[benchtest_id][ivar] = {}
-
-                        for MDi in range(0,4):
-                            if benchtest_proc[benchtest_id]["benchtest_serialnos"][MDi] != None:
-                                #print(f'Mini-Drawer {MDi+1} contains DaughterBoard with Serial Number: {benchtest_proc[benchtest_id]["benchtest_serialnos"][MDi]}')
-                                #print(f'dataDict[{benchtest_id}][{ivar}] = {dataDict[benchtest_id][ivar]}')
-                                dataDict[benchtest_id][ivar]["MD"+str(MDi+1)] = {}
-
-                                for side in ['a', 'b']:
-                                    #print(f'Side: {side}')
-                                    #print(f'dataDict[{benchtest_id}][{ivar}][{MDi}] = {dataDict[benchtest_id][ivar][MDi]}')
-                                    dataDict[benchtest_id][ivar]["MD"+str(MDi+1)]["db"+side] = {}
-                                    dataDict[benchtest_id][ivar]["MD"+str(MDi+1)]["db"+side]["x"] = []
-                                    dataDict[benchtest_id][ivar]["MD"+str(MDi+1)]["db"+side]["y"] = []
-
-                                    querystr_tags = querystr_tags + '"entity_id" = \'db_tester_lbt_md' + str(MDi+1) + '_db' + side + '_' + ivar + '\' OR '
-
-                    querystr_tags = '(' + querystr_tags[:-4] + ')'
-                    print(f'querystr_tags = {querystr_tags}')
-
-                    my_query = f'SELECT "entity_id", "value" FROM {querystr_table} WHERE {querystr_time_range} AND {querystr_tags}'
-                    print(f'my_query = {my_query}')
-
-                    # Query database
-                    queryResults[benchtest_id][table] = client.query(my_query)
-                    
-                    # Check if query returned any data
-                    query_points = list(queryResults[benchtest_id][table].get_points())
-                    if not query_points:
-                        print(f'Warning: No data returned from InfluxDB for table {table} in benchtest {benchtest_id}')
-                        # Initialize empty data structure for this table to prevent errors later
                         for ivar in config[table].keys():
-                            for MDi in range(0,4):
-                                if benchtest_proc[benchtest_id]["benchtest_serialnos"][MDi] != None:
-                                    dataDict[benchtest_id][ivar]["MD"+str(MDi+1)] = {}
-                                    for side in ['a', 'b']:
-                                        dataDict[benchtest_id][ivar]["MD"+str(MDi+1)]["db"+side] = {}
-                                        dataDict[benchtest_id][ivar]["MD"+str(MDi+1)]["db"+side]["x"] = []
-                                        dataDict[benchtest_id][ivar]["MD"+str(MDi+1)]["db"+side]["y"] = []
-                        print(f'Querying Table: {table} - No data available\n')
-                    else:
-                        print(f'Querying Table: {table} - Success!\n')
-                    
-                    #print(f'queryResults = {queryResults}')
-                    #print(f'queryResults[{benchtest_id}] = {queryResults[benchtest_id]}')
-                    #print(f'queryResults[{benchtest_id}][{table}] = {queryResults[benchtest_id][table]}')
-                    
-                    for point in query_points:
-                        #print(f'point = {point}')
+                            querystr_variables = querystr_variables + '"' + ivar + '", '
+                            my_variables.append(ivar)
+                            if ivar not in dataDict[benchtest_id]:
+                                dataDict[benchtest_id][ivar] = {}
+                            if md_key not in dataDict[benchtest_id][ivar]:
+                                dataDict[benchtest_id][ivar][md_key] = {}
 
-                        #print(f'MDString: {point["entity_id"][14:17].upper()}')
-                        #print(f'DBSide:   {point["entity_id"][18:21]}')
-                        #print(f'VarName:  {point["entity_id"][22:]}')
-                        #print(f'Time:     {point["time"]}')
-                        #print(f'Value:    {point["value"]}')
+                        querystr_variables = querystr_variables[:-2]
+                        print(f'querystr_variables = {querystr_variables}')
+                        print(f'my_variables = {my_variables}')
 
-                        # Check for NULL values in the "value" field
-                        if point["value"] != None:
-                            dataDict[benchtest_id][point["entity_id"][22:]][point["entity_id"][14:17].upper()][point["entity_id"][18:21]]["x"].append(datetime.fromisoformat(point['time']))
-                            dataDict[benchtest_id][point["entity_id"][22:]][point["entity_id"][14:17].upper()][point["entity_id"][18:21]]["y"].append(point["value"])
+                        start_time = benchtest_proc[benchtest_id]["benchtest_timestamp"][0]
+                        stop_time  = benchtest_proc[benchtest_id]["benchtest_timestamp"][1]
+                        querystr_time_range = f'time >= \'{benchtest_proc[benchtest_id]["benchtest_timestamp"][0]}\' AND time <= \'{benchtest_proc[benchtest_id]["benchtest_timestamp"][1]}\''
+                        print(f'querystr_time_range = {querystr_time_range}')
+
+                        my_query = f'SELECT {querystr_channels}, {querystr_variables} FROM {querystr_table} WHERE {querystr_time_range}'
+                        print(f'my_query = {my_query}')
+
+                        query_result = client.query(my_query)
+                        query_points = list(query_result.get_points())
+                        del query_result
+                        if not query_points:
+                            print(f'Warning: No data returned from InfluxDB for table {table} in benchtest {benchtest_id} ({md_key})')
+                            for ivar in my_variables:
+                                if ivar not in dataDict[benchtest_id]:
+                                    dataDict[benchtest_id][ivar] = {}
+                                if md_key not in dataDict[benchtest_id][ivar]:
+                                    dataDict[benchtest_id][ivar][md_key] = {}
+                            print(f'Querying Table: {table} - No data available\n')
                         else:
-                            print(f"  Warning: NULL value encountered for entity_id {point['entity_id']} in Table {table} at {datetime.fromisoformat(point['time'])}. Skipping this point.")
-                        #point = {'time': '2026-04-16T17:53:06.240778Z', 'entity_id': 'db_tester_lbt_md2_dba_3v3', 'value': 3.329}
+                            print(f'Querying Table: {table} - Success!\n')
 
-                    #for ivar in config[table].keys():
-                        #print("ASS Check\n")
-                        #print(f'dataDict[{benchtest_id}][{ivar}]: {dataDict[benchtest_id][ivar]}\n')
+                        for point in query_points:
+                            for ppr in my_channels:
+                                if point[ppr] != None:
+                                    for ivar in my_variables:
+                                        if point[ppr] not in dataDict[benchtest_id][ivar][ppr[7:10]]:
+                                            dataDict[benchtest_id][ivar][ppr[7:10]][point[ppr]] = {}
+
+                                        if "x" not in dataDict[benchtest_id][ivar][ppr[7:10]][point[ppr]]:
+                                            dataDict[benchtest_id][ivar][ppr[7:10]][point[ppr]]["x"] = []
+
+                                        if "y" not in dataDict[benchtest_id][ivar][ppr[7:10]][point[ppr]]:
+                                            dataDict[benchtest_id][ivar][ppr[7:10]][point[ppr]]["y"] = []
+
+                                        if point[ivar] != None:
+                                            # Filtering zeroes from table CIS variables
+                                            if table == "CIS" and point[ivar] == 0:
+                                                print(f"  Warning: Variable {ivar} in Table {table} has value {point[ivar]} at {datetime.fromisoformat(point['time'])}. Filtering out.")
+                                            else:
+                                                dataDict[benchtest_id][ivar][ppr[7:10]][point[ppr]]["x"].append(datetime.fromisoformat(point['time']))
+                                                dataDict[benchtest_id][ivar][ppr[7:10]][point[ppr]]["y"].append(point[ivar])
+                                        else:
+                                            print(f"  Warning: NULL value encountered for variable {ivar} in Table {table} at {datetime.fromisoformat(point['time'])}. Skipping this point.")
+                        del query_points
+
+                    elif table in TagTables:
+                        print(f'{table} is in TagTables')
+
+                        querystr_table = f'"{table}"'
+                        print(f'querystr_table = {querystr_table}')
+
+                        start_time = benchtest_proc[benchtest_id]["benchtest_timestamp"][0]
+                        stop_time  = benchtest_proc[benchtest_id]["benchtest_timestamp"][1]
+                        querystr_time_range = f'time >= \'{benchtest_proc[benchtest_id]["benchtest_timestamp"][0]}\' AND time <= \'{benchtest_proc[benchtest_id]["benchtest_timestamp"][1]}\''
+                        print(f'querystr_time_range = {querystr_time_range}')
+
+                        querystr_tags = ''
+
+                        for ivar in config[table].keys():
+                            if ivar not in dataDict[benchtest_id]:
+                                dataDict[benchtest_id][ivar] = {}
+                            dataDict[benchtest_id][ivar][md_key] = {}
+
+                            for side in ['a', 'b']:
+                                dataDict[benchtest_id][ivar][md_key]["db"+side] = {}
+                                dataDict[benchtest_id][ivar][md_key]["db"+side]["x"] = []
+                                dataDict[benchtest_id][ivar][md_key]["db"+side]["y"] = []
+
+                                querystr_tags = querystr_tags + '"entity_id" = \'db_tester_lbt_md' + str(MDi+1) + '_db' + side + '_' + ivar + '\' OR '
+
+                        querystr_tags = '(' + querystr_tags[:-4] + ')'
+                        print(f'querystr_tags = {querystr_tags}')
+
+                        my_query = f'SELECT "entity_id", "value" FROM {querystr_table} WHERE {querystr_time_range} AND {querystr_tags}'
+                        print(f'my_query = {my_query}')
+
+                        query_result = client.query(my_query)
+                        query_points = list(query_result.get_points())
+                        del query_result
+                        if not query_points:
+                            print(f'Warning: No data returned from InfluxDB for table {table} in benchtest {benchtest_id} ({md_key})')
+                            for ivar in config[table].keys():
+                                if ivar not in dataDict[benchtest_id]:
+                                    dataDict[benchtest_id][ivar] = {}
+                                dataDict[benchtest_id][ivar][md_key] = {}
+                                for side in ['a', 'b']:
+                                    dataDict[benchtest_id][ivar][md_key]["db"+side] = {}
+                                    dataDict[benchtest_id][ivar][md_key]["db"+side]["x"] = []
+                                    dataDict[benchtest_id][ivar][md_key]["db"+side]["y"] = []
+                            print(f'Querying Table: {table} - No data available\n')
+                        else:
+                            print(f'Querying Table: {table} - Success!\n')
+
+                        for point in query_points:
+                            if point["value"] != None:
+                                dataDict[benchtest_id][point["entity_id"][22:]][point["entity_id"][14:17].upper()][point["entity_id"][18:21]]["x"].append(datetime.fromisoformat(point['time']))
+                                dataDict[benchtest_id][point["entity_id"][22:]][point["entity_id"][14:17].upper()][point["entity_id"][18:21]]["y"].append(point["value"])
+                            else:
+                                print(f"  Warning: NULL value encountered for entity_id {point['entity_id']} in Table {table} at {datetime.fromisoformat(point['time'])}. Skipping this point.")
+
+                        del query_points
+
+                # --- Statistical tests for this MD only ---
+                with open(bt_log_path, "a") as logfile:
+                    print(f'\n    DaughterBoard Serial Number: {board_serial}')
+                    logfile.write(f'\n    DaughterBoard Serial Number: {board_serial}\n')
+                    statDict[benchtest_id][board_serial] = {}
+
+                    dbDIRName = "DB_" + str(board_serial)
+                    print(f'    Creating Directory: {driveDIR + btDIRName + "/" + dbDIRName}')
+                    dbDIR_fullpath = Path(driveDIR + btDIRName + "/" + dbDIRName)
+                    print(f'    dbDir_fullpath = {dbDIR_fullpath}')
+                    dbDIR_fullpath.mkdir(parents=True, exist_ok=True)
+
+                    for table in config.keys():
+                        print(f'      Table: {table}')
+                        logfile.write(f'      Table: {table}\n')
+
+                        for ivar in config[table].keys():
+                            print(f'        Variable:  {ivar}')
+                            print(f'        config[{table}][{ivar}] = {config[table][ivar]}')
+                            logfile.write(f'        Variable:  {ivar}\n')
+                            logfile.write(f'        config[{table}][{ivar}] = {config[table][ivar]}\n')
+                            statDict[benchtest_id][board_serial][ivar] = {}
+
+                            var_pointpass = []
+                            var_npoints = 0
+
+                            # Empty-query handling may leave MD bucket missing; treat as no channels.
+                            md_channels = dataDict[benchtest_id].get(ivar, {}).get(md_key, {})
+
+                            for channel in md_channels:
+                                print(f'          Channel: {channel}')
+                                logfile.write(f'          Channel: {channel}\n')
+
+                                var_npoints += len(dataDict[benchtest_id][ivar][md_key][channel]["y"])
+
+                                var_thresholds = get_var_thresholds(config[table][ivar])
+                                if len(var_thresholds) == 1:
+
+                                    for y in dataDict[benchtest_id][ivar][md_key][channel]["y"]:
+                                        if y == var_thresholds[0]:
+                                            var_pointpass.append(1)
+                                        else:
+                                            var_pointpass.append(0)
+
+                                if len(var_thresholds) == 2:
+                                    for i, y in enumerate( dataDict[benchtest_id][ivar][md_key][channel]["y"] ):
+
+                                        datlen = len(dataDict[benchtest_id][ivar][md_key][channel]["y"])
+
+                                        np_RMArray = np.empty(0)
+                                        roll_median = 0
+                                        roll_MAD = 0
+
+                                        if y >= var_thresholds[0] and y <= var_thresholds[1]:
+                                            var_pointpass.append(1)
+
+                                        elif y < var_thresholds[0] or y > var_thresholds[1]:
+
+                                            if datlen == 1:
+                                                print(f'              Warning: Only 1 data point available for {ivar} in {channel}. Cannot perform spike/drop detection. Marking as failed (out of bounds).')
+                                                logfile.write(f'             Warning: Only 1 data point available for {ivar} in {channel}. Cannot perform spike/drop detection. Marking as failed (out of bounds).\n')
+                                                var_pointpass.append(0)
+                                            else:
+                                                if i < 10:
+                                                    print(f'              Case: i<10. [0, {i}, {i+1}, 21]')
+                                                    np_RMArray = np.array( dataDict[benchtest_id][ivar][md_key][channel]["y"][0:i] + dataDict[benchtest_id][ivar][md_key][channel]["y"][i+1:21])
+                                                elif i >= len(dataDict[benchtest_id][ivar][md_key][channel]["y"]) - 10:
+                                                    print(f'              Case: i>= len(dataDict[benchtest_id][ivar][md_key][channel]["y"]) - 10. [datlen-21, i, i+1, datlen] = [{datlen-21}, {i}, {i+1}, {datlen}]')
+                                                    np_RMArray = np.array( dataDict[benchtest_id][ivar][md_key][channel]["y"][datlen-21:i] + dataDict[benchtest_id][ivar][md_key][channel]["y"][i+1:datlen] )
+                                                else:
+                                                    print(f'              Case: else. [{i-10}, {i}, {i+1}, {i+11}]')
+                                                    np_RMArray = np.array( dataDict[benchtest_id][ivar][md_key][channel]["y"][i-10:i] + dataDict[benchtest_id][ivar][md_key][channel]["y"][i+1:i+11])
+
+                                                roll_median = np.median(np_RMArray)
+                                                roll_MAD = max(0.1, np.median(np.abs(np_RMArray - roll_median)))
+
+                                                if i == 0:
+                                                    print(f'              Case: i == 0')
+                                                    if abs(dataDict[benchtest_id][ivar][md_key][channel]["y"][i] - dataDict[benchtest_id][ivar][md_key][channel]["y"][i+1]) < 3*roll_MAD:
+                                                        var_pointpass.append(0)
+                                                    else:
+                                                        print(f'             Spike/Drop Detected @ [DBSN: {board_serial}, Table: {table}, Variable: {ivar}, Channel: {channel} Time: {dataDict[benchtest_id][ivar][md_key][channel]["x"][i]}, Value: {dataDict[benchtest_id][ivar][md_key][channel]["y"][i]}]')
+                                                        logfile.write(f'             Spike/Drop Detected @ [DBSN: {board_serial}, Table: {table}, Variable: {ivar}, Channel: {channel} Time: {dataDict[benchtest_id][ivar][md_key][channel]["x"][i]}, Value: {dataDict[benchtest_id][ivar][md_key][channel]["y"][i]}]\n')
+                                                elif i == datlen-1:
+                                                    print(f'              Case: i == datlen-1')
+                                                    if abs(dataDict[benchtest_id][ivar][md_key][channel]["y"][i-1] - dataDict[benchtest_id][ivar][md_key][channel]["y"][i]) < 3*roll_MAD:
+                                                        var_pointpass.append(0)
+                                                    else:
+                                                        print(f'             Spike/Drop Detected @ [DBSN: {board_serial}, Table: {table}, Variable: {ivar}, Channel: {channel} Time: {dataDict[benchtest_id][ivar][md_key][channel]["x"][i]}, Value: {dataDict[benchtest_id][ivar][md_key][channel]["y"][i]}]')
+                                                        logfile.write(f'             Spike/Drop Detected @ [DBSN: {board_serial}, Table: {table}, Variable: {ivar}, Channel: {channel} Time: {dataDict[benchtest_id][ivar][md_key][channel]["x"][i]}, Value: {dataDict[benchtest_id][ivar][md_key][channel]["y"][i]}]\n')
+                                                else:
+                                                    print(f'              Case: else.')
+                                                    if abs(dataDict[benchtest_id][ivar][md_key][channel]["y"][i] - dataDict[benchtest_id][ivar][md_key][channel]["y"][i-1]) < 3*roll_MAD or abs(dataDict[benchtest_id][ivar][md_key][channel]["y"][i+1] - dataDict[benchtest_id][ivar][md_key][channel]["y"][i]) < 3*roll_MAD:
+                                                        var_pointpass.append(0)
+                                                    else:
+                                                        print(f'             Spike/Drop Detected @ [DBSN: {board_serial}, Table: {table}, Variable: {ivar}, Channel: {channel} Time: {dataDict[benchtest_id][ivar][md_key][channel]["x"][i]}, Value: {dataDict[benchtest_id][ivar][md_key][channel]["y"][i]}]')
+                                                        logfile.write(f'             Spike/Drop Detected @ [DBSN: {board_serial}, Table: {table}, Variable: {ivar}, Channel: {channel} Time: {dataDict[benchtest_id][ivar][md_key][channel]["x"][i]}, Value: {dataDict[benchtest_id][ivar][md_key][channel]["y"][i]}]\n')
+
+                            statDict[benchtest_id][board_serial][ivar]["nPoints"] = var_npoints
+                            statDict[benchtest_id][board_serial][ivar]["nConsidered"] = len(var_pointpass)
+                            statDict[benchtest_id][board_serial][ivar]["nPass"] = sum(var_pointpass)
+                            if len(var_pointpass) != 0:
+                                statDict[benchtest_id][board_serial][ivar]["fPass"] = sum(var_pointpass)/len(var_pointpass)
+                            elif len(var_pointpass) == 0:
+                                print(f'        Warning: Data Not Found for Variable {ivar} in Table {table}! Tentatively Ignoring Check and "Passing" Board, Please Consult Log.')
+                                statDict[benchtest_id][board_serial][ivar]["fPass"] = -1.0
+
+                # --- DataFrames + plots / statistics YAML for this MD only (if needed) ---
+                # Isolate failures so remaining MDs still get query/stats into statDict.
+                need_plots_or_stats = plot_regenerate.get(benchtest_id) or stats_regenerate.get(benchtest_id)
+                if need_plots_or_stats:
+                    try:
+                        print(f'\nDataFrames / Plotly for serial={board_serial}')
+                        start_time = benchtest_proc[benchtest_id]["benchtest_timestamp"][0]
+                        stop_time = benchtest_proc[benchtest_id]["benchtest_timestamp"][1]
+
+                        # Build DataFrames only when figures will be written (stats YAML uses dataDict).
+                        if plot_regenerate.get(benchtest_id):
+                            dfDict[benchtest_id][board_serial] = {}
+                            for table in config.keys():
+                                print(f'      Table: {table}')
+                                for ivar in config[table].keys():
+                                    print(f'        Variable: {ivar}')
+                                    dfDict[benchtest_id][board_serial][ivar] = {}
+                                    dfCombo = []
+                                    md_channels = dataDict[benchtest_id].get(ivar, {}).get(md_key, {})
+                                    for channel in md_channels:
+                                        print(f'          channel: {channel}')
+                                        dfDict[benchtest_id][board_serial][ivar][channel] = pd.DataFrame( {'channel' : [channel]*len(dataDict[benchtest_id][ivar][md_key][channel]["x"]), 'x' : dataDict[benchtest_id][ivar][md_key][channel]["x"], 'y' : dataDict[benchtest_id][ivar][md_key][channel]["y"] } )
+                                        dfCombo.append(dfDict[benchtest_id][board_serial][ivar][channel])
+
+                                    _refs = (dbq_plot_style or {}).get('reference_traces') or {}
+                                    truth_name = _refs.get('truth_name') or 'TruthValue'
+                                    lower_name = _refs.get('lower_name') or 'LowerLimit'
+                                    upper_name = _refs.get('upper_name') or 'UpperLimit'
+                                    var_thresholds = get_var_thresholds(config[table][ivar])
+                                    if len(var_thresholds) == 1:
+                                        dfDict[benchtest_id][board_serial][ivar][truth_name] = pd.DataFrame( {'channel' : [truth_name, truth_name], 'x' : [datetime.fromisoformat(start_time), datetime.fromisoformat(stop_time)], 'y' : [var_thresholds[0], var_thresholds[0]] } )
+                                        dfCombo.append(dfDict[benchtest_id][board_serial][ivar][truth_name])
+                                    if len(var_thresholds) == 2:
+                                        dfDict[benchtest_id][board_serial][ivar][lower_name] = pd.DataFrame( {'channel' : [lower_name, lower_name], 'x' : [datetime.fromisoformat(start_time), datetime.fromisoformat(stop_time)], 'y' : [var_thresholds[0], var_thresholds[0]] } )
+                                        dfCombo.append(dfDict[benchtest_id][board_serial][ivar][lower_name])
+                                        dfDict[benchtest_id][board_serial][ivar][upper_name] = pd.DataFrame( {'channel' : [upper_name, upper_name], 'x' : [datetime.fromisoformat(start_time), datetime.fromisoformat(stop_time)], 'y' : [var_thresholds[1], var_thresholds[1]] } )
+                                        dfCombo.append(dfDict[benchtest_id][board_serial][ivar][upper_name])
+
+                                    dfCombo = [df for df in dfCombo if not df.empty]
+                                    full_df = pd.concat(dfCombo) if dfCombo else pd.DataFrame(columns=['channel', 'x', 'y'])
+                                    dfDict[benchtest_id][board_serial][ivar] = {"Full": full_df}
+                                    del dfCombo, full_df
+
+                        # plotly Plotting / statistics YAML for this MD
+                        print(f'\n  Plotly: serial={board_serial}')
+                        plotDict[benchtest_id][board_serial] = {}
+                        dbDIRName = "DB_" + str(board_serial)
+                        dbDIR_fullpath = Path(driveDIR + btDIRName + "/" + dbDIRName)
+                        dbDIR_fullpath.mkdir(parents=True, exist_ok=True)
+                        board_stats_variables = {}
+
+                        for table in config.keys():
+                            print(f'      Table: {table}')
+                            for ivar in config[table].keys():
+                                print(f'        Variable: {ivar}')
+                                md_channels = dataDict[benchtest_id].get(ivar, {}).get(md_key, {})
+                                print(f'        nChannels: {len(md_channels)}')
+                                plotDict[benchtest_id][board_serial][ivar] = {}
+
+                                testtime = datetime.now()
+                                print(f'        Post Initialise-plotDict Date/Time: {testtime.strftime("%y/%m/%d - %H:%M:%S")}')
+
+                                if len(md_channels) != 0:
+                                    plot_caption = get_var_caption(config[table][ivar], default_name=ivar)
+                                    plot_dimensions = get_var_dimensions(config[table][ivar])
+                                    _refs = (dbq_plot_style or {}).get('reference_traces') or {}
+                                    truth_name = _refs.get('truth_name') or 'TruthValue'
+                                    lower_name = _refs.get('lower_name') or 'LowerLimit'
+                                    upper_name = _refs.get('upper_name') or 'UpperLimit'
+                                    var_thresholds = get_var_thresholds(config[table][ivar])
+
+                                    channel_y_data = {}
+                                    channel_stats = {}
+                                    for channel, series in md_channels.items():
+                                        if channel in (truth_name, lower_name, upper_name):
+                                            continue
+                                        y_values = series.get('y') or []
+                                        channel_y_data[channel] = y_values
+                                        stats = compute_y_stats(y_values)
+                                        if stats:
+                                            channel_stats[channel] = stats
+
+                                    if stats_regenerate.get(benchtest_id):
+                                        board_stats_variables[ivar] = build_variable_stats_payload(
+                                            ivar,
+                                            plot_caption,
+                                            var_thresholds,
+                                            channel_y_data,
+                                            table=table,
+                                            dimensions=plot_dimensions,
+                                        )
+
+                                    if not plot_regenerate.get(benchtest_id):
+                                        continue
+
+                                    plotDict[benchtest_id][board_serial][ivar] = plotlyEX.line(
+                                        dfDict[benchtest_id][board_serial][ivar]["Full"],
+                                        x="x",
+                                        y="y",
+                                        color="channel",
+                                        labels=px_line_labels(
+                                            dbq_plot_style,
+                                            plot_caption,
+                                            dimensions=plot_dimensions,
+                                        ),
+                                    )
+
+                                    testtime = datetime.now()
+                                    print(f'          Post Define-plotDict Date/Time: {testtime.strftime("%y/%m/%d - %H:%M:%S")}')
+
+                                    threshold_mode = None
+                                    truth_value = None
+                                    lower_value = None
+                                    upper_value = None
+                                    if len(var_thresholds) == 1:
+                                        print('            LENGTH = 1')
+                                        threshold_mode = 'truth'
+                                        truth_value = var_thresholds[0]
+                                    elif len(var_thresholds) == 2:
+                                        print('            LENGTH = 2')
+                                        threshold_mode = 'limits'
+                                        lower_value = var_thresholds[0]
+                                        upper_value = var_thresholds[1]
+
+                                    style_dbq_figure(
+                                        plotDict[benchtest_id][board_serial][ivar],
+                                        dbq_plot_style,
+                                        serial=board_serial,
+                                        ivar=plot_caption,
+                                        dimensions=plot_dimensions,
+                                        threshold_mode=threshold_mode,
+                                        start_time=start_time,
+                                        stop_time=stop_time,
+                                        benchtest_id=benchtest_id,
+                                    )
+                                    apply_plot_legend_stats(
+                                        plotDict[benchtest_id][board_serial][ivar],
+                                        channel_stats,
+                                        truth_name=truth_name,
+                                        lower_name=lower_name,
+                                        upper_name=upper_name,
+                                        truth_value=truth_value,
+                                        lower_value=lower_value,
+                                        upper_value=upper_value,
+                                    )
+                                    testtime = datetime.now()
+                                    print(f'          Post Style-plotDict Date/Time: {testtime.strftime("%y/%m/%d - %H:%M:%S")}')
+
+                                    plot_path = driveDIR+btDIRName+"/"+dbDIRName + "/DBSNo_"+str(board_serial)+"_PPrGTH_"+ivar+".html"
+                                    plotDict[benchtest_id][board_serial][ivar].write_html(
+                                        plot_path,
+                                        **write_html_options(dbq_plot_style),
+                                    )
+                                    plotDict[benchtest_id][board_serial].pop(ivar, None)
+                                    if (
+                                        benchtest_id in dfDict
+                                        and board_serial in dfDict[benchtest_id]
+                                        and ivar in dfDict[benchtest_id][board_serial]
+                                    ):
+                                        del dfDict[benchtest_id][board_serial][ivar]
+                                    testtime = datetime.now()
+                                    print(f'          Post Final Save-plotDict Date/Time: {testtime.strftime("%y/%m/%d - %H:%M:%S")}')
+
+                        if stats_regenerate.get(benchtest_id) and board_stats_variables:
+                            stats_path = (
+                                driveDIR + btDIRName + "/" + dbDIRName
+                                + "/DBSNo_" + str(board_serial) + "_PPrGTH_Statistics.yaml"
+                            )
+                            write_board_statistics_yaml(
+                                stats_path,
+                                serial=board_serial,
+                                benchtest_id=benchtest_id,
+                                variables_payload=board_stats_variables,
+                                start_time=start_time,
+                                stop_time=stop_time,
+                            )
+                            print(f'  Wrote statistics YAML: {stats_path}')
+
+                        if plot_regenerate.get(benchtest_id):
+                            try:
+                                from piro_extra_test_plots import generate_extra_plots_for_board
+                                extra_plots = ['ADC_Linearity_Samples',
+                                'CIS_Samples',
+                                'Link_Eye_Diagram_Samples',
+                                'Integrator_Linearity_Samples',
+                                'CIS_Linearity_Samples']
+
+                                generate_extra_plots_for_board(
+                                    client,
+                                    benchtest_id=benchtest_id,
+                                    board_serial=board_serial,
+                                    md_index=MDi,
+                                    start_time=start_time,
+                                    stop_time=stop_time,
+                                    out_dir=str(dbDIR_fullpath),
+                                    dbq_plot_style=dbq_plot_style,
+                                    plots=extra_plots,
+                                )
+                            except Exception as extra_exc:
+                                print(f'  Warning: piro_extra_test_plots failed: {extra_exc}')
+                    except Exception as plot_exc:
+                        print(f'  Warning: DF/plot/stats-YAML pipeline failed for serial={board_serial}: {plot_exc}')
+
+                # Free per-board / per-MD series data before next MD
+                if benchtest_id in dataDict:
+                    dataDict[benchtest_id].clear()
+                if benchtest_id in dfDict:
+                    dfDict[benchtest_id].pop(board_serial, None)
+                if benchtest_id in plotDict:
+                    plotDict[benchtest_id].pop(board_serial, None)
+                gc.collect()
+                print(
+                    f'  Freed in-memory data for serial={board_serial} '
+                    f'{md_key} (benchtest {benchtest_id})'
+                )
+
+            # Free remaining per-benchtest containers after all MDs.
+            dataDict.pop(benchtest_id, None)
+            dfDict.pop(benchtest_id, None)
+            plotDict.pop(benchtest_id, None)
+            gc.collect()
 
             print("----------------------------")
         print("============================\n")
+        # Influx ResultSets / point lists are already released per table.
+        queryResults.clear()
+        gc.collect()
 
     except Exception as e:
         print(f"\u274C InfluxDB Connection Failed: {e}")
@@ -693,169 +986,6 @@ def DBQ_Mk6(regenerate_mode=None, specific_benchtest_ids=None, specific_daughter
     #                    #for i in range(0, len(dataDict[btid][variable][MD][channel]["x"])):
     #                    #    print(f'          [{dataDict[btid][variable][MD][channel]["x"][i]}, {dataDict[btid][variable][MD][channel]["y"][i]}]')
 
-    ### Statistical Tests for Data ###
-    print("\nStatistical Tests")
-
-    statDict = {}
-    print(f'\nstatDict = {statDict}')
-
-    for benchtest_id in benchtest_proc.keys():
-        # statDict
-        statDict[benchtest_id] = {}
-        print(f'\n  statDict[{benchtest_id}] = {statDict[benchtest_id]}')
-        
-        # Recalculate btDIRName for this benchtest_id
-        btDIRName = "benchtest_id_" + str(benchtest_id)
-
-        with open(driveDIR + str(btDIRName) + "/" + "benchtest_id_" + str(benchtest_id) + ".log", "a") as logfile:
-            logfile.write(f'  benchtest ID: {benchtest_id}\n')
-
-            for MDi in range(0,4):
-
-                if benchtest_proc[benchtest_id]["benchtest_serialnos"][MDi] != None:
-                    # Skip if specific daughterboard ID is provided and doesn't match
-                    if specific_daughterboard_id is not None:
-                        if benchtest_proc[benchtest_id]["benchtest_serialnos"][MDi] != specific_daughterboard_id:
-                            print(f'    Skipping DaughterBoard {benchtest_proc[benchtest_id]["benchtest_serialnos"][MDi]} (not the specified daughterboard)')
-                            continue
-                    
-                    print(f'\n    DaughterBoard Serial Number: {benchtest_proc[benchtest_id]["benchtest_serialnos"][MDi]}')
-                    logfile.write(f'\n    DaughterBoard Serial Number: {benchtest_proc[benchtest_id]["benchtest_serialnos"][MDi]}\n')
-                    statDict[benchtest_id][benchtest_proc[benchtest_id]["benchtest_serialnos"][MDi]] = {}
-
-                    # Make directory for each DaughterBoard undergoing benchtest
-                    dbDIRName = "DB_" + str(benchtest_proc[benchtest_id]["benchtest_serialnos"][MDi])
-                    print(f'    Creating Directory: {driveDIR + btDIRName + "/" + dbDIRName}')
-                    dbDIR_fullpath = Path(driveDIR + btDIRName + "/" + dbDIRName)
-                    print(f'    dbDir_fullpath = {dbDIR_fullpath}')
-                    dbDIR_fullpath.mkdir(parents=True, exist_ok=True)
-
-                    for table in config.keys():
-                        print(f'      Table: {table}')
-                        logfile.write(f'      Table: {table}\n')
-
-                        for ivar in config[table].keys():
-                            print(f'        Variable:  {ivar}')
-                            print(f'        config[{table}][{ivar}] = {config[table][ivar]}')
-                            logfile.write(f'        Variable:  {ivar}\n')
-                            logfile.write(f'        config[{table}][{ivar}] = {config[table][ivar]}\n')
-                            statDict[benchtest_id][benchtest_proc[benchtest_id]["benchtest_serialnos"][MDi]][ivar] = {}
-
-                            var_pointpass = []
-                            var_npoints = 0
-
-                            for channel in dataDict[benchtest_id][ivar]["MD"+str(MDi+1)]:
-                                print(f'          Channel: {channel}')
-                                #print(f'          dataDict[{benchtest_id}][{ivar}][{"MD"+str(MDi+1)}][{channel}][{"y"}]')
-                                logfile.write(f'          Channel: {channel}\n')
-                                #logfile.write(f'          dataDict[{benchtest_id}][{ivar}][{"MD"+str(MDi+1)}][{channel}][{"y"}]')
-
-                                var_npoints += len(dataDict[benchtest_id][ivar]["MD"+str(MDi+1)][channel]["y"])
-
-                                var_thresholds = get_var_thresholds(config[table][ivar])
-                                if len(var_thresholds) == 1:
-
-                                    for y in dataDict[benchtest_id][ivar]["MD"+str(MDi+1)][channel]["y"]:
-                                        #print(f'            y = {y}')
-
-                                        if y == var_thresholds[0]:
-                                            #print("True")
-                                            var_pointpass.append(1)
-                                        else:
-                                            #print("False")
-                                            var_pointpass.append(0)
-
-                                if len(var_thresholds) == 2:
-                                    #This section is for variables that need to be between two values
-
-                                    #np_yArray = np.array(dataDict[benchtest_id][ivar]["MD"+str(MDi+1)][channel]["y"])
-                                    #np_Filter = np.ones(np.size(np_yArray), dtype=bool)                                
-                                    #np_yVarBound = np_yVarArray[(np_yVarArray > var_thresholds[0]) & (np_yVarArray < var_thresholds[1])]
-                                    #
-                                    #y_mu    = np.mean(np_yVarBound)
-                                    #y_sigma = np.std(np_yVarbound)
-                                    #
-                                    #print(f'            mu    = {y_mu}')
-                                    #print(f'            sigma = {y_sigma}')
-
-                                    #for y in dataDict[benchtest_id][ivar]["MD"+str(MDi+1)][channel]["y"]:
-                                    for i, y in enumerate( dataDict[benchtest_id][ivar]["MD"+str(MDi+1)][channel]["y"] ):
-
-                                        datlen = len(dataDict[benchtest_id][ivar]["MD"+str(MDi+1)][channel]["y"])
-
-                                        #if ivar == "lg_r2":
-                                        #    print(f'            i = {i}')
-                                        #    print(f'            y = {y}')
-                                        #    print(f'            datlen = {datlen}')
-
-                                        np_RMArray = np.empty(0)
-                                        roll_median = 0
-                                        roll_MAD = 0
-
-                                        if y >= var_thresholds[0] and y <= var_thresholds[1]:
-                                            var_pointpass.append(1)
-
-                                        elif y < var_thresholds[0] or y > var_thresholds[1]:
-
-                                            # Skip spike/drop detection if there's only 1 data point
-                                            if datlen == 1:
-                                                print(f'              Warning: Only 1 data point available for {ivar} in {channel}. Cannot perform spike/drop detection. Marking as failed (out of bounds).')
-                                                logfile.write(f'             Warning: Only 1 data point available for {ivar} in {channel}. Cannot perform spike/drop detection. Marking as failed (out of bounds).\n')
-                                                var_pointpass.append(0)
-                                            else:
-                                                if i < 10:
-                                                    print(f'              Case: i<10. [0, {i}, {i+1}, 21]')
-                                                    np_RMArray = np.array( dataDict[benchtest_id][ivar]["MD"+str(MDi+1)][channel]["y"][0:i] + dataDict[benchtest_id][ivar]["MD"+str(MDi+1)][channel]["y"][i+1:21])
-                                                elif i >= len(dataDict[benchtest_id][ivar]["MD"+str(MDi+1)][channel]["y"]) - 10:
-                                                    print(f'              Case: i>= len(dataDict[benchtest_id][ivar]["MD"+str(MDi+1)][channel]["y"]) - 10. [datlen-21, i, i+1, datlen] = [{datlen-21}, {i}, {i+1}, {datlen}]')
-                                                    np_RMArray = np.array( dataDict[benchtest_id][ivar]["MD"+str(MDi+1)][channel]["y"][datlen-21:i] + dataDict[benchtest_id][ivar]["MD"+str(MDi+1)][channel]["y"][i+1:datlen] )
-                                                else:
-                                                    print(f'              Case: else. [{i-10}, {i}, {i+1}, {i+11}]')
-                                                    np_RMArray = np.array( dataDict[benchtest_id][ivar]["MD"+str(MDi+1)][channel]["y"][i-10:i] + dataDict[benchtest_id][ivar]["MD"+str(MDi+1)][channel]["y"][i+1:i+11])
-
-                                                roll_median = np.median(np_RMArray)
-                                                #roll_MAD = np.median(np.abs(np_RMArray - roll_median))
-                                                roll_MAD = max(0.1, np.median(np.abs(np_RMArray - roll_median)))
-
-                                                if i == 0:
-                                                    print(f'              Case: i == 0')
-                                                    if abs(dataDict[benchtest_id][ivar]["MD"+str(MDi+1)][channel]["y"][i] - dataDict[benchtest_id][ivar]["MD"+str(MDi+1)][channel]["y"][i+1]) < 3*roll_MAD:
-                                                        var_pointpass.append(0)
-                                                    else:
-                                                        print(f'             Spike/Drop Detected @ [DBSN: {benchtest_proc[benchtest_id]["benchtest_serialnos"][MDi]}, Table: {table}, Variable: {ivar}, Channel: {channel} Time: {dataDict[benchtest_id][ivar]["MD"+str(MDi+1)][channel]["x"][i]}, Value: {dataDict[benchtest_id][ivar]["MD"+str(MDi+1)][channel]["y"][i]}]')
-                                                        logfile.write(f'             Spike/Drop Detected @ [DBSN: {benchtest_proc[benchtest_id]["benchtest_serialnos"][MDi]}, Table: {table}, Variable: {ivar}, Channel: {channel} Time: {dataDict[benchtest_id][ivar]["MD"+str(MDi+1)][channel]["x"][i]}, Value: {dataDict[benchtest_id][ivar]["MD"+str(MDi+1)][channel]["y"][i]}]\n')
-                                                elif i == datlen-1:
-                                                    print(f'              Case: i == datlen-1')
-                                                    if abs(dataDict[benchtest_id][ivar]["MD"+str(MDi+1)][channel]["y"][i-1] - dataDict[benchtest_id][ivar]["MD"+str(MDi+1)][channel]["y"][i]) < 3*roll_MAD:
-                                                        var_pointpass.append(0)
-                                                    else:
-                                                        print(f'             Spike/Drop Detected @ [DBSN: {benchtest_proc[benchtest_id]["benchtest_serialnos"][MDi]}, Table: {table}, Variable: {ivar}, Channel: {channel} Time: {dataDict[benchtest_id][ivar]["MD"+str(MDi+1)][channel]["x"][i]}, Value: {dataDict[benchtest_id][ivar]["MD"+str(MDi+1)][channel]["y"][i]}]')
-                                                        logfile.write(f'             Spike/Drop Detected @ [DBSN: {benchtest_proc[benchtest_id]["benchtest_serialnos"][MDi]}, Table: {table}, Variable: {ivar}, Channel: {channel} Time: {dataDict[benchtest_id][ivar]["MD"+str(MDi+1)][channel]["x"][i]}, Value: {dataDict[benchtest_id][ivar]["MD"+str(MDi+1)][channel]["y"][i]}]\n')
-                                                else:
-                                                    print(f'              Case: else.')                                            
-                                                    if abs(dataDict[benchtest_id][ivar]["MD"+str(MDi+1)][channel]["y"][i] - dataDict[benchtest_id][ivar]["MD"+str(MDi+1)][channel]["y"][i-1]) < 3*roll_MAD or abs(dataDict[benchtest_id][ivar]["MD"+str(MDi+1)][channel]["y"][i+1] - dataDict[benchtest_id][ivar]["MD"+str(MDi+1)][channel]["y"][i]) < 3*roll_MAD:
-                                                        var_pointpass.append(0)
-                                                    else:
-                                                        print(f'             Spike/Drop Detected @ [DBSN: {benchtest_proc[benchtest_id]["benchtest_serialnos"][MDi]}, Table: {table}, Variable: {ivar}, Channel: {channel} Time: {dataDict[benchtest_id][ivar]["MD"+str(MDi+1)][channel]["x"][i]}, Value: {dataDict[benchtest_id][ivar]["MD"+str(MDi+1)][channel]["y"][i]}]')
-                                                        logfile.write(f'             Spike/Drop Detected @ [DBSN: {benchtest_proc[benchtest_id]["benchtest_serialnos"][MDi]}, Table: {table}, Variable: {ivar}, Channel: {channel} Time: {dataDict[benchtest_id][ivar]["MD"+str(MDi+1)][channel]["x"][i]}, Value: {dataDict[benchtest_id][ivar]["MD"+str(MDi+1)][channel]["y"][i]}]\n')
-
-                            #if table == "V":
-                            #    print(f'        var_pointpass = {var_pointpass}')
-                            #    print(f'        len_pointpass = {len(var_pointpass)}')
-
-                            # statDict will contain four diagnostic values:
-                            # Total number of points per variable:
-                            statDict[benchtest_id][benchtest_proc[benchtest_id]["benchtest_serialnos"][MDi]][ivar]["nPoints"] = var_npoints
-                            # Total number of points after spikes/drops are filtered out
-                            statDict[benchtest_id][benchtest_proc[benchtest_id]["benchtest_serialnos"][MDi]][ivar]["nConsidered"] = len(var_pointpass)
-                            # Total number of points within the given bounds
-                            statDict[benchtest_id][benchtest_proc[benchtest_id]["benchtest_serialnos"][MDi]][ivar]["nPass"] = sum(var_pointpass)
-                            # Fraction of points within the given bounds
-                            if len(var_pointpass) != 0:
-                                statDict[benchtest_id][benchtest_proc[benchtest_id]["benchtest_serialnos"][MDi]][ivar]["fPass"] = sum(var_pointpass)/len(var_pointpass)
-                            elif len(var_pointpass) == 0:
-                                print(f'        Warning: Data Not Found for Variable {ivar} in Table {table}! Tentatively Ignoring Check and "Passing" Board, Please Consult Log.')
-                                statDict[benchtest_id][benchtest_proc[benchtest_id]["benchtest_serialnos"][MDi]][ivar]["fPass"] = -1.0
 
     for btid, dbDict in statDict.items():
         print(f'\nFor benchtest with id: {btid}')
@@ -1262,301 +1392,6 @@ def DBQ_Mk6(regenerate_mode=None, specific_benchtest_ids=None, specific_daughter
             csvfile.close()
 
     print(f'statDict = {statDict}')
-
-    ### DataFrames ###
-    # Defining DataFRame dictionary
-    print(f'\nDataFrames')
-    dfDict = {}
-
-    for benchtest_id in benchtest_proc.keys():
-        dfDict[benchtest_id] = {}
-        print(f'\nbenchtest_id: {benchtest_id}')
-        print(f'dfDict[{benchtest_id}]: {dfDict[benchtest_id]}')
-        
-        # Recalculate time range for this benchtest_id
-        start_time = benchtest_proc[benchtest_id]["benchtest_timestamp"][0]
-        stop_time = benchtest_proc[benchtest_id]["benchtest_timestamp"][1]
-
-        for MDi in range(0,4):
-
-            if benchtest_proc[benchtest_id]["benchtest_serialnos"][MDi] != None:
-                # Skip if specific daughterboard ID is provided and doesn't match
-                if specific_daughterboard_id is not None:
-                    if benchtest_proc[benchtest_id]["benchtest_serialnos"][MDi] != specific_daughterboard_id:
-                        print(f'  Skipping DaughterBoard {benchtest_proc[benchtest_id]["benchtest_serialnos"][MDi]} (not the specified daughterboard)')
-                        continue
-                
-                print(f'\n  DaughterBoard Serial Number: {benchtest_proc[benchtest_id]["benchtest_serialnos"][MDi]}')
-                dfDict[benchtest_id][benchtest_proc[benchtest_id]["benchtest_serialnos"][MDi]] = {}
-                print(f'  dfDict[{benchtest_id}][{benchtest_proc[benchtest_id]["benchtest_serialnos"][MDi]}]: {dfDict[benchtest_id][benchtest_proc[benchtest_id]["benchtest_serialnos"][MDi]]}')
-
-                for table in config.keys():
-                    print(f'      Table: {table}')
-
-                    for ivar in config[table].keys():
-                        print(f'        Variable: {ivar}')
-                        #print(f'    dataDict[{benchtest_id}][{ivar}][{"MD"+str(MDi+1)}] = {dataDict[benchtest_id][ivar]["MD"+str(MDi+1)]}')
-                        #print(f'    len(dataDict[{benchtest_id}][{ivar}][{"MD"+str(MDi+1)}]) = {len(dataDict[benchtest_id][ivar]["MD"+str(MDi+1)])}')
-
-                        print('Just a test statement')
-                        dfDict[benchtest_id][benchtest_proc[benchtest_id]["benchtest_serialnos"][MDi]][ivar] = {}
-                        #print(f'        dfDict[{benchtest_id}][{benchtest_proc[benchtest_id]["benchtest_serialnos"][MDi]}][{ivar}]: {dfDict[benchtest_id][benchtest_proc[benchtest_id]["benchtest_serialnos"][MDi]][ivar]}')
-
-                        #if len(dataDict[benchtest_id][ivar]["MD"+str(MDi+1)]) != 0:
-
-                        dfCombo = []
-
-                        for channel in dataDict[benchtest_id][ivar]["MD"+str(MDi+1)]:
-                            print(f'          channel: {channel}')
-                                    
-                            dfDict[benchtest_id][benchtest_proc[benchtest_id]["benchtest_serialnos"][MDi]][ivar][channel] = pd.DataFrame( {'channel' : [channel]*len(dataDict[benchtest_id][ivar]["MD"+str(MDi+1)][channel]["x"]), 'x' : dataDict[benchtest_id][ivar]["MD"+str(MDi+1)][channel]["x"], 'y' : dataDict[benchtest_id][ivar]["MD"+str(MDi+1)][channel]["y"] } )
-
-                            dfCombo.append(dfDict[benchtest_id][benchtest_proc[benchtest_id]["benchtest_serialnos"][MDi]][ivar][channel])
-
-                            #print(f'          dfDict[{benchtest_id}][{benchtest_proc[benchtest_id]["benchtest_serialnos"][MDi]}][{ivar}][{channel}]:')
-                            #print(f'\n{dfDict[benchtest_id][benchtest_proc[benchtest_id]["benchtest_serialnos"][MDi]][ivar][channel]}')
-
-                        ### Adding the tolerances to the plots ###
-                        _refs = (dbq_plot_style or {}).get('reference_traces') or {}
-                        truth_name = _refs.get('truth_name') or 'TruthValue'
-                        lower_name = _refs.get('lower_name') or 'LowerLimit'
-                        upper_name = _refs.get('upper_name') or 'UpperLimit'
-                        var_thresholds = get_var_thresholds(config[table][ivar])
-                        if len(var_thresholds) == 1:
-                            # The variable has a single value it needs to take
-                            dfDict[benchtest_id][benchtest_proc[benchtest_id]["benchtest_serialnos"][MDi]][ivar][truth_name] = pd.DataFrame( {'channel' : [truth_name, truth_name], 'x' : [datetime.fromisoformat(start_time), datetime.fromisoformat(stop_time)], 'y' : [var_thresholds[0], var_thresholds[0]] } )
-
-                            dfCombo.append(dfDict[benchtest_id][benchtest_proc[benchtest_id]["benchtest_serialnos"][MDi]][ivar][truth_name])
-
-                            #useful time range code
-                            #start_time = benchtest_proc[benchtest_id]["benchtest_timestamp"][0]
-                            #stop_time  = benchtest_proc[benchtest_id]["benchtest_timestamp"][1]
-
-                        if len(var_thresholds) == 2:
-                            # The variable has to between two different values
-                            dfDict[benchtest_id][benchtest_proc[benchtest_id]["benchtest_serialnos"][MDi]][ivar][lower_name] = pd.DataFrame( {'channel' : [lower_name, lower_name], 'x' : [datetime.fromisoformat(start_time), datetime.fromisoformat(stop_time)], 'y' : [var_thresholds[0], var_thresholds[0]] } )
-
-                            dfCombo.append(dfDict[benchtest_id][benchtest_proc[benchtest_id]["benchtest_serialnos"][MDi]][ivar][lower_name])
-
-                            dfDict[benchtest_id][benchtest_proc[benchtest_id]["benchtest_serialnos"][MDi]][ivar][upper_name] = pd.DataFrame( {'channel' : [upper_name, upper_name], 'x' : [datetime.fromisoformat(start_time), datetime.fromisoformat(stop_time)], 'y' : [var_thresholds[1], var_thresholds[1]] } )
-
-                            dfCombo.append(dfDict[benchtest_id][benchtest_proc[benchtest_id]["benchtest_serialnos"][MDi]][ivar][upper_name])
-
-                        #DataFrame debugging stuff
-                        #print(f'        dfCombo: {dfCombo}')
-                        #for i, x in enumerate(dfCombo):
-                        #    print(f"\n--- frame {i} ---")
-                        #    print(x.shape)
-                        #    print(x.dtypes)
-                        #    print(x.isna().all())
-                        #    
-                        #for i, df in enumerate(dfCombo):
-                        #    print(f"\n--- dfCombo[{i}] ---")
-                        #    
-                        #    print("shape:", df.shape)
-                        #    print("empty:", df.empty)
-                        #    
-                        #    print("all-NA columns:")
-                        #    print(df.columns[df.isna().all()])
-                        #    
-                        #    print(df.dtypes)
-
-                        # We need to filter out empty DataFrames if there are database errors
-                        dfCombo = [df for df in dfCombo if not df.empty]
-
-                        dfDict[benchtest_id][benchtest_proc[benchtest_id]["benchtest_serialnos"][MDi]][ivar]["Full"] = pd.concat(dfCombo)
-
-                        #print(f'        dfDict[{benchtest_id}][{benchtest_proc[benchtest_id]["benchtest_serialnos"][MDi]}][{ppr}][{ivar}][{"Full"}]:')
-                        #print(f'\n{dfDict[benchtest_id][benchtest_proc[benchtest_id]["benchtest_serialnos"][MDi]][ivar]["Full"]}')
-
-    # plotly Plotting
-    print(f'\n\n Plotly:')
-    plotDict = {}
-
-    for benchtest_id in benchtest_proc.keys():
-        plotDict[benchtest_id] = {}
-        print(f'\nbenchtest_id: {benchtest_id}')
-        print(f'plotDict[{benchtest_id}]: {plotDict[benchtest_id]}')
-        
-        # Recalculate btDIRName for this benchtest_id
-        btDIRName = "benchtest_id_" + str(benchtest_id)
-
-        for MDi in range(0,4):
-
-            if benchtest_proc[benchtest_id]["benchtest_serialnos"][MDi] != None:
-                # Skip if specific daughterboard ID is provided and doesn't match
-                if specific_daughterboard_id is not None:
-                    if benchtest_proc[benchtest_id]["benchtest_serialnos"][MDi] != specific_daughterboard_id:
-                        print(f'  Skipping DaughterBoard {benchtest_proc[benchtest_id]["benchtest_serialnos"][MDi]} (not the specified daughterboard)')
-                        continue
-                
-                print(f'\n  DaughterBoard Serial Number: {benchtest_proc[benchtest_id]["benchtest_serialnos"][MDi]}')
-                plotDict[benchtest_id][benchtest_proc[benchtest_id]["benchtest_serialnos"][MDi]] = {}
-                print(f'  plotDict[{benchtest_id}][{benchtest_proc[benchtest_id]["benchtest_serialnos"][MDi]}]: {plotDict[benchtest_id][benchtest_proc[benchtest_id]["benchtest_serialnos"][MDi]]}')
-
-                dbDIRName = "DB_" + str(benchtest_proc[benchtest_id]["benchtest_serialnos"][MDi])
-                
-                # Create directory for each DaughterBoard if it doesn't exist
-                dbDIR_fullpath = Path(driveDIR + btDIRName + "/" + dbDIRName)
-                dbDIR_fullpath.mkdir(parents=True, exist_ok=True)
-
-                start_time = benchtest_proc[benchtest_id]["benchtest_timestamp"][0]
-                stop_time = benchtest_proc[benchtest_id]["benchtest_timestamp"][1]
-                board_serial = benchtest_proc[benchtest_id]["benchtest_serialnos"][MDi]
-                board_stats_variables = {}
-
-                for table in config.keys():
-                    print(f'      Table: {table}')
-
-                    for ivar in config[table].keys():
-                        print(f'        Variable: {ivar}')
-                        #print(f'        dataDict[{benchtest_id}][{ivar}][{"MD"+str(MDi+1)}] = {dataDict[benchtest_id][ivar]["MD"+str(MDi+1)]}')
-                        print(f'        nChannels: {len(dataDict[benchtest_id][ivar]["MD"+str(MDi+1)])}')
-                        #print(f'        len(dataDict[{benchtest_id}][{ivar}][{"MD"+str(MDi+1)}]) = {len(dataDict[benchtest_id][ivar]["MD"+str(MDi+1)])}')
-
-                        plotDict[benchtest_id][benchtest_proc[benchtest_id]["benchtest_serialnos"][MDi]][ivar] = {}
-                        #print(f'        plotDict[{benchtest_id}][{benchtest_proc[benchtest_id]["benchtest_serialnos"][MDi]}][{ivar}]: {plotDict[benchtest_id][benchtest_proc[benchtest_id]["benchtest_serialnos"][MDi]][ivar]}')
-
-                        testtime = datetime.now()
-                        print(f'        Post Initialise-plotDict Date/Time: {testtime.strftime("%y/%m/%d - %H:%M:%S")}')
-
-                        if len(dataDict[benchtest_id][ivar]["MD"+str(MDi+1)]) != 0:
-                            plot_caption = get_var_caption(config[table][ivar], default_name=ivar)
-                            plot_dimensions = get_var_dimensions(config[table][ivar])
-                            _refs = (dbq_plot_style or {}).get('reference_traces') or {}
-                            truth_name = _refs.get('truth_name') or 'TruthValue'
-                            lower_name = _refs.get('lower_name') or 'LowerLimit'
-                            upper_name = _refs.get('upper_name') or 'UpperLimit'
-                            var_thresholds = get_var_thresholds(config[table][ivar])
-
-                            channel_y_data = {}
-                            channel_stats = {}
-                            for channel, series in dataDict[benchtest_id][ivar]["MD"+str(MDi+1)].items():
-                                if channel in (truth_name, lower_name, upper_name):
-                                    continue
-                                y_values = series.get('y') or []
-                                channel_y_data[channel] = y_values
-                                stats = compute_y_stats(y_values)
-                                if stats:
-                                    channel_stats[channel] = stats
-
-                            if stats_regenerate.get(benchtest_id):
-                                board_stats_variables[ivar] = build_variable_stats_payload(
-                                    ivar,
-                                    plot_caption,
-                                    var_thresholds,
-                                    channel_y_data,
-                                    table=table,
-                                    dimensions=plot_dimensions,
-                                )
-
-                            # Statistics-only mode skips Plotly figure build/save.
-                            if not plot_regenerate.get(benchtest_id):
-                                continue
-
-                            plotDict[benchtest_id][benchtest_proc[benchtest_id]["benchtest_serialnos"][MDi]][ivar] = plotlyEX.line(
-                                dfDict[benchtest_id][benchtest_proc[benchtest_id]["benchtest_serialnos"][MDi]][ivar]["Full"],
-                                x="x",
-                                y="y",
-                                color="channel",
-                                labels=px_line_labels(
-                                    dbq_plot_style,
-                                    plot_caption,
-                                    dimensions=plot_dimensions,
-                                ),
-                            )
-
-                            testtime = datetime.now()
-                            print(f'          Post Define-plotDict Date/Time: {testtime.strftime("%y/%m/%d - %H:%M:%S")}')
-
-                            threshold_mode = None
-                            truth_value = None
-                            lower_value = None
-                            upper_value = None
-                            if len(var_thresholds) == 1:
-                                print('            LENGTH = 1')
-                                threshold_mode = 'truth'
-                                truth_value = var_thresholds[0]
-                            elif len(var_thresholds) == 2:
-                                print('            LENGTH = 2')
-                                threshold_mode = 'limits'
-                                lower_value = var_thresholds[0]
-                                upper_value = var_thresholds[1]
-
-                            style_dbq_figure(
-                                plotDict[benchtest_id][benchtest_proc[benchtest_id]["benchtest_serialnos"][MDi]][ivar],
-                                dbq_plot_style,
-                                serial=board_serial,
-                                ivar=plot_caption,
-                                dimensions=plot_dimensions,
-                                threshold_mode=threshold_mode,
-                                start_time=start_time,
-                                stop_time=stop_time,
-                                benchtest_id=benchtest_id,
-                            )
-                            apply_plot_legend_stats(
-                                plotDict[benchtest_id][benchtest_proc[benchtest_id]["benchtest_serialnos"][MDi]][ivar],
-                                channel_stats,
-                                truth_name=truth_name,
-                                lower_name=lower_name,
-                                upper_name=upper_name,
-                                truth_value=truth_value,
-                                lower_value=lower_value,
-                                upper_value=upper_value,
-                            )
-                            testtime = datetime.now()
-                            print(f'          Post Style-plotDict Date/Time: {testtime.strftime("%y/%m/%d - %H:%M:%S")}')
-
-                            # Filenames keep the raw variable key (ivar), not the caption.
-                            plot_path = driveDIR+btDIRName+"/"+dbDIRName + "/DBSNo_"+str(board_serial)+"_PPrGTH_"+ivar+".html"
-                            plotDict[benchtest_id][benchtest_proc[benchtest_id]["benchtest_serialnos"][MDi]][ivar].write_html(
-                                plot_path,
-                                **write_html_options(dbq_plot_style),
-                            )
-                            testtime = datetime.now()
-                            print(f'          Post Final Save-plotDict Date/Time: {testtime.strftime("%y/%m/%d - %H:%M:%S")}')
-
-                if stats_regenerate.get(benchtest_id) and board_stats_variables:
-                    stats_path = (
-                        driveDIR + btDIRName + "/" + dbDIRName
-                        + "/DBSNo_" + str(board_serial) + "_PPrGTH_Statistics.yaml"
-                    )
-                    write_board_statistics_yaml(
-                        stats_path,
-                        serial=board_serial,
-                        benchtest_id=benchtest_id,
-                        variables_payload=board_stats_variables,
-                        start_time=start_time,
-                        stop_time=stop_time,
-                    )
-                    print(f'  Wrote statistics YAML: {stats_path}')
-
-                if plot_regenerate.get(benchtest_id):
-                    try:
-                        from piro_extra_test_plots import generate_extra_plots_for_board
-                        # None / [] / 'all' -> all extra plot families.
-                        # Example: ['ADC_Linearity_Samples', 'CIS_Samples', 'Link_Eye_Diagram_Samples', Integrator_Linearity_Samples, CIS_Linearity_Samples]
-                        extra_plots = ['ADC_Linearity_Samples', 
-                        'CIS_Samples', 
-                        'Link_Eye_Diagram_Samples', 
-                        'Integrator_Linearity_Samples', 
-                        'CIS_Linearity_Samples']
-                        
-                        generate_extra_plots_for_board(
-                            client,
-                            benchtest_id=benchtest_id,
-                            board_serial=board_serial,
-                            md_index=MDi,
-                            start_time=start_time,
-                            stop_time=stop_time,
-                            out_dir=str(dbDIR_fullpath),
-                            dbq_plot_style=dbq_plot_style,
-                            plots=extra_plots,
-                        )
-                    except Exception as extra_exc:
-                        print(f'  Warning: piro_extra_test_plots failed: {extra_exc}')
-
-    #print(f'ASS! {cursor.rowcount}')
 
 ### ######### ###
 ### Executing ###

@@ -1171,6 +1171,86 @@ def add_comment():
         traceback.print_exc()
         return jsonify({'error': str(e)}), 500
 
+
+@app.route('/api/qualify_board', methods=['POST'])
+def qualify_board():
+    """Set db_status/e_test/p_test to 1 and insert a qualification comment."""
+    if not session.get('logged_in'):
+        return jsonify({'error': 'Not logged in'}), 401
+    if is_guest_mode():
+        return jsonify({'error': 'Not allowed in guest mode'}), 403
+
+    try:
+        data = request.get_json(silent=True) or {}
+        serial_no = data.get('serial_no')
+        op = (data.get('op') or '').strip()
+        reason = (data.get('reason') or '').strip()
+
+        if serial_no is None or str(serial_no).strip() == '':
+            return jsonify({'error': 'Serial number required'}), 400
+        if not op:
+            return jsonify({'error': 'Operator name required'}), 400
+        if not reason:
+            return jsonify({'error': 'Reason required'}), 400
+
+        try:
+            serial_no = int(serial_no)
+        except (TypeError, ValueError):
+            return jsonify({'error': 'Invalid serial number'}), 400
+
+        conn = get_db_connection()
+        if not conn:
+            return jsonify({'error': 'Database connection failed'}), 500
+
+        cursor = conn.cursor(dictionary=True)
+        cursor.execute(
+            'SELECT serial_no FROM daughterboard WHERE serial_no = %s',
+            (serial_no,),
+        )
+        row = cursor.fetchone()
+        if not row:
+            cursor.close()
+            conn.close()
+            return jsonify({'error': f'Board {serial_no} not found'}), 404
+
+        cursor.execute(
+            """
+            UPDATE daughterboard
+            SET db_status = 1, e_test = 1, p_test = 1
+            WHERE serial_no = %s
+            """,
+            (serial_no,),
+        )
+
+        note = f'Qualified pass, reason: {reason}'
+        cursor.execute(
+            """
+            INSERT INTO comment (foreign_typ, foreign_id, tstamp, op, note)
+            VALUES (3, %s, NOW(), %s, %s)
+            """,
+            (serial_no, op, note),
+        )
+
+        conn.commit()
+        cursor.close()
+        conn.close()
+
+        return jsonify({
+            'success': True,
+            'serial_no': serial_no,
+            'db_status': 1,
+            'e_test': 1,
+            'p_test': 1,
+            'comment': note,
+        })
+
+    except Exception as e:
+        print(f"Error qualifying board: {e}")
+        import traceback
+        traceback.print_exc()
+        return jsonify({'error': str(e)}), 500
+
+
 @app.route('/api/rerun_analysis', methods=['POST'])
 def rerun_analysis():
     if not session.get('logged_in'):

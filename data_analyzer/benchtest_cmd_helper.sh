@@ -7,8 +7,9 @@
 #    # exit 1
 #fi
 
-START=1
-END=268
+#START=1
+START=63
+END=269
 
 for ((x=START; x<=END; x++)); do
     echo "Running with -b $x"

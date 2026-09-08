@@ -761,6 +761,57 @@
             background: #0052a3;
         }
 
+        .qualify-btn {
+            background: #0d9488;
+            color: white;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 500;
+            transition: background 0.3s ease;
+        }
+
+        .qualify-btn:hover {
+            background: #0f766e;
+        }
+
+        .qualify-btn:disabled {
+            opacity: 0.65;
+            cursor: wait;
+        }
+
+        .qualify-warning {
+            background: #fff3cd;
+            border: 1px solid #ffc107;
+            color: #856404;
+            border-radius: 6px;
+            padding: 12px 14px;
+            font-size: 14px;
+            line-height: 1.45;
+        }
+
+        .qualify-accept {
+            background: #0d9488;
+            color: white;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 500;
+        }
+
+        .qualify-accept:hover {
+            background: #0f766e;
+        }
+
+        .qualify-accept:disabled {
+            opacity: 0.65;
+            cursor: wait;
+        }
+
         .add-comment-btn {
             background: #28a745;
             color: white;
@@ -3345,6 +3396,7 @@
                 <div class="modal-header-actions">
                     {% if not session.get('guest_mode') %}
                     <button class="rerun-btn" id="rerun-btn" onclick="rerunBenchtest()">Rerun Analysis</button>
+                    <button class="qualify-btn" id="qualify-btn" onclick="qualifyBoard()">Qualify Board</button>
                     <button class="add-comment-btn" id="add-comment-btn" onclick="openAddCommentModal()">Add
                         Comment</button>
                     {% endif %}
@@ -3381,6 +3433,37 @@
                 <div class="add-comment-actions">
                     <button class="add-comment-cancel" id="add-comment-cancel">Cancel</button>
                     <button class="add-comment-submit" id="add-comment-submit">Submit</button>
+                </div>
+            </div>
+        </div>
+
+        <div class="modal-overlay" id="qualify-overlay"></div>
+        <div class="add-comment-modal" id="qualify-modal">
+            <div class="add-comment-header">
+                <div class="add-comment-title">Qualify Board</div>
+                <button class="add-comment-close" id="qualify-close">&times;</button>
+            </div>
+            <div class="add-comment-content">
+                <div class="qualify-warning" id="qualify-warning">
+                    Warning: this will set Status, E-Test, and P-Test to Passed (1)
+                    for this board. This overrides the current qualification flags.
+                </div>
+                <div class="add-comment-field">
+                    <label for="qualify-serial">Serial Number:</label>
+                    <input type="text" id="qualify-serial" class="add-comment-input" readonly>
+                </div>
+                <div class="add-comment-field">
+                    <label for="qualify-op">Operator (OP):</label>
+                    <input type="text" id="qualify-op" class="add-comment-input" placeholder="Enter operator name">
+                </div>
+                <div class="add-comment-field">
+                    <label for="qualify-reason">Reason:</label>
+                    <textarea id="qualify-reason" class="add-comment-textarea"
+                        placeholder="Enter reason for qualifying this board"></textarea>
+                </div>
+                <div class="add-comment-actions">
+                    <button class="add-comment-cancel" id="qualify-cancel">Cancel</button>
+                    <button class="qualify-accept" id="qualify-accept">Accept</button>
                 </div>
             </div>
         </div>
@@ -9555,6 +9638,17 @@
         const commentSerialInput = document.getElementById('comment-serial');
         const commentTimestampInput = document.getElementById('comment-timestamp');
 
+        // Qualify Board modal
+        const qualifyModal = document.getElementById('qualify-modal');
+        const qualifyOverlay = document.getElementById('qualify-overlay');
+        const qualifyClose = document.getElementById('qualify-close');
+        const qualifyCancel = document.getElementById('qualify-cancel');
+        const qualifyAccept = document.getElementById('qualify-accept');
+        const qualifySerialInput = document.getElementById('qualify-serial');
+        const qualifyOpInput = document.getElementById('qualify-op');
+        const qualifyReasonInput = document.getElementById('qualify-reason');
+        const qualifyWarning = document.getElementById('qualify-warning');
+
         // Benchtest Comment modal functionality
         const benchtestCommentModal = document.getElementById('benchtest-comment-modal');
         const benchtestCommentOverlay = document.getElementById('benchtest-comment-overlay');
@@ -9958,6 +10052,10 @@
         addCommentClose.addEventListener('click', closeAddCommentModal);
         addCommentCancel.addEventListener('click', closeAddCommentModal);
         addCommentSubmit.addEventListener('click', submitComment);
+        qualifyClose.addEventListener('click', closeQualifyModal);
+        qualifyCancel.addEventListener('click', closeQualifyModal);
+        qualifyAccept.addEventListener('click', submitQualifyBoard);
+        qualifyOverlay.addEventListener('click', closeQualifyModal);
 
         // Benchtest Comment modal event listeners
         benchtestCommentClose.addEventListener('click', closeBenchtestCommentModal);
@@ -10066,6 +10164,121 @@
                 }
             }
         });
+
+        async function refreshBoardModalAfterUpdate() {
+            await loadBrickWall();
+            if (!currentBoardSerial) {
+                return;
+            }
+            const data = await fetch('/api/brick_wall_data').then(r => r.json());
+            let updatedBoard = null;
+            for (let batch = 0; batch <= MAX_BRICK_WALL_BATCH; batch++) {
+                const boards = data.boards_by_batch[batch] || [];
+                const found = boards.find(b => b.serial_no === currentBoardSerial);
+                if (found) {
+                    updatedBoard = found;
+                    break;
+                }
+            }
+            if (updatedBoard) {
+                showModal(updatedBoard);
+            }
+        }
+
+        function openQualifyModal() {
+            if (isGuestMode) {
+                alert('Qualify Board is not available in guest mode.');
+                return;
+            }
+            if (!currentBoardSerial) {
+                alert('No board selected');
+                return;
+            }
+            qualifySerialInput.value = currentBoardSerial;
+            qualifyOpInput.value = '';
+            qualifyReasonInput.value = '';
+            if (qualifyWarning) {
+                qualifyWarning.textContent =
+                    `Warning: this will set Status, E-Test, and P-Test to Passed (1) `
+                    + `for board ${currentBoardSerial}. This overrides the current `
+                    + `qualification flags and adds a board comment.`;
+            }
+            qualifyModal.style.display = 'block';
+            qualifyOverlay.style.display = 'block';
+            qualifyOpInput.focus();
+        }
+
+        function closeQualifyModal() {
+            qualifyModal.style.display = 'none';
+            qualifyOverlay.style.display = 'none';
+        }
+
+        function qualifyBoard() {
+            openQualifyModal();
+        }
+
+        async function submitQualifyBoard() {
+            if (isGuestMode) {
+                alert('Qualify Board is not available in guest mode.');
+                return;
+            }
+            if (!currentBoardSerial) {
+                alert('No board selected');
+                return;
+            }
+
+            const op = qualifyOpInput.value.trim();
+            const reason = qualifyReasonInput.value.trim();
+            if (!op) {
+                alert('Please enter an operator name');
+                qualifyOpInput.focus();
+                return;
+            }
+            if (!reason) {
+                alert('Please enter a reason');
+                qualifyReasonInput.focus();
+                return;
+            }
+
+            if (qualifyAccept) {
+                qualifyAccept.disabled = true;
+            }
+            const qualifyBtn = document.getElementById('qualify-btn');
+            if (qualifyBtn) {
+                qualifyBtn.disabled = true;
+            }
+
+            try {
+                const response = await fetch('/api/qualify_board', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        serial_no: currentBoardSerial,
+                        op: op,
+                        reason: reason,
+                    }),
+                });
+                const data = await response.json().catch(() => ({}));
+                if (!response.ok || !data.success) {
+                    alert(data.error || 'Failed to qualify board');
+                    return;
+                }
+                closeQualifyModal();
+                await refreshBoardModalAfterUpdate();
+            } catch (error) {
+                console.error('Error qualifying board:', error);
+                alert('Error qualifying board');
+            } finally {
+                if (qualifyAccept) {
+                    qualifyAccept.disabled = false;
+                }
+                if (qualifyBtn) {
+                    qualifyBtn.disabled = false;
+                }
+            }
+        }
 
         async function rerunBenchtest() {
             if (isGuestMode) {

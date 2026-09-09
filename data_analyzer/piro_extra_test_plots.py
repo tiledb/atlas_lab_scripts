@@ -2,15 +2,25 @@
 
 Called from DBQ_Mk6 after the standard per-board plot generation. The parent
 passes labels/timeframe/board identity; this module queries Influx itself.
+
+Also writes sibling snapshot PNGs (same 900×560 RGB style as
+generate_extra_plots_cache.py) for every Samples HTML it creates, plus a
+hover sidecar JSON pointing at the worst-channel set used by the Benchtests
+MD-brick tooltip.
 """
 
 from __future__ import annotations
 
 import math
+import sys
 from collections import defaultdict
 from pathlib import Path
 
 import plotly.graph_objects as go
+
+_WEBUI_DIR = Path(__file__).resolve().parent / 'webui'
+if str(_WEBUI_DIR) not in sys.path:
+    sys.path.insert(0, str(_WEBUI_DIR))
 
 GAINS = ('HG', 'LG')
 CHANNEL_INDEXES = tuple(range(12))  # CH0 .. CH11
@@ -151,6 +161,68 @@ EXTRA_PLOT_LINK_EYE = 'Link_Eye_Diagram_Samples'
 EXTRA_PLOT_NAMES = tuple(
     spec['measurement'] for spec in LINEARITY_SAMPLE_SPECS
 ) + (EXTRA_PLOT_LINK_EYE,)
+
+
+def _preview_helpers():
+    """Lazy import of hover-preview helpers (webui/ on sys.path)."""
+    from benchtest_plot_previews import (
+        build_slot_previews,
+        save_hover_previews_sidecar,
+        start_preview_kaleido_server,
+        stop_preview_kaleido_server,
+        write_preview_png_from_figure,
+    )
+    return {
+        'build_slot_previews': build_slot_previews,
+        'save_hover_previews_sidecar': save_hover_previews_sidecar,
+        'start_preview_kaleido_server': start_preview_kaleido_server,
+        'stop_preview_kaleido_server': stop_preview_kaleido_server,
+        'write_preview_png_from_figure': write_preview_png_from_figure,
+    }
+
+
+def _write_preview_png(fig, plot_file, *, kaleido_started):
+    """Write sibling 900×560 RGB PNG next to an HTML plot (all channels)."""
+    helpers = _preview_helpers()
+    if not kaleido_started:
+        helpers['start_preview_kaleido_server']()
+        kaleido_started = True
+    png_path = Path(plot_file).with_suffix('.png')
+    written = helpers['write_preview_png_from_figure'](fig, png_path, mutate=False)
+    if written is not None:
+        print(f'  [piro_extra] Wrote snapshot PNG {written.name}')
+    else:
+        print(f'  [piro_extra] Snapshot PNG failed for {Path(plot_file).name}')
+    return kaleido_started, written
+
+
+def _refresh_hover_sidecar(out_dir, benchtest_id, board_serial, md_number):
+    """Persist hover preview index so the web UI skips Statistics.yaml."""
+    try:
+        helpers = _preview_helpers()
+        board_path = Path(out_dir)
+        # .../benchtests/benchtest_id_N/DB_serial → benchtests root
+        drive_dir = board_path.parent.parent
+        payload = helpers['build_slot_previews'](
+            benchtest_id,
+            board_serial,
+            f'MD{int(md_number)}',
+            drive_dir=drive_dir,
+            ensure_png=False,
+            force_png=False,
+        )
+        helpers['save_hover_previews_sidecar'](
+            board_path,
+            board_serial,
+            md_number,
+            payload.get('previews') or [],
+        )
+        print(
+            f'  [piro_extra] Hover sidecar updated '
+            f'(MD{int(md_number)}, source={payload.get("preview_source")})'
+        )
+    except Exception as exc:
+        print(f'  [piro_extra] Hover sidecar refresh failed: {exc}')
 
 
 def channel_tag(md_number, ch_index):
@@ -726,6 +798,7 @@ def write_linearity_samples_plots(
         return []
 
     written = []
+    kaleido_started = False
 
     try:
         from dbq_plot_config import write_html_options
@@ -734,90 +807,100 @@ def write_linearity_samples_plots(
         html_opts = {}
 
     gain_values = GAINS if has_gain else (NO_GAIN,)
-    for ch_index in CHANNEL_INDEXES:
-        channel = channel_tag(md_number, ch_index)
-        for gain in gain_values:
-            key = (channel, gain)
-            time_groups = grouped.get(key)
-            if not time_groups:
-                continue
-
-            # Safety: drop any remaining complete/incomplete all-4095 stamps.
-            if drop_cis_4095:
-                before_drop = len(time_groups)
-                time_groups = _drop_cis_samples_readout_error_traces(
-                    time_groups,
-                    error_value=CIS_SAMPLES_READOUT_ERROR_VALUE,
-                )
-                leftover_drop = before_drop - len(time_groups)
-                dropped = int(n_dropped_4095.get(key, 0)) + leftover_drop
-                if dropped:
-                    label = f'{channel}' + (f' {gain}' if gain else '')
-                    print(
-                        f'  [piro_extra] CIS_Samples dropped {dropped} '
-                        f'all-{CIS_SAMPLES_READOUT_ERROR_VALUE} traces '
-                        f'({label})'
-                    )
+    try:
+        for ch_index in CHANNEL_INDEXES:
+            channel = channel_tag(md_number, ch_index)
+            for gain in gain_values:
+                key = (channel, gain)
+                time_groups = grouped.get(key)
                 if not time_groups:
                     continue
 
-            n_available = int(n_seen.get(key, len(time_groups)))
-            # No-op when grouping already bounded to max_traces.
-            selected_groups = _select_time_groups(
-                time_groups,
-                max_traces=max_traces,
-            )
-            if not selected_groups:
-                continue
+                # Safety: drop any remaining complete/incomplete all-4095 stamps.
+                if drop_cis_4095:
+                    before_drop = len(time_groups)
+                    time_groups = _drop_cis_samples_readout_error_traces(
+                        time_groups,
+                        error_value=CIS_SAMPLES_READOUT_ERROR_VALUE,
+                    )
+                    leftover_drop = before_drop - len(time_groups)
+                    dropped = int(n_dropped_4095.get(key, 0)) + leftover_drop
+                    if dropped:
+                        label = f'{channel}' + (f' {gain}' if gain else '')
+                        print(
+                            f'  [piro_extra] CIS_Samples dropped {dropped} '
+                            f'all-{CIS_SAMPLES_READOUT_ERROR_VALUE} traces '
+                            f'({label})'
+                        )
+                    if not time_groups:
+                        continue
 
-            if has_gain:
-                caption = (
-                    f'{spec["caption_prefix"]} MD{md_number} CH{ch_index} {gain}'
+                n_available = int(n_seen.get(key, len(time_groups)))
+                # No-op when grouping already bounded to max_traces.
+                selected_groups = _select_time_groups(
+                    time_groups,
+                    max_traces=max_traces,
                 )
-                filename = (
-                    f'DBSNo_{board_serial}_PPrGTH_{spec["file_token"]}_'
-                    f'MD{md_number}_CH{ch_index}_{gain}.html'
-                )
-            else:
-                caption = (
-                    f'{spec["caption_prefix"]} MD{md_number} CH{ch_index}'
-                )
-                filename = (
-                    f'DBSNo_{board_serial}_PPrGTH_{spec["file_token"]}_'
-                    f'MD{md_number}_CH{ch_index}.html'
-                )
+                if not selected_groups:
+                    continue
 
-            drop_error_points = (
-                measurement == 'CIS_Linearity_Samples'
-                and CIS_LINEARITY_DROP_ERROR_POINTS
-            )
-            show_pulse_centers = (
-                measurement == 'CIS_Samples'
-                and CIS_SAMPLES_SHOW_PULSE_CENTERS
-            )
-            fig = _build_linearity_samples_figure(
-                selected_groups,
-                caption=caption,
-                x_title=spec['x_title'],
-                y_title=spec['y_title'],
-                dbq_plot_style=dbq_plot_style,
-                serial=board_serial,
-                benchtest_id=benchtest_id,
-                start_time=start_time,
-                stop_time=stop_time,
-                drop_zero_y_for_x_gt_0=drop_error_points,
-                add_pulse_centers=show_pulse_centers,
-                n_available_traces=n_available,
-                max_traces=max_traces,
-            )
-            plot_file = out_path / filename
-            fig.write_html(str(plot_file), **html_opts)
-            written.append(plot_file)
-            selected_n = len(selected_groups)
-            print(
-                f'  [piro_extra] Wrote {plot_file.name} '
-                f'({selected_n}/{n_available} timestamp groups)'
-            )
+                if has_gain:
+                    caption = (
+                        f'{spec["caption_prefix"]} MD{md_number} CH{ch_index} {gain}'
+                    )
+                    filename = (
+                        f'DBSNo_{board_serial}_PPrGTH_{spec["file_token"]}_'
+                        f'MD{md_number}_CH{ch_index}_{gain}.html'
+                    )
+                else:
+                    caption = (
+                        f'{spec["caption_prefix"]} MD{md_number} CH{ch_index}'
+                    )
+                    filename = (
+                        f'DBSNo_{board_serial}_PPrGTH_{spec["file_token"]}_'
+                        f'MD{md_number}_CH{ch_index}.html'
+                    )
+
+                drop_error_points = (
+                    measurement == 'CIS_Linearity_Samples'
+                    and CIS_LINEARITY_DROP_ERROR_POINTS
+                )
+                show_pulse_centers = (
+                    measurement == 'CIS_Samples'
+                    and CIS_SAMPLES_SHOW_PULSE_CENTERS
+                )
+                fig = _build_linearity_samples_figure(
+                    selected_groups,
+                    caption=caption,
+                    x_title=spec['x_title'],
+                    y_title=spec['y_title'],
+                    dbq_plot_style=dbq_plot_style,
+                    serial=board_serial,
+                    benchtest_id=benchtest_id,
+                    start_time=start_time,
+                    stop_time=stop_time,
+                    drop_zero_y_for_x_gt_0=drop_error_points,
+                    add_pulse_centers=show_pulse_centers,
+                    n_available_traces=n_available,
+                    max_traces=max_traces,
+                )
+                plot_file = out_path / filename
+                fig.write_html(str(plot_file), **html_opts)
+                written.append(plot_file)
+                kaleido_started, _png = _write_preview_png(
+                    fig, plot_file, kaleido_started=kaleido_started,
+                )
+                selected_n = len(selected_groups)
+                print(
+                    f'  [piro_extra] Wrote {plot_file.name} '
+                    f'({selected_n}/{n_available} timestamp groups)'
+                )
+    finally:
+        if kaleido_started:
+            try:
+                _preview_helpers()['stop_preview_kaleido_server']()
+            except Exception:
+                pass
 
     return written
 
@@ -1345,6 +1428,7 @@ def write_link_eye_diagram_plots(
     out_path = Path(out_dir)
     out_path.mkdir(parents=True, exist_ok=True)
     written = []
+    kaleido_started = False
 
     try:
         from dbq_plot_config import write_html_options
@@ -1353,62 +1437,72 @@ def write_link_eye_diagram_plots(
         html_opts = {}
 
     eye_limit = _eye_influx_point_limit(max_eyes)
-    for uplink in EYE_UPLINKS:
-        query = link_eye_diagram_query(
-            md_number, uplink, start_time, stop_time, limit=eye_limit,
-        )
-        if eye_limit:
-            print(
-                f'  [piro_extra] {MEASUREMENT_LINK_EYE} query MD{md_number} '
-                f'{uplink} (LIMIT {eye_limit} for max_eyes={max_eyes})'
+    try:
+        for uplink in EYE_UPLINKS:
+            query = link_eye_diagram_query(
+                md_number, uplink, start_time, stop_time, limit=eye_limit,
             )
-        else:
-            print(
-                f'  [piro_extra] {MEASUREMENT_LINK_EYE} query MD{md_number} {uplink}'
-            )
-        try:
-            result = client.query(query)
-            diagrams, n_available = _group_eye_diagrams(
-                result.get_points(),
-                md_number=md_number,
+            if eye_limit:
+                print(
+                    f'  [piro_extra] {MEASUREMENT_LINK_EYE} query MD{md_number} '
+                    f'{uplink} (LIMIT {eye_limit} for max_eyes={max_eyes})'
+                )
+            else:
+                print(
+                    f'  [piro_extra] {MEASUREMENT_LINK_EYE} query MD{md_number} {uplink}'
+                )
+            try:
+                result = client.query(query)
+                diagrams, n_available = _group_eye_diagrams(
+                    result.get_points(),
+                    md_number=md_number,
+                    max_eyes=max_eyes,
+                )
+                del result
+            except Exception as exc:
+                print(f'  [piro_extra] {MEASUREMENT_LINK_EYE} query failed ({uplink}): {exc}')
+                continue
+
+            if not diagrams:
+                print(f'  [piro_extra] No eye data for MD{md_number} {uplink}')
+                continue
+
+            uplink_tok = _uplink_file_token(uplink)
+            caption = f'Link Eye Diagram Samples MD{md_number} {uplink}'
+            fig = _build_eye_overlap_figure(
+                diagrams,
+                caption=caption,
+                dbq_plot_style=dbq_plot_style,
+                serial=board_serial,
+                benchtest_id=benchtest_id,
+                start_time=start_time,
+                stop_time=stop_time,
                 max_eyes=max_eyes,
+                n_available=n_available,
             )
-            del result
-        except Exception as exc:
-            print(f'  [piro_extra] {MEASUREMENT_LINK_EYE} query failed ({uplink}): {exc}')
-            continue
-
-        if not diagrams:
-            print(f'  [piro_extra] No eye data for MD{md_number} {uplink}')
-            continue
-
-        uplink_tok = _uplink_file_token(uplink)
-        caption = f'Link Eye Diagram Samples MD{md_number} {uplink}'
-        fig = _build_eye_overlap_figure(
-            diagrams,
-            caption=caption,
-            dbq_plot_style=dbq_plot_style,
-            serial=board_serial,
-            benchtest_id=benchtest_id,
-            start_time=start_time,
-            stop_time=stop_time,
-            max_eyes=max_eyes,
-            n_available=n_available,
-        )
-        filename = (
-            f'DBSNo_{board_serial}_PPrGTH_Link_Eye_Diagram_Samples_'
-            f'MD{md_number}_{uplink_tok}.html'
-        )
-        plot_file = out_path / filename
-        fig.write_html(str(plot_file), **html_opts)
-        written.append(plot_file)
-        selected_n = len(diagrams) if (not max_eyes or int(max_eyes) <= 0) else min(
-            len(diagrams), int(max_eyes)
-        )
-        print(
-            f'  [piro_extra] Wrote {plot_file.name} '
-            f'({selected_n}/{n_available} diagrams overlapped)'
-        )
+            filename = (
+                f'DBSNo_{board_serial}_PPrGTH_Link_Eye_Diagram_Samples_'
+                f'MD{md_number}_{uplink_tok}.html'
+            )
+            plot_file = out_path / filename
+            fig.write_html(str(plot_file), **html_opts)
+            written.append(plot_file)
+            kaleido_started, _png = _write_preview_png(
+                fig, plot_file, kaleido_started=kaleido_started,
+            )
+            selected_n = len(diagrams) if (not max_eyes or int(max_eyes) <= 0) else min(
+                len(diagrams), int(max_eyes)
+            )
+            print(
+                f'  [piro_extra] Wrote {plot_file.name} '
+                f'({selected_n}/{n_available} diagrams overlapped)'
+            )
+    finally:
+        if kaleido_started:
+            try:
+                _preview_helpers()['stop_preview_kaleido_server']()
+            except Exception:
+                pass
 
     return written
 
@@ -1515,5 +1609,17 @@ def generate_extra_plots_for_board(
                 **common,
             )
         )
+    # Hover index for this MD (PNG paths already written for worst channels).
+    try:
+        _refresh_hover_sidecar(
+            out_dir, benchtest_id, board_serial, int(md_index) + 1,
+        )
+    except Exception as sidecar_exc:
+        print(f'  [piro_extra] Hover sidecar refresh failed: {sidecar_exc}')
+    finally:
+        try:
+            _preview_helpers()['stop_preview_kaleido_server']()
+        except Exception:
+            pass
     print(f'  [piro_extra] Done ({len(written)} files)')
     return written

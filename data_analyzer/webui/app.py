@@ -1315,6 +1315,77 @@ def benchtest_list():
         return jsonify({'error': str(e)}), 500
 
 
+@app.route('/api/benchtest_slot_previews')
+def benchtest_slot_previews():
+    """Worst-channel sample-plot thumbnails for one Benchtests MD brick hover.
+
+    Serves existing PNGs only — does not run kaleido. Use
+    /api/benchtest_slot_preview_generate to create missing PNGs on demand.
+    """
+    if not session.get('logged_in'):
+        return jsonify({'error': 'Not logged in'}), 401
+
+    benchtest_id = request.args.get('benchtest_id', '').strip()
+    serial_no = request.args.get('serial_no', '').strip()
+    md = request.args.get('md', '').strip()
+
+    if not benchtest_id or not serial_no or not md:
+        return jsonify({'error': 'benchtest_id, serial_no, and md are required'}), 400
+
+    try:
+        from benchtest_plot_previews import build_slot_previews
+        payload = build_slot_previews(
+            benchtest_id,
+            serial_no,
+            md,
+            ensure_png=False,
+            force_png=False,
+        )
+        status = 200 if payload.get('success') else 404
+        return jsonify(payload), status
+    except Exception as e:
+        print(f'Error building benchtest slot previews: {e}')
+        import traceback
+        traceback.print_exc()
+        return jsonify({'error': str(e), 'success': False, 'previews': []}), 500
+
+
+@app.route('/api/benchtest_slot_preview_generate', methods=['POST'])
+def benchtest_slot_preview_generate():
+    """Generate PNG thumbnail(s) from existing HTML for one MD brick preview."""
+    if not session.get('logged_in'):
+        return jsonify({'error': 'Not logged in'}), 401
+
+    data = request.get_json(silent=True) or {}
+    benchtest_id = str(data.get('benchtest_id') or request.args.get('benchtest_id') or '').strip()
+    serial_no = str(data.get('serial_no') or request.args.get('serial_no') or '').strip()
+    md = str(data.get('md') or request.args.get('md') or '').strip()
+    key = str(data.get('key') or request.args.get('key') or '').strip() or None
+    force = str(data.get('force') or request.args.get('force') or '').lower() in (
+        '1', 'true', 'yes',
+    )
+
+    if not benchtest_id or not serial_no or not md:
+        return jsonify({'error': 'benchtest_id, serial_no, and md are required'}), 400
+
+    try:
+        from benchtest_plot_previews import generate_slot_preview_png
+        payload = generate_slot_preview_png(
+            benchtest_id,
+            serial_no,
+            md,
+            key=key,
+            force=force,
+        )
+        status = 200 if payload.get('success') else 400
+        return jsonify(payload), status
+    except Exception as e:
+        print(f'Error generating benchtest slot preview PNG: {e}')
+        import traceback
+        traceback.print_exc()
+        return jsonify({'error': str(e), 'success': False, 'previews': []}), 500
+
+
 @app.route('/api/add_comment', methods=['POST'])
 def add_comment():
     if not session.get('logged_in'):

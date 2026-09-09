@@ -1468,6 +1468,47 @@ def clear_history_cache_scope(scope='all'):
     }
 
 
+def _snapshot_cache_bust(paths):
+    """Stable browser-cache bust token from snapshot PNG mtimes."""
+    mtimes = []
+    for key in (
+        'wall_png',
+        'cumulative_png',
+        'burnin_png',
+        'yield_pie_png',
+        'burnin_pie_png',
+        'produced_pie_png',
+        'html',
+        'json',
+    ):
+        path = paths.get(key) if isinstance(paths, dict) else None
+        if path is None:
+            continue
+        try:
+            path = Path(path)
+            if path.exists():
+                mtimes.append(int(path.stat().st_mtime_ns))
+        except OSError:
+            continue
+    if not mtimes:
+        return None
+    return str(max(mtimes))
+
+
+def enrich_history_milestones_cache_bust(milestones):
+    """Attach/refresh per-milestone cache_bust from files currently on disk."""
+    for item in milestones or []:
+        if not item:
+            continue
+        paths = snapshot_paths(item.get('index', 0), item.get('timestamp'))
+        bust = _snapshot_cache_bust(paths)
+        if bust:
+            item['cache_bust'] = bust
+        elif 'cache_bust' in item and not item.get('is_cached'):
+            item['cache_bust'] = None
+    return milestones
+
+
 def load_history_index():
     index_path = HISTORY_CACHE_DIR / HISTORY_INDEX_NAME
     if not index_path.exists():
@@ -1479,6 +1520,7 @@ def load_history_index():
         return None
     if payload.get('version') != HISTORY_CACHE_VERSION:
         return None
+    enrich_history_milestones_cache_bust(payload.get('milestones') or [])
     return payload
 
 
@@ -1502,6 +1544,9 @@ def _attach_cache_paths(payload, paths, html_ok=True, png_ok=True):
     payload['plot_produced_pie_png'] = (
         paths['produced_pie_png_name'] if png_ok and paths['produced_pie_png'].exists() else None
     )
+    bust = _snapshot_cache_bust(paths)
+    if bust:
+        payload['cache_bust'] = bust
     return payload
 
 
@@ -1660,6 +1705,7 @@ def _write_history_index(milestones, weeks, time_axis, cached_at=None):
             entry['burnin_pie_png'] = paths['burnin_pie_png_name']
             entry['produced_pie_png'] = paths['produced_pie_png_name']
             entry['is_cached'] = True
+            entry['cache_bust'] = _snapshot_cache_bust(paths)
         else:
             entry['json'] = None
             entry['html'] = None
@@ -1670,6 +1716,7 @@ def _write_history_index(milestones, weeks, time_axis, cached_at=None):
             entry['burnin_pie_png'] = None
             entry['produced_pie_png'] = None
             entry['is_cached'] = False
+            entry['cache_bust'] = None
         index_milestones.append(entry)
 
     payload = {
@@ -1758,6 +1805,8 @@ def cache_milestone_snapshot(db_rows, benchtest_rows, milestone, time_axis=None)
         'produced_pie_png': paths['produced_pie_png_name'] if pies_ok else None,
         'is_cached': bool(wall_ok and charts_ok and pies_ok),
         'board_count': snapshot.get('board_count', 0),
+        'cached_at': cached_at,
+        'cache_bust': _snapshot_cache_bust(paths),
     }
     for item in milestones:
         if item.get('id') == milestone.get('id') or item.get('index') == milestone.get('index'):

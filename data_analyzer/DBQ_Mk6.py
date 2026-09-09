@@ -287,7 +287,7 @@ def close_timing_log(fh):
 
 # Main
 def DBQ_Mk6(regenerate_mode=None, specific_benchtest_ids=None, specific_daughterboard_id=None,
-            enable_timing=False):
+            enable_timing=False, skip_db_status_update=False):
 
     timenow = datetime.now()
     print(f'Current Date/Time: {timenow}')
@@ -352,6 +352,7 @@ def DBQ_Mk6(regenerate_mode=None, specific_benchtest_ids=None, specific_daughter
             timing_session=timing_session,
             timing_progress=timing_progress,
             driveDIR=driveDIR,
+            skip_db_status_update=skip_db_status_update,
         )
     except KeyboardInterrupt:
         print('\nTiming: interrupted by Ctrl+C — ensuring break row is in timing log')
@@ -377,7 +378,8 @@ def DBQ_Mk6(regenerate_mode=None, specific_benchtest_ids=None, specific_daughter
 
 def _dbq_mk6_run(regenerate_mode=None, specific_benchtest_ids=None, specific_daughterboard_id=None,
                  enable_timing=False, timing_session=None,
-                 timing_progress=None, driveDIR="/var/www/html/drive/benchtests/"):
+                 timing_progress=None, driveDIR="/var/www/html/drive/benchtests/",
+                 skip_db_status_update=False):
     mariadb_read_seconds = None
 
     ### ####### ###
@@ -1748,8 +1750,13 @@ def _dbq_mk6_run(regenerate_mode=None, specific_benchtest_ids=None, specific_dau
                 if csvfile:
                     csv_results["Board PassFail"][str(DBSN)] = 0
 
-            # Update daughterboard table (skip if test_pass is -1)
-            if benchtest_proc[btid]["benchtest_pass"] != -1:
+            # Update daughterboard table (skip if test_pass is -1, or plots-only recreate)
+            if skip_db_status_update:
+                print(
+                    f'  Skipping db_status update for DaughterBoard {DBSN} '
+                    f'(--recreate-plots-only / skip_db_status_update)'
+                )
+            elif benchtest_proc[btid]["benchtest_pass"] != -1:
                 tiledb_dbupdatequery = "UPDATE daughterboard SET db_status = '" + str(statDict[btid][DBSN]["Board PassFail"]) + "' WHERE serial_no = " + str(DBSN)
                 print(f'daughterboard update query: {tiledb_dbupdatequery}')
                 cursor.execute(tiledb_dbupdatequery)
@@ -1859,6 +1866,14 @@ parser.add_argument('-d', '--daughterboard_id', type=str,
 parser.add_argument('--timing', action='store_true',
                     help='Write per-step CSV timing logs under "<script>/timing logs/" '
                          '(filename Timing_<timestamp>_BT<id>.csv)')
+parser.add_argument(
+    '--recreate-plots-only',
+    action='store_true',
+    help=(
+        'Regenerate plots (same as -r plots) but do not update daughterboard '
+        'db_status in MariaDB'
+    ),
+)
 args = parser.parse_args()
 
 # Parse benchtest_id parameter
@@ -1929,12 +1944,27 @@ if DEBUG_SECRETS:
 
 
 # Execute main()
+regenerate_mode = args.regenerate
+skip_db_status_update = bool(args.recreate_plots_only)
+if args.recreate_plots_only:
+    # Plots recreate without touching daughterboard db_status.
+    if regenerate_mode is None:
+        regenerate_mode = 'plots'
+    elif regenerate_mode != 'plots':
+        print(
+            f'Note: --recreate-plots-only forces plot regeneration; '
+            f'overriding -r/--regenerate={regenerate_mode!r} → plots'
+        )
+        regenerate_mode = 'plots'
+    print('Mode: --recreate-plots-only (plots on, db_status updates off)')
+
 try:
     DBQ_Mk6(
-        regenerate_mode=args.regenerate,
+        regenerate_mode=regenerate_mode,
         specific_benchtest_ids=specific_benchtest_ids,
         specific_daughterboard_id=specific_daughterboard_id,
         enable_timing=bool(args.timing),
+        skip_db_status_update=skip_db_status_update,
     )
 except KeyboardInterrupt:
     print('Interrupted (Ctrl+C). Timing log has been updated with a break row if --timing was set.')

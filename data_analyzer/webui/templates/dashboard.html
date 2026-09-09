@@ -691,11 +691,40 @@
             transition: opacity 0.3s ease-out, transform 0.3s ease-out;
             transform: translateY(5px);
             box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+            max-width: min(720px, calc(100vw - 24px));
         }
 
         .tooltip.show {
             opacity: 1;
             transform: translateY(0);
+        }
+
+        .tooltip.tooltip-with-previews {
+            white-space: normal;
+            max-width: min(980px, calc(100vw - 24px));
+            pointer-events: auto;
+        }
+
+        .tooltip-preview-generate {
+            display: inline-block;
+            margin: 10px 8px 14px;
+            padding: 6px 10px;
+            border: 1px solid #8fa3c7;
+            border-radius: 6px;
+            background: #eef3fb;
+            color: #1f3b66;
+            font-size: 11px;
+            font-weight: 600;
+            cursor: pointer;
+        }
+
+        .tooltip-preview-generate:hover {
+            background: #dfe8f8;
+        }
+
+        .tooltip-preview-generate:disabled {
+            opacity: 0.65;
+            cursor: wait;
         }
 
         .tooltip-row {
@@ -705,6 +734,57 @@
         .tooltip-label {
             color: #aaa;
             margin-right: 8px;
+        }
+
+        .tooltip-preview-grid {
+            display: grid;
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+            gap: 10px;
+            margin-top: 8px;
+        }
+
+        .tooltip-preview-card {
+            background: rgba(255, 255, 255, 0.06);
+            border: 1px solid rgba(255, 255, 255, 0.12);
+            border-radius: 6px;
+            overflow: hidden;
+            min-width: 0;
+        }
+
+        .tooltip-preview-card-title {
+            font-size: 10px;
+            color: #ddd;
+            padding: 4px 6px 2px;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .tooltip-preview-card img {
+            display: block;
+            width: 100%;
+            height: 210px;
+            object-fit: contain;
+            background: #ffffff;
+        }
+
+        .tooltip-preview-link {
+            display: block;
+            cursor: pointer;
+            text-decoration: none;
+            color: inherit;
+        }
+
+        .tooltip-preview-link:hover img {
+            outline: 2px solid rgba(100, 180, 255, 0.85);
+            outline-offset: -2px;
+        }
+
+        .tooltip-preview-missing {
+            padding: 18px 8px;
+            text-align: center;
+            color: #999;
+            font-size: 10px;
         }
 
         .loading {
@@ -2794,11 +2874,62 @@
             box-shadow: 0 0 0 2px rgba(255, 152, 0, 0.28);
         }
 
+        .history-week-label-row {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 6px;
+            margin-bottom: 2px;
+        }
+
         .history-week-label {
             font-size: 12px;
             font-weight: 700;
             color: #444;
-            margin-bottom: 2px;
+            margin-bottom: 0;
+            min-width: 0;
+            flex: 1 1 auto;
+        }
+
+        .history-week-recompute-btn {
+            flex: 0 0 auto;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 22px;
+            height: 22px;
+            padding: 0;
+            border: 1px solid #c5cede;
+            border-radius: 6px;
+            background: #ffffff;
+            color: #4a5d7a;
+            cursor: pointer;
+            line-height: 0;
+        }
+
+        .history-week-recompute-btn:hover {
+            border-color: #667eea;
+            color: #4455c7;
+            background: #f3f5ff;
+        }
+
+        .history-week-recompute-btn:disabled {
+            opacity: 0.55;
+            cursor: wait;
+        }
+
+        .history-week-recompute-btn svg {
+            width: 13px;
+            height: 13px;
+            display: block;
+        }
+
+        .history-week-recompute-btn.is-busy svg {
+            animation: history-week-recompute-spin 0.9s linear infinite;
+        }
+
+        @keyframes history-week-recompute-spin {
+            to { transform: rotate(360deg); }
         }
 
         .history-week-range {
@@ -7467,6 +7598,8 @@
         let productionHistoryRequestId = 0;
         let productionHistoryTimeAxis = null;
         let productionHistoryCached = false;
+        // Bust browser/nginx PNG cache after recompute (same path, new bytes).
+        const historyPngCacheBustByPath = new Map();
         let lastProductionHistorySnapshot = null;
         const HISTORY_WALL_ROWS = 80;
         const HISTORY_WALL_MAX_BATCH = 13;
@@ -8364,9 +8497,37 @@
             setHistoryCacheOverlayProgress({ show: false });
         }
 
-        function historyAssetUrl(relativePath) {
+        function historyAssetUrl(relativePath, cacheBust = null) {
             if (!relativePath) return null;
-            return buildCachedPlotUrl('history', relativePath);
+            const url = buildCachedPlotUrl('history', relativePath);
+            if (!url) return null;
+            const bust = cacheBust != null
+                ? cacheBust
+                : historyPngCacheBustByPath.get(String(relativePath));
+            if (bust == null || bust === '') return url;
+            const sep = url.includes('?') ? '&' : '?';
+            return `${url}${sep}v=${encodeURIComponent(String(bust))}`;
+        }
+
+        function rememberHistoryPngCacheBust(relativePath, cacheBust = Date.now()) {
+            if (!relativePath) return;
+            historyPngCacheBustByPath.set(String(relativePath), String(cacheBust));
+        }
+
+        function rememberHistoryMilestonePngCacheBust(milestone, cacheBust = Date.now()) {
+            if (!milestone) return String(cacheBust);
+            const token = String(cacheBust);
+            milestone.cache_bust = token;
+            [
+                milestone.wall_png,
+                milestone.cumulative_png,
+                milestone.burnin_png,
+                milestone.yield_pie_png,
+                milestone.burnin_pie_png,
+                milestone.produced_pie_png,
+                milestone.html,
+            ].forEach((relativePath) => rememberHistoryPngCacheBust(relativePath, token));
+            return token;
         }
 
         function ensureHistoryFrameStack(el) {
@@ -8421,9 +8582,14 @@
 
         async function prepareHistoryFrameSwap(el, relativePath, altText, bustCache = false) {
             if (!el) return null;
-            const url = historyAssetUrl(relativePath);
+            let cacheBust = historyPngCacheBustByPath.get(String(relativePath));
+            if (bustCache) {
+                cacheBust = String(Date.now());
+                rememberHistoryPngCacheBust(relativePath, cacheBust);
+            }
+            const url = historyAssetUrl(relativePath, cacheBust);
             if (!url) return null;
-            const src = bustCache ? `${url}?t=${Date.now()}` : url;
+            const src = url;
             const stack = ensureHistoryFrameStack(el);
             const frames = Array.from(stack.querySelectorAll('.history-frame-img'));
             const visible = frames.find((img) => img.classList.contains('is-visible')) || frames[0];
@@ -8526,6 +8692,7 @@
         function prefetchHistoryMilestoneFrames(index) {
             const milestone = productionHistoryMilestones[index];
             if (!milestoneHasPngCache(milestone)) return;
+            const bust = milestone.cache_bust || null;
             [
                 milestone.wall_png,
                 milestone.cumulative_png,
@@ -8534,7 +8701,7 @@
                 milestone.burnin_pie_png,
                 milestone.produced_pie_png,
             ].forEach((relativePath) => {
-                const url = historyAssetUrl(relativePath);
+                const url = historyAssetUrl(relativePath, bust);
                 if (!url) return;
                 const img = new Image();
                 img.decoding = 'async';
@@ -8565,7 +8732,11 @@
             }
             const htmlName = snapshot?.plot_html
                 || productionHistoryMilestones[productionHistoryIndex]?.html;
-            const url = buildCachedPlotUrl('history', htmlName);
+            const milestone = productionHistoryMilestones[productionHistoryIndex];
+            const url = historyAssetUrl(
+                htmlName,
+                milestone?.cache_bust || historyPngCacheBustByPath.get(String(htmlName || '')),
+            );
             if (showCachedBtn) {
                 if (url) {
                     showCachedBtn.href = url;
@@ -8636,7 +8807,7 @@
             }
         }
 
-        function markHistoryMilestoneCached(index, paths = {}) {
+        function markHistoryMilestoneCached(index, paths = {}, options = {}) {
             if (!productionHistoryMilestones[index]) return;
             const milestone = productionHistoryMilestones[index];
             milestone.is_cached = true;
@@ -8660,6 +8831,17 @@
                 milestone.produced_pie_png = paths.produced_pie_png || paths.plot_produced_pie_png;
             }
             if (paths.board_count != null) milestone.board_count = paths.board_count;
+            // New/rebuilt files keep the same path — force a fresh URL so the UI
+            // does not keep showing the previous browser-cached PNG bytes.
+            if (options.bustCache !== false) {
+                rememberHistoryMilestonePngCacheBust(
+                    milestone,
+                    options.cacheBust
+                        || paths.cache_bust
+                        || paths.cached_at
+                        || Date.now(),
+                );
+            }
             const mark = document.querySelector(`.history-mark[data-index="${index}"]`);
             if (mark) mark.classList.add('is-cached');
             updateHistoryCacheControls(lastProductionHistorySnapshot || { cached: true });
@@ -8678,7 +8860,8 @@
             // Cached PNG frames: swap after decode — never show Building Cache.
             if (!recompute && milestoneHasPngCache(milestone)) {
                 hideHistoryCacheOverlay();
-                await renderHistoryPngFrames(milestone, false);
+                // Use remembered cache-bust tokens so recomputed files are not stale.
+                await renderHistoryPngFrames(milestone, Boolean(milestone.cache_bust));
                 lastProductionHistorySnapshot = {
                     cached: true,
                     plot_html: milestone.html,
@@ -8778,6 +8961,129 @@
             await selectHistoryMilestone(productionHistoryIndex, { recompute: true });
         }
 
+        function setHistoryWeekRecomputeBusy(weekKey, busy) {
+            document.querySelectorAll('.history-week-recompute-btn').forEach((button) => {
+                const isTarget = button.dataset.week === weekKey;
+                button.disabled = Boolean(busy);
+                button.classList.toggle('is-busy', Boolean(busy) && isTarget);
+            });
+            const headerBtn = document.getElementById('history-recompute-btn');
+            if (headerBtn) headerBtn.disabled = Boolean(busy);
+        }
+
+        async function recomputeHistoryWeek(weekKey) {
+            const week = productionHistoryWeeks.find((item) => item.week_key === weekKey);
+            const indices = (week?.milestone_indices || [])
+                .map(Number)
+                .filter((index) => Number.isFinite(index));
+            if (!week || !indices.length) return;
+
+            stopHistoryPlayback();
+            const requestId = ++productionHistoryRequestId;
+            const total = indices.length;
+            const weekLabel = week.label || week.week_key || 'week';
+            setHistoryWeekRecomputeBusy(weekKey, true);
+            showHistoryCacheOverlay(null, {
+                title: `Recomputing ${weekLabel}`,
+                message: `Rebuilding ${total} milestone${total === 1 ? '' : 's'}…`,
+                showProgress: true,
+                percent: 0,
+                done: 0,
+                total,
+            });
+
+            let lastOkIndex = null;
+            try {
+                for (let offset = 0; offset < indices.length; offset += 1) {
+                    if (requestId !== productionHistoryRequestId) return;
+                    const index = indices[offset];
+                    const milestone = productionHistoryMilestones[index] || {};
+                    showHistoryCacheOverlay(milestone, {
+                        title: `Recomputing ${weekLabel}`,
+                        message: (
+                            `Milestone ${offset + 1}/${total}: `
+                            + `${milestone.label || `#${index + 1}`}`
+                        ),
+                        showProgress: true,
+                        percent: (offset / total) * 100,
+                        done: offset,
+                        total,
+                        progressLabel: `${offset}/${total}`,
+                    });
+
+                    const params = new URLSearchParams({
+                        index: String(index),
+                        recompute: '1',
+                    });
+                    if (milestone.timestamp) params.set('as_of', milestone.timestamp);
+                    if (milestone.id) params.set('milestone_id', milestone.id);
+
+                    const response = await fetch(
+                        `/api/production_history/snapshot?${params.toString()}`
+                    );
+                    const data = await response.json();
+                    if (requestId !== productionHistoryRequestId) return;
+                    if (data.error || !data.success) {
+                        throw new Error(
+                            data.error || `Failed to recompute milestone #${index + 1}`
+                        );
+                    }
+                    if (data.time_axis) {
+                        productionHistoryTimeAxis = data.time_axis;
+                    }
+                    markHistoryMilestoneCached(index, {
+                        ...data,
+                        board_count: data.board_count,
+                    });
+                    lastOkIndex = index;
+                    showHistoryCacheOverlay(milestone, {
+                        title: `Recomputing ${weekLabel}`,
+                        message: (
+                            `Cached ${offset + 1}/${total}: `
+                            + `${milestone.label || `#${index + 1}`}`
+                        ),
+                        showProgress: true,
+                        percent: ((offset + 1) / total) * 100,
+                        done: offset + 1,
+                        total,
+                        progressLabel: `${offset + 1}/${total}`,
+                    });
+                }
+
+                if (lastOkIndex != null && requestId === productionHistoryRequestId) {
+                    // Force a busted redraw of the last rebuilt milestone.
+                    const milestone = productionHistoryMilestones[lastOkIndex];
+                    productionHistoryIndex = lastOkIndex;
+                    updateHistoryPlayerUi();
+                    await renderHistoryPngFrames(milestone, true);
+                    lastProductionHistorySnapshot = {
+                        cached: true,
+                        plot_html: milestone?.html,
+                        plot_wall_png: milestone?.wall_png,
+                        plot_cumulative_png: milestone?.cumulative_png,
+                        plot_burnin_png: milestone?.burnin_png,
+                        plot_yield_pie_png: milestone?.yield_pie_png,
+                        plot_burnin_pie_png: milestone?.burnin_pie_png,
+                        plot_produced_pie_png: milestone?.produced_pie_png,
+                        board_count: milestone?.board_count,
+                    };
+                    updateHistoryCacheControls(lastProductionHistorySnapshot);
+                    prefetchNearbyHistoryFrames(lastOkIndex);
+                }
+            } catch (error) {
+                if (requestId !== productionHistoryRequestId) return;
+                alert(error?.message || 'Week recompute failed');
+                if (lastOkIndex != null) {
+                    await selectHistoryMilestone(lastOkIndex);
+                }
+            } finally {
+                setHistoryWeekRecomputeBusy(weekKey, false);
+                if (requestId === productionHistoryRequestId) {
+                    hideHistoryCacheOverlay();
+                }
+            }
+        }
+
         function stopHistoryPlayback() {
             productionHistoryPlaying = false;
             if (productionHistoryTimer) {
@@ -8841,6 +9147,12 @@
             productionHistoryTimeAxis = payload.time_axis || null;
             productionHistoryCached = Boolean(payload.cached);
             productionHistoryIndex = 0;
+            historyPngCacheBustByPath.clear();
+            productionHistoryMilestones.forEach((milestone) => {
+                if (milestone && milestone.cache_bust) {
+                    rememberHistoryMilestonePngCacheBust(milestone, milestone.cache_bust);
+                }
+            });
             stopHistoryPlayback();
 
             if (!productionHistoryMilestones.length) {
@@ -8863,9 +9175,21 @@
                         + `data-index="${index}" title="${milestone.timestamp} · ${milestone.label}"></button>`
                     );
                 }).join('');
+                const weekLabel = week.label || week.week_key || 'Week';
                 return `
                     <div class="history-week-group" data-week="${week.week_key}" data-indices="${(week.milestone_indices || []).join(',')}">
-                        <div class="history-week-label">${week.label}</div>
+                        <div class="history-week-label-row">
+                            <div class="history-week-label">${weekLabel}</div>
+                            <button type="button"
+                                class="history-week-recompute-btn"
+                                data-week="${week.week_key}"
+                                title="Recompute milestones for ${weekLabel}"
+                                aria-label="Recompute milestones for ${weekLabel}">
+                                <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+                                    <path fill="currentColor" d="M12 6V3L8 7l4 4V8c2.76 0 5 2.24 5 5a5 5 0 0 1-9.9 1h-2.02A7 7 0 0 0 19 13c0-3.87-3.13-7-7-7zm0 12c-2.76 0-5-2.24-5-5a5 5 0 0 1 9.9-1h2.02A7 7 0 0 0 5 13c0 3.87 3.13 7 7 7v3l4-4-4-4v3z"/>
+                                </svg>
+                            </button>
+                        </div>
                         <div class="history-week-range">${week.range_label} · ${week.count} events</div>
                         <div class="history-week-marks">${marks}</div>
                     </div>
@@ -9092,9 +9416,19 @@
                     selectHistoryMilestone(Number(mark.dataset.index));
                 });
             });
+            document.querySelectorAll('.history-week-recompute-btn').forEach((button) => {
+                button.addEventListener('click', (event) => {
+                    event.preventDefault();
+                    event.stopPropagation();
+                    const weekKey = button.dataset.week;
+                    if (!weekKey || button.disabled) return;
+                    recomputeHistoryWeek(weekKey);
+                });
+            });
             document.querySelectorAll('.history-week-group').forEach((group) => {
                 group.addEventListener('click', (event) => {
                     if (event.target.closest('.history-mark')) return;
+                    if (event.target.closest('.history-week-recompute-btn')) return;
                     const indices = (group.dataset.indices || '').split(',').map(Number).filter(Number.isFinite);
                     if (!indices.length) return;
                     stopHistoryPlayback();
@@ -9448,6 +9782,40 @@
         let benchtestListCached = false;
         let benchtestListCachedAt = '';
         let benchtestListCacheFallback = false;
+        const benchtestSlotPreviewCache = new Map();
+        let benchtestBrickPreviewRequestId = 0;
+        let benchtestTooltipHideTimer = null;
+
+        function clearBenchtestTooltipHide() {
+            if (benchtestTooltipHideTimer) {
+                clearTimeout(benchtestTooltipHideTimer);
+                benchtestTooltipHideTimer = null;
+            }
+        }
+
+        function scheduleBenchtestTooltipHide() {
+            clearBenchtestTooltipHide();
+            benchtestTooltipHideTimer = setTimeout(() => {
+                const tooltip = document.getElementById('tooltip');
+                benchtestBrickPreviewRequestId += 1;
+                if (tooltip) {
+                    tooltip.classList.remove('show');
+                    tooltip.classList.remove('tooltip-with-previews');
+                }
+            }, 180);
+        }
+
+        function ensureBenchtestTooltipHoverBridge() {
+            const tooltip = document.getElementById('tooltip');
+            if (!tooltip || tooltip.dataset.benchtestPreviewWired === '1') return;
+            tooltip.dataset.benchtestPreviewWired = '1';
+            tooltip.addEventListener('mouseenter', () => {
+                clearBenchtestTooltipHide();
+            });
+            tooltip.addEventListener('mouseleave', () => {
+                scheduleBenchtestTooltipHide();
+            });
+        }
         let benchtestSortOrder = 'desc'; // newest first
         let benchtestHeatmapMode = null;
         const BENCHTEST_HEATMAP_OPTIONS = [
@@ -10029,6 +10397,7 @@
             const tooltip = document.getElementById('tooltip');
             if (!metaEl || !tooltip) return;
             metaEl.addEventListener('mouseenter', (e) => {
+                tooltip.classList.remove('tooltip-with-previews');
                 tooltip.innerHTML = buildBenchtestMetaTooltipHtml(bt);
                 tooltip.style.left = `${e.pageX + 10}px`;
                 tooltip.style.top = `${e.pageY + 10}px`;
@@ -10040,6 +10409,250 @@
             });
             metaEl.addEventListener('mouseleave', () => {
                 tooltip.classList.remove('show');
+                tooltip.classList.remove('tooltip-with-previews');
+            });
+        }
+
+        function buildBenchtestBrickTooltipShell(slot, bt) {
+            return (
+                `<div class="tooltip-row"><span class="tooltip-label">${slot.md}:</span>`
+                + `DB ${slot.serial_no}</div>`
+                + `<div class="tooltip-row"><span class="tooltip-label">BT:</span>${bt.benchtest_id}`
+                + ` · ${formatBenchtestPassLabel(slot.test_pass)}`
+                + ` · batch ${slot.batch ?? 'n/a'} pos ${slot.position ?? 'n/a'}</div>`
+                + `<div class="tooltip-row"><span class="tooltip-label">Burned-in:</span>`
+                + `${slot.burn_in_stop ? 'yes' : 'no'}`
+                + `${slot.missing_sfp ? ' · missing SFP' : ''}</div>`
+                + `<div class="tooltip-preview-grid" data-preview-host="1">`
+                + `<div class="tooltip-preview-missing">Loading worst-sample snapshots…</div>`
+                + `</div>`
+            );
+        }
+
+        function benchtestDriveUrl(urlOrPath) {
+            const text = String(urlOrPath || '').trim();
+            if (!text) return '';
+            if (/^https?:\/\//i.test(text)) {
+                return text.replace('://tileqa.', '://');
+            }
+            if (text.startsWith('/drive/')) {
+                return `https://piro-atlas-lab.fysik.su.se${text}`;
+            }
+            return text;
+        }
+
+        function buildBenchtestPreviewCardsHtml(previews, bt, slot) {
+            const items = Array.isArray(previews) ? previews : [];
+            if (!items.length) {
+                return '<div class="tooltip-preview-missing">Data not available</div>';
+            }
+            const btId = bt && bt.benchtest_id != null ? bt.benchtest_id : '';
+            const serial = slot && slot.serial_no != null ? slot.serial_no : '';
+            const md = slot && slot.md != null ? slot.md : '';
+            return items.map((item) => {
+                const ch = (item.channel == null) ? '?' : item.channel;
+                const gain = item.gain ? ` ${item.gain}` : '';
+                const title = item.has_html
+                    ? `${item.label || item.key} · CH${ch}${gain}`
+                    : `${item.label || item.key}`;
+                const pngUrl = benchtestDriveUrl(item.png_url);
+                const htmlUrl = benchtestDriveUrl(item.html_url);
+                if (pngUrl || item.has_png) {
+                    const imgTag = `<img src="${pngUrl}" alt="${title}" loading="lazy">`;
+                    const media = htmlUrl
+                        ? (
+                            `<a class="tooltip-preview-link" href="${htmlUrl}"`
+                            + ` target="_blank" rel="noopener noreferrer"`
+                            + ` title="Open interactive HTML plot">`
+                            + imgTag
+                            + `</a>`
+                        )
+                        : imgTag;
+                    return (
+                        `<div class="tooltip-preview-card" data-preview-key="${item.key || ''}">`
+                        + `<div class="tooltip-preview-card-title">${title}</div>`
+                        + media
+                        + `</div>`
+                    );
+                }
+                if (item.has_html || item.html_url || item.can_generate) {
+                    return (
+                        `<div class="tooltip-preview-card" data-preview-key="${item.key || ''}">`
+                        + `<div class="tooltip-preview-card-title">${title}</div>`
+                        + `<button type="button" class="tooltip-preview-generate"`
+                        + ` data-bt="${btId}" data-serial="${serial}" data-md="${md}"`
+                        + ` data-key="${item.key || ''}">Click to generate</button>`
+                        + `</div>`
+                    );
+                }
+                return (
+                    `<div class="tooltip-preview-card" data-preview-key="${item.key || ''}">`
+                    + `<div class="tooltip-preview-card-title">${item.label || item.key}</div>`
+                    + `<div class="tooltip-preview-missing">Data not available</div>`
+                    + `</div>`
+                );
+            }).join('');
+        }
+
+        function benchtestPreviewCacheKey(bt, slot) {
+            return `${bt.benchtest_id}:${slot.serial_no}:${slot.md || ''}`;
+        }
+
+        async function fetchBenchtestSlotPreviews(bt, slot, { bypassCache = false } = {}) {
+            const key = benchtestPreviewCacheKey(bt, slot);
+            if (!bypassCache && benchtestSlotPreviewCache.has(key)) {
+                return benchtestSlotPreviewCache.get(key);
+            }
+            const params = new URLSearchParams({
+                benchtest_id: String(bt.benchtest_id),
+                serial_no: String(slot.serial_no),
+                md: String(slot.md || ''),
+            });
+            const response = await fetch(`/api/benchtest_slot_previews?${params.toString()}`);
+            const data = await response.json();
+            if (data && data.success) {
+                benchtestSlotPreviewCache.set(key, data);
+            }
+            return data;
+        }
+
+        async function generateBenchtestSlotPreview(bt, slot, key, buttonEl) {
+            if (buttonEl) {
+                buttonEl.disabled = true;
+                buttonEl.textContent = 'Generating…';
+            }
+            try {
+                const response = await fetch('/api/benchtest_slot_preview_generate', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        benchtest_id: bt.benchtest_id,
+                        serial_no: slot.serial_no,
+                        md: slot.md,
+                        key: key || undefined,
+                    }),
+                });
+                const data = await response.json();
+                if (!data || !data.success) {
+                    if (buttonEl) {
+                        buttonEl.disabled = false;
+                        buttonEl.textContent = 'Click to generate';
+                    }
+                    alert((data && data.error) || 'PNG generation failed');
+                    return null;
+                }
+                benchtestSlotPreviewCache.set(benchtestPreviewCacheKey(bt, slot), data);
+                return data;
+            } catch (err) {
+                if (buttonEl) {
+                    buttonEl.disabled = false;
+                    buttonEl.textContent = 'Click to generate';
+                }
+                alert('PNG generation request failed');
+                return null;
+            }
+        }
+
+        function wireBenchtestPreviewGenerateButtons(host, bt, slot) {
+            if (!host) return;
+            host.querySelectorAll('.tooltip-preview-generate').forEach((btn) => {
+                btn.addEventListener('click', async (event) => {
+                    event.preventDefault();
+                    event.stopPropagation();
+                    const key = btn.getAttribute('data-key') || '';
+                    const data = await generateBenchtestSlotPreview(bt, slot, key, btn);
+                    if (!data) return;
+                    const tooltip = document.getElementById('tooltip');
+                    const liveHost = tooltip && tooltip.querySelector('[data-preview-host="1"]');
+                    if (liveHost) {
+                        liveHost.innerHTML = buildBenchtestPreviewCardsHtml(data.previews, bt, slot);
+                        wireBenchtestPreviewGenerateButtons(liveHost, bt, slot);
+                    }
+                });
+            });
+        }
+
+        function positionBenchtestTooltip(tooltip, event) {
+            if (!tooltip || !event) return;
+            const pad = 12;
+            const gap = 12;
+            // Measure real box size (works even while opacity is transitioning).
+            const width = Math.max(tooltip.offsetWidth || 0, 160);
+            const height = Math.max(tooltip.offsetHeight || 0, 60);
+            let left = event.pageX + gap;
+            let top = event.pageY + gap;
+            const viewLeft = window.scrollX + pad;
+            const viewTop = window.scrollY + pad;
+            const viewRight = window.scrollX + window.innerWidth - pad;
+            const viewBottom = window.scrollY + window.innerHeight - pad;
+
+            if (left + width > viewRight) {
+                left = Math.max(viewLeft, event.pageX - width - gap);
+            }
+            if (top + height > viewBottom) {
+                top = Math.max(viewTop, event.pageY - height - gap);
+            }
+            left = Math.min(Math.max(left, viewLeft), Math.max(viewLeft, viewRight - width));
+            top = Math.min(Math.max(top, viewTop), Math.max(viewTop, viewBottom - height));
+            tooltip.style.left = `${left}px`;
+            tooltip.style.top = `${top}px`;
+        }
+
+        function wireBenchtestBrickTooltip(brickEl, bt, slot) {
+            const tooltip = document.getElementById('tooltip');
+            if (!brickEl || !tooltip || slot.empty || slot.serial_no == null) return;
+            ensureBenchtestTooltipHoverBridge();
+            let lastEvent = null;
+
+            brickEl.addEventListener('mouseenter', async (e) => {
+                clearBenchtestTooltipHide();
+                lastEvent = e;
+                const requestId = ++benchtestBrickPreviewRequestId;
+                tooltip.classList.add('tooltip-with-previews');
+                tooltip.innerHTML = buildBenchtestBrickTooltipShell(slot, bt);
+                positionBenchtestTooltip(tooltip, lastEvent);
+                tooltip.classList.add('show');
+                try {
+                    const data = await fetchBenchtestSlotPreviews(bt, slot);
+                    if (requestId !== benchtestBrickPreviewRequestId) return;
+                    if (!tooltip.classList.contains('show')) return;
+                    const host = tooltip.querySelector('[data-preview-host="1"]');
+                    if (!host) return;
+                    if (!data || data.error || !data.success) {
+                        host.innerHTML = (
+                            `<div class="tooltip-preview-missing">`
+                            + `${(data && data.error) || 'Data not available'}`
+                            + `</div>`
+                        );
+                        positionBenchtestTooltip(tooltip, lastEvent);
+                        return;
+                    }
+                    host.innerHTML = buildBenchtestPreviewCardsHtml(data.previews, bt, slot);
+                    wireBenchtestPreviewGenerateButtons(host, bt, slot);
+                    positionBenchtestTooltip(tooltip, lastEvent);
+                } catch (err) {
+                    if (requestId !== benchtestBrickPreviewRequestId) return;
+                    const host = tooltip.querySelector('[data-preview-host="1"]');
+                    if (host) {
+                        host.innerHTML = '<div class="tooltip-preview-missing">Preview request failed</div>';
+                    }
+                    positionBenchtestTooltip(tooltip, lastEvent);
+                }
+            });
+            brickEl.addEventListener('mousemove', (e) => {
+                lastEvent = e;
+                if (!tooltip.classList.contains('show')) return;
+                // Don't chase the cursor once interactive controls are shown.
+                if (
+                    tooltip.querySelector('.tooltip-preview-generate')
+                    || tooltip.querySelector('.tooltip-preview-link')
+                ) {
+                    return;
+                }
+                positionBenchtestTooltip(tooltip, e);
+            });
+            brickEl.addEventListener('mouseleave', () => {
+                scheduleBenchtestTooltipHide();
             });
         }
 
@@ -10164,12 +10777,6 @@
                         const color = benchtestSlotColor(slot);
                         if (color) brick.style.background = color;
                         text.textContent = `${slot.md} ${slot.serial_no}`;
-                        brick.title = [
-                            `${slot.md}: DB ${slot.serial_no}`,
-                            `Batch ${slot.batch} · Position ${slot.position}`,
-                            `Pass: ${slot.test_pass}`,
-                            `Burned-in: ${slot.burn_in_stop ? 'yes' : 'no'}`,
-                        ].join('\n');
 
                         const emojis = document.createElement('div');
                         emojis.className = 'benchtest-md-emojis';
@@ -10183,6 +10790,7 @@
 
                         brick.appendChild(text);
                         if (emojis.childNodes.length) brick.appendChild(emojis);
+                        wireBenchtestBrickTooltip(brick, bt, slot);
                         brick.addEventListener('click', () => {
                             openBoardFromBenchtestSlot(slot.serial_no);
                         });

@@ -8,10 +8,10 @@
 #fi
 
 #START=1
-START=78
+START=158
 END=269
 
 for ((x=START; x<=END; x++)); do
     echo "Running with -b $x"
-    python DBQ_Mk6.py -r "all" -b "$x"
+    python DBQ_Mk6.py -r "all" -b "$x" --recreate-plots-only
 done

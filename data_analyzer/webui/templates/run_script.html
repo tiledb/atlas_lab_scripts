@@ -188,13 +188,13 @@
     <nav class="navbar">
         <h1>DBQ Admin Panel</h1>
         <div class="nav-links">
-            <a href="{{ url_for('dashboard') }}">Dashboard</a>
+            <a href="{{ url_for('dashboard') }}#advanced-tools">Dashboard</a>
             <a href="{{ url_for('logout') }}">Logout</a>
         </div>
     </nav>
 
     <div class="container">
-        <a href="{{ url_for('dashboard') }}" class="back-link">← Back to Dashboard</a>
+        <a href="{{ url_for('dashboard') }}#advanced-tools" class="back-link">← Back to Advanced Tools</a>
 
         <div class="form-card">
             <h2>Run DBQ_Mk6 Script</h2>

@@ -153,6 +153,7 @@
             border-radius: 12px;
             display: flex;
             justify-content: center;
+            align-items: center;
             margin-bottom: 20px;
             font-size: 28px;
             color: white;
@@ -701,19 +702,19 @@
 
         .tooltip.tooltip-with-previews {
             white-space: normal;
-            max-width: min(980px, calc(100vw - 24px));
+            max-width: min(625px, calc(100vw - 24px));
             pointer-events: auto;
         }
 
         .tooltip-preview-generate {
             display: inline-block;
-            margin: 10px 8px 14px;
-            padding: 6px 10px;
+            margin: 6px 6px 8px;
+            padding: 5px 8px;
             border: 1px solid #8fa3c7;
             border-radius: 6px;
             background: #eef3fb;
             color: #1f3b66;
-            font-size: 11px;
+            font-size: 10px;
             font-weight: 600;
             cursor: pointer;
         }
@@ -739,8 +740,8 @@
         .tooltip-preview-grid {
             display: grid;
             grid-template-columns: repeat(2, minmax(0, 1fr));
-            gap: 10px;
-            margin-top: 8px;
+            gap: 6px;
+            margin-top: 6px;
         }
 
         .tooltip-preview-card {
@@ -752,9 +753,9 @@
         }
 
         .tooltip-preview-card-title {
-            font-size: 10px;
+            font-size: 9px;
             color: #ddd;
-            padding: 4px 6px 2px;
+            padding: 3px 5px 1px;
             white-space: nowrap;
             overflow: hidden;
             text-overflow: ellipsis;
@@ -763,7 +764,7 @@
         .tooltip-preview-card img {
             display: block;
             width: 100%;
-            height: 210px;
+            height: 131px;
             object-fit: contain;
             background: #ffffff;
         }
@@ -1348,8 +1349,14 @@
 
         .tabs {
             display: flex;
+            flex-wrap: nowrap;
+            align-items: stretch;
+            gap: 0;
             border-bottom: 2px solid #e1e5e9;
             margin-bottom: 20px;
+            overflow-x: auto;
+            overflow-y: hidden;
+            -webkit-overflow-scrolling: touch;
         }
 
         .burn-in-all-slots-btn {
@@ -1383,6 +1390,7 @@
         }
 
         .tab {
+            flex: 0 0 auto;
             padding: 12px 24px;
             cursor: pointer;
             background: none;
@@ -1390,9 +1398,10 @@
             font-size: 14px;
             font-weight: 500;
             color: #666;
+            white-space: nowrap;
             border-bottom: 2px solid transparent;
             margin-bottom: -2px;
-            transition: all 0.3s ease;
+            transition: color 0.2s ease, background 0.2s ease, border-color 0.2s ease;
         }
 
         .tab:hover {
@@ -1408,16 +1417,10 @@
 
         .tab-content {
             display: none;
-            opacity: 0;
-            transform: scale(1.2);
-            transition: opacity 1.0s ease-out, transform 1.0s ease-out;
         }
 
         .tab-content.active {
             display: block;
-            opacity: 1;
-            transform: scale(1);
-            transition: opacity 1.0s ease, transform 1.0s ease;
         }
 
         .search-bar {
@@ -3774,7 +3777,8 @@
                 <h2>TileQA Administration{% if session.get('guest_mode') %} <span style="font-size: 16px; font-weight: 500; opacity: 0.9;">(Guest)</span>{% endif %}</h2>
                 <div class="header-nav">
                     {% if not session.get('guest_mode') %}
-                    <button class="header-tab" data-tab="advanced-options" onclick="switchTab('advanced-options', this)">Advanced Options</button>
+                    <button class="header-tab" data-tab="advanced-configuration" onclick="switchTab('advanced-configuration', this)">Advanced Configuration</button>
+                    <button class="header-tab" data-tab="advanced-tools" onclick="switchTab('advanced-tools', this)">Advanced Tools</button>
                     {% endif %}
                     <button class="header-tab" data-tab="session-info" onclick="switchTab('session-info', this)">Session Information</button>
                     <a href="{{ url_for('logout') }}" class="logout-btn">Logout</a>
@@ -3817,6 +3821,7 @@
                     <div id="brick-preview" class="brick-preview"></div>
                 </div>
                 <button class="show-btn" id="show-btn">Show</button>
+                <button type="button" id="brick-wall-recompute-btn" class="burn-in-recompute-btn">Recompute</button>
             </div>
             <div class="brick-wall-section">
                 <div class="brick-wall-container" id="brick-wall-container">
@@ -4018,16 +4023,8 @@
         </div>
 
         {% if not session.get('guest_mode') %}
-        <div id="advanced-options" class="tab-content">
+        <div id="advanced-configuration" class="tab-content">
             <div class="cards-grid">
-                <a href="{{ url_for('run_script') }}" class="card">
-                    <div class="card-icon">▶</div>
-                    <h3>Run DBQ Script</h3>
-                    <p>Execute the DBQ_Mk6 script with custom parameters including regeneration modes and specific
-                        benchtest
-                        IDs.</p>
-                </a>
-
                 <a href="{{ url_for('edit_vars') }}" class="card">
                     <div class="card-icon">⚙</div>
                     <h3>Benchtest Thresholds</h3>
@@ -4071,6 +4068,30 @@
                     <div class="card-icon">☰</div>
                     <h3>Organize Tabs</h3>
                     <p>Change the order of the main dashboard tabs.</p>
+                </a>
+
+                <a href="{{ url_for('edit_local_config') }}" class="card">
+                    <div class="card-icon">🕒</div>
+                    <h3>Local Config</h3>
+                    <p>Choose whether datetimes from databases are interpreted as UTC or local time.</p>
+                </a>
+            </div>
+        </div>
+
+        <div id="advanced-tools" class="tab-content">
+            <div class="cards-grid">
+                <a href="{{ url_for('run_script') }}" class="card">
+                    <div class="card-icon">▶</div>
+                    <h3>Run DBQ Script</h3>
+                    <p>Execute the DBQ_Mk6 script with custom parameters including regeneration modes and specific
+                        benchtest
+                        IDs.</p>
+                </a>
+
+                <a href="{{ url_for('restore_mariadb') }}" class="card">
+                    <div class="card-icon">🗂</div>
+                    <h3>Restore MariaDB from Backup</h3>
+                    <p>Compare tiledb tables with XLS backups in mariadb_backup and restore selected columns, rows, or cells.</p>
                 </a>
             </div>
         </div>
@@ -4328,17 +4349,10 @@
             const resolvedTabId = resolveDashboardTabId(tabId) || tabId;
             const tabContents = document.querySelectorAll('.tab-content');
             tabContents.forEach(content => {
-                if (content.classList.contains('active')) {
-                    content.style.opacity = '0';
-                    content.style.transform = 'translateY(10px)';
-                    setTimeout(() => {
-                        content.classList.remove('active');
-                        content.style.display = 'none';
-                    }, 300);
-                } else {
-                    content.classList.remove('active');
-                    content.style.display = 'none';
-                }
+                content.classList.remove('active');
+                content.style.display = 'none';
+                content.style.opacity = '';
+                content.style.transform = '';
             });
 
             document.querySelectorAll('.tab, .header-tab').forEach(tab => {
@@ -4356,10 +4370,7 @@
                 return;
             }
             selectedContent.style.display = 'block';
-            selectedContent.offsetHeight;
             selectedContent.classList.add('active');
-            selectedContent.style.opacity = '1';
-            selectedContent.style.transform = 'translateY(0)';
 
             syncDashboardTabHash(resolvedTabId);
 
@@ -4394,11 +4405,13 @@
                 return null;
             }
             const normalized = String(rawTabId).trim().replace(/^#/, '').replace(/_/g, '-');
-            if (!normalized) {
+            const aliases = { 'advanced-options': 'advanced-configuration' };
+            const resolved = aliases[normalized] || normalized;
+            if (!resolved) {
                 return null;
             }
-            if (document.getElementById(normalized) && document.querySelector(`[data-tab="${normalized}"]`)) {
-                return normalized;
+            if (document.getElementById(resolved) && document.querySelector(`[data-tab="${resolved}"]`)) {
+                return resolved;
             }
             return null;
         }
@@ -10937,10 +10950,21 @@
             await loadBenchtestList(true);
         }
 
+        async function recomputeBrickWall() {
+            const button = document.getElementById('brick-wall-recompute-btn');
+            if (button) button.disabled = true;
+            try {
+                await loadBrickWall('brick-wall-container', 10, true);
+                applyFilters();
+            } finally {
+                if (button) button.disabled = false;
+            }
+        }
+
         async function loadBrickWall(containerId = 'brick-wall-container', brickHeight = 10, showLegend = true) {
             const container = document.getElementById(containerId);
             if (!container) return;
-            container.innerHTML = '';
+            container.innerHTML = '<div class="loading">Loading brick wall data...</div>';
             const tooltip = document.getElementById('tooltip');
 
             try {
@@ -12474,6 +12498,10 @@
             } else {
                 alert('Board not found. Please check the entered values.');
             }
+        });
+
+        document.getElementById('brick-wall-recompute-btn')?.addEventListener('click', () => {
+            recomputeBrickWall();
         });
 
         // Auto-update board ID when batch or position changes

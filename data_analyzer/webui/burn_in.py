@@ -5,7 +5,7 @@ from datetime import datetime
 from math import exp
 from pathlib import Path
 
-from production_config import load_production_config
+from production_config import load_production_config, utc_from_interpreted_db_datetime
 from production_summary import decode_serial, _parse_datetime
 
 BOLTZMANN_EV_K = 8.617e-5
@@ -99,6 +99,14 @@ def _format_influx_time(value):
     return dt.strftime('%Y-%m-%dT%H:%M:%SZ')
 
 
+def _format_db_window_for_influx(value):
+    dt = _parse_datetime(value)
+    if not dt:
+        return None
+    utc_dt = utc_from_interpreted_db_datetime(dt)
+    return utc_dt.strftime('%Y-%m-%dT%H:%M:%SZ')
+
+
 def _parse_influx_time(value):
     if isinstance(value, datetime):
         return value
@@ -110,8 +118,8 @@ def _parse_influx_time(value):
 
 
 def _query_burnin_points(client, start_dt, stop_dt):
-    start_text = _format_influx_time(start_dt)
-    stop_text = _format_influx_time(stop_dt)
+    start_text = _format_db_window_for_influx(start_dt)
+    stop_text = _format_db_window_for_influx(stop_dt)
     if not start_text or not stop_text:
         return []
 
@@ -201,12 +209,13 @@ def _build_time_series(points, burn_in_start, config):
     temperature_offset = float(config.get('burnin_temperature_offset_c', 0.0))
     toven_values = _forward_fill([row['toven'] for row in rows])
     lvpower_values = _forward_fill([row['lvpower'] for row in rows])
+    start_utc = utc_from_interpreted_db_datetime(burn_in_start)
 
     elapsed_hours = []
     toven_c = []
     lvpower = []
     for index, row in enumerate(rows):
-        elapsed = (row['timestamp'] - burn_in_start).total_seconds() / 3600.0
+        elapsed = (row['timestamp'] - start_utc).total_seconds() / 3600.0
         elapsed_hours.append(round(elapsed, 4))
         if toven_values[index] is not None:
             toven_c.append(round(float(toven_values[index]) + temperature_offset, 3))

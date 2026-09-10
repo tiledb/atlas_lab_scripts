@@ -1,0 +1,167 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DBQ Admin - Local Config</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            background: #f5f7fa;
+            min-height: 100vh;
+        }
+        .navbar {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            padding: 20px 40px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+        }
+        .navbar h1 { color: white; font-size: 24px; font-weight: 600; }
+        .nav-links { display: flex; gap: 20px; }
+        .nav-links a { color: white; text-decoration: none; font-size: 14px; opacity: 0.9; }
+        .nav-links a:hover { opacity: 1; }
+        .container { max-width: 780px; margin: 40px auto; padding: 0 20px 40px; }
+        .back-link {
+            display: inline-block;
+            margin-bottom: 20px;
+            color: #667eea;
+            text-decoration: none;
+            font-size: 14px;
+        }
+        .back-link:hover { text-decoration: underline; }
+        .form-card {
+            background: white;
+            border-radius: 12px;
+            padding: 30px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+        }
+        .form-card h2 { color: #333; font-size: 24px; margin-bottom: 10px; }
+        .help-text { color: #666; font-size: 14px; line-height: 1.5; margin-bottom: 22px; }
+        .option-row {
+            display: flex;
+            gap: 12px;
+            align-items: flex-start;
+            padding: 14px 16px;
+            border: 1px solid #e4e8ee;
+            border-radius: 8px;
+            background: #fafbfc;
+            margin-bottom: 22px;
+        }
+        .option-row input[type="checkbox"] {
+            width: 18px;
+            height: 18px;
+            margin-top: 2px;
+            flex-shrink: 0;
+            cursor: pointer;
+        }
+        .option-copy { display: grid; gap: 4px; }
+        .option-copy strong { color: #333; font-size: 15px; }
+        .option-copy span { color: #666; font-size: 13px; line-height: 1.45; }
+        .btn {
+            padding: 10px 14px;
+            border: none;
+            border-radius: 6px;
+            font-size: 13px;
+            font-weight: 600;
+            cursor: pointer;
+        }
+        .btn-primary {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+        .message-box, .error-box {
+            border-radius: 6px;
+            padding: 15px;
+            margin-bottom: 20px;
+            font-size: 14px;
+            display: none;
+        }
+        .message-box { background: #e8f5e9; border: 1px solid #c8e6c9; color: #2e7d32; }
+        .error-box { background: #ffebee; border: 1px solid #ffcdd2; color: #c62828; }
+        .message-box.visible, .error-box.visible { display: block; }
+    </style>
+</head>
+<body>
+    <div class="navbar">
+        <h1>Local Config</h1>
+        <div class="nav-links">
+            <a href="{{ url_for('dashboard') }}">Dashboard</a>
+            <a href="{{ url_for('logout') }}">Logout</a>
+        </div>
+    </div>
+
+    <div class="container">
+        <a class="back-link" href="{{ url_for('dashboard') }}#advanced-configuration">← Back to Dashboard</a>
+        <div class="message-box" id="message-box"></div>
+        <div class="error-box" id="error-box"></div>
+
+        <div class="form-card">
+            <h2>Database Datetimes</h2>
+            <p class="help-text">
+                Control how datetimes gathered from MariaDB are interpreted in the web UI.
+                Date-only values are left unchanged. XLS backup files have a separate UTC
+                checkbox on the restore page.
+            </p>
+            <label class="option-row" for="interpret-utc">
+                <input type="checkbox" id="interpret-utc">
+                <span class="option-copy">
+                    <strong>Interpret database datetimes as UTC</strong>
+                    <span id="option-help"></span>
+                </span>
+            </label>
+            <button type="button" class="btn btn-primary" id="save-local-config-btn">Save</button>
+        </div>
+    </div>
+
+    <script>
+        const LOCAL_TIMEZONE = {{ local_timezone | tojson }};
+        const checkbox = document.getElementById('interpret-utc');
+        checkbox.checked = {{ interpret_datetimes_as_utc | tojson }};
+
+        function showMessage(text, isError = false) {
+            const messageBox = document.getElementById('message-box');
+            const errorBox = document.getElementById('error-box');
+            messageBox.classList.remove('visible');
+            errorBox.classList.remove('visible');
+            if (!text) return;
+            const target = isError ? errorBox : messageBox;
+            target.textContent = text;
+            target.classList.add('visible');
+        }
+
+        function updateHelp() {
+            const help = document.getElementById('option-help');
+            if (checkbox.checked) {
+                help.textContent = 'Ticked: datetimes from databases are shown as UTC (current default).';
+            } else {
+                help.textContent = `Unticked: datetimes from databases are converted to local time (${LOCAL_TIMEZONE}) for display.`;
+            }
+        }
+
+        checkbox.addEventListener('change', updateHelp);
+        updateHelp();
+
+        document.getElementById('save-local-config-btn').addEventListener('click', async () => {
+            try {
+                const response = await fetch('/api/local_config', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ interpret_datetimes_as_utc: checkbox.checked }),
+                });
+                const data = await response.json();
+                if (!response.ok || data.error) {
+                    throw new Error(data.error || `HTTP ${response.status}`);
+                }
+                checkbox.checked = Boolean(data.interpret_datetimes_as_utc);
+                updateHelp();
+                showMessage('Local config saved. Reload any open dashboard tabs to see updated datetimes.');
+            } catch (error) {
+                showMessage(error.message || String(error), true);
+            }
+        });
+    </script>
+</body>
+</html>

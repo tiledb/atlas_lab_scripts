@@ -663,7 +663,7 @@ def _dbq_mk6_run(regenerate_mode=None, specific_benchtest_ids=None, specific_dau
                 # Skip writing benchtest_id.log if only regenerating results, plots, or statistics
                 write_benchtest_log = False
             else:
-                # Default mode: backup if exists
+                # Default / qualify: backup if exists
                 backup_log_file(log_path)
 
             if write_benchtest_log:
@@ -724,6 +724,10 @@ def _dbq_mk6_run(regenerate_mode=None, specific_benchtest_ids=None, specific_dau
 
             # Set plot / statistics regeneration flags for this benchtest
             if regenerate_mode == 'benchtest_id_log' or regenerate_mode == 'benchtest_id_results_log':
+                plot_regenerate[benchtest_id] = False
+                stats_regenerate[benchtest_id] = False
+            elif regenerate_mode == 'qualify':
+                # Analyze + db_status only — no Plotly HTML/PNG / Statistics.yaml
                 plot_regenerate[benchtest_id] = False
                 stats_regenerate[benchtest_id] = False
             elif regenerate_mode == 'statistics':
@@ -1404,7 +1408,7 @@ def _dbq_mk6_run(regenerate_mode=None, specific_benchtest_ids=None, specific_dau
             # Skip writing benchtest_id.log if only regenerating results, plots, or statistics
             write_benchtest_log = False
         else:
-            # Default mode: backup if exists
+            # Default / qualify: backup if exists
             backup_log_file(log_path)
 
         # Handle backup and regeneration for benchtest_id_results.log
@@ -1418,13 +1422,13 @@ def _dbq_mk6_run(regenerate_mode=None, specific_benchtest_ids=None, specific_dau
             # Skip writing results if only regenerating main log, plots, or statistics
             write_results_log = False
         else:
-            # Default mode: backup if exists
+            # Default / qualify: backup if exists
             backup_log_file(results_path)
 
         # Handle plot regeneration
         write_plots = True
-        if regenerate_mode in ('benchtest_id_log', 'benchtest_id_results_log', 'statistics'):
-            # Skip plots if only regenerating logs or statistics
+        if regenerate_mode in ('benchtest_id_log', 'benchtest_id_results_log', 'statistics', 'qualify'):
+            # Skip plots if only regenerating logs, statistics, or qualify-only
             write_plots = False
         elif regenerate_mode == 'plots' or regenerate_mode == 'all':
             # Regenerate plots
@@ -1874,7 +1878,19 @@ parser.add_argument(
         'db_status in MariaDB'
     ),
 )
+parser.add_argument(
+    '--only-qualify',
+    action='store_true',
+    help=(
+        'Analyze Influx data and update daughterboard db_status only; '
+        'do not generate plots or Statistics.yaml'
+    ),
+)
 args = parser.parse_args()
+
+if args.recreate_plots_only and args.only_qualify:
+    print('Error: --recreate-plots-only and --only-qualify cannot be used together.')
+    raise SystemExit(2)
 
 # Parse benchtest_id parameter
 specific_benchtest_ids = None
@@ -1957,6 +1973,15 @@ if args.recreate_plots_only:
         )
         regenerate_mode = 'plots'
     print('Mode: --recreate-plots-only (plots on, db_status updates off)')
+elif args.only_qualify:
+    if regenerate_mode is not None:
+        print(
+            f'Note: --only-qualify ignores -r/--regenerate={regenerate_mode!r} '
+            f'(qualify analysis + db_status only)'
+        )
+    regenerate_mode = 'qualify'
+    skip_db_status_update = False
+    print('Mode: --only-qualify (analysis + db_status on, plots off)')
 
 try:
     DBQ_Mk6(

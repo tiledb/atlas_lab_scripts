@@ -1,0 +1,1146 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DBQ Admin - Restore MariaDB Backup</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        html,
+        body {
+            height: 100%;
+            overflow: hidden;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            background: #f5f7fa;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .navbar {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            padding: 14px 32px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+            flex-shrink: 0;
+        }
+
+        .navbar h1 {
+            color: white;
+            font-size: 22px;
+            font-weight: 600;
+        }
+
+        .nav-links {
+            display: flex;
+            gap: 20px;
+        }
+
+        .nav-links a {
+            color: white;
+            text-decoration: none;
+            font-size: 14px;
+            opacity: 0.9;
+        }
+
+        .nav-links a:hover {
+            opacity: 1;
+        }
+
+        .page {
+            flex: 1;
+            min-height: 0;
+            display: flex;
+            flex-direction: column;
+            padding: 14px 20px 16px;
+            overflow: hidden;
+        }
+
+        .back-link {
+            display: inline-block;
+            margin-bottom: 10px;
+            color: #667eea;
+            text-decoration: none;
+            font-size: 14px;
+            flex-shrink: 0;
+        }
+
+        .back-link:hover {
+            text-decoration: underline;
+        }
+
+        .toolbar {
+            background: white;
+            border-radius: 12px;
+            padding: 12px 16px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+            display: flex;
+            flex-wrap: wrap;
+            gap: 12px;
+            align-items: center;
+            margin-bottom: 10px;
+            flex-shrink: 0;
+        }
+
+        .field {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .field label,
+        .table-inline {
+            font-size: 13px;
+            font-weight: 600;
+            color: #555;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            white-space: nowrap;
+        }
+
+        .table-inline {
+            min-width: 0;
+            flex: 1;
+        }
+
+        select,
+        button {
+            font-family: inherit;
+        }
+
+        .field select,
+        .table-inline select {
+            padding: 8px 10px;
+            border: 2px solid #e1e5e9;
+            border-radius: 6px;
+            font-size: 13px;
+            background: white;
+            min-width: 160px;
+            max-width: 100%;
+        }
+
+        .field select:focus,
+        .table-inline select:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        .toolbar-actions {
+            display: flex;
+            gap: 8px;
+            margin-left: auto;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+
+        .status-text {
+            font-size: 13px;
+            color: #666;
+        }
+
+        .btn {
+            border: none;
+            border-radius: 6px;
+            padding: 8px 14px;
+            font-size: 13px;
+            font-weight: 600;
+            cursor: pointer;
+        }
+
+        .btn:disabled {
+            opacity: 0.55;
+            cursor: not-allowed;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+
+        .btn-primary:hover:not(:disabled) {
+            filter: brightness(1.05);
+        }
+
+        .btn-danger {
+            background: #c2410c;
+            color: white;
+        }
+
+        .btn-danger:hover:not(:disabled) {
+            background: #9a3412;
+        }
+
+        .hint {
+            font-size: 13px;
+            color: #666;
+            margin-bottom: 10px;
+            flex-shrink: 0;
+        }
+
+        .split {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            grid-template-rows: auto minmax(0, 1fr);
+            column-gap: 16px;
+            row-gap: 0;
+            flex: 1;
+            min-height: 0;
+            align-items: stretch;
+        }
+
+        .pane-header {
+            grid-row: 1;
+            background: white;
+            padding: 10px 14px;
+            border-bottom: 1px solid #e1e5e9;
+            border-radius: 12px 12px 0 0;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            min-width: 0;
+        }
+
+        .pane-title-row {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            flex-wrap: nowrap;
+            min-height: 38px;
+        }
+
+        .pane-header h2 {
+            font-size: 16px;
+            color: #333;
+            margin: 0;
+            flex-shrink: 0;
+        }
+
+        .pane-meta {
+            font-size: 12px;
+            color: #777;
+            margin-top: 4px;
+            min-height: 16px;
+        }
+
+        .pane-body {
+            grid-row: 2;
+            background: white;
+            overflow: auto;
+            min-width: 0;
+            min-height: 0;
+            border-radius: 0 0 12px 12px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+        }
+
+        .empty-state,
+        .error-state {
+            padding: 40px 20px;
+            text-align: center;
+            color: #777;
+            font-size: 14px;
+        }
+
+        .error-state {
+            color: #b91c1c;
+        }
+
+        table.compare-table {
+            border-collapse: collapse;
+            width: max-content;
+            min-width: 100%;
+            font-size: 12px;
+            table-layout: fixed;
+        }
+
+        .compare-table th,
+        .compare-table td {
+            border: 1px solid #e5e7eb;
+            padding: 4px 6px;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            vertical-align: middle;
+            height: 28px;
+            box-sizing: border-box;
+        }
+
+        .compare-table thead th {
+            position: sticky;
+            top: 0;
+            background: #f8fafc;
+            z-index: 2;
+            font-weight: 600;
+            color: #444;
+        }
+
+        .compare-table .row-check {
+            width: 36px;
+            text-align: center;
+            padding: 0;
+        }
+
+        .compare-table tbody td.pk-col {
+            position: sticky;
+            left: 36px;
+            background: #fff;
+            font-weight: 600;
+            z-index: 1;
+        }
+
+        .compare-table thead th.pk-col {
+            left: 36px;
+            z-index: 3;
+        }
+
+        .compare-table tbody td.row-check,
+        .compare-table thead th.row-check {
+            position: sticky;
+            left: 0;
+            background: #f8fafc;
+            z-index: 3;
+        }
+
+        td.cell {
+            cursor: pointer;
+        }
+
+        td.cell:hover,
+        td.paired-hover {
+            outline: 1px solid #667eea;
+            outline-offset: -1px;
+        }
+
+        td.diff,
+        th.diff {
+            background: #fff7ed;
+        }
+
+        td.selected {
+            background: #ddd6fe;
+        }
+
+        td.selected.diff {
+            background: #c4b5fd;
+        }
+
+        td.empty-cell {
+            background:
+                repeating-linear-gradient(
+                    -45deg,
+                    #f8fafc,
+                    #f8fafc 5px,
+                    #eef2f7 5px,
+                    #eef2f7 10px
+                );
+            color: transparent;
+        }
+
+        td.empty-cell.selected {
+            background: #ddd6fe;
+            color: transparent;
+        }
+
+        td.empty-cell.selected.diff {
+            background: #c4b5fd;
+        }
+
+        td.empty-cell.paired-hover {
+            color: transparent;
+        }
+
+        .legend {
+            display: flex;
+            gap: 12px;
+            font-size: 12px;
+            color: #666;
+            flex-wrap: wrap;
+        }
+
+        .swatch {
+            display: inline-block;
+            width: 12px;
+            height: 12px;
+            border-radius: 3px;
+            margin-right: 4px;
+            vertical-align: -1px;
+            border: 1px solid #d1d5db;
+        }
+
+        .swatch.diff { background: #fff7ed; }
+        .swatch.selected { background: #ddd6fe; }
+        .swatch.missing {
+            background:
+                repeating-linear-gradient(
+                    -45deg,
+                    #f8fafc,
+                    #f8fafc 4px,
+                    #eef2f7 4px,
+                    #eef2f7 8px
+                );
+        }
+
+        .overlay {
+            display: none;
+            position: fixed;
+            inset: 0;
+            background: rgba(0, 0, 0, 0.5);
+            z-index: 20;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+
+        .overlay.visible {
+            display: flex;
+        }
+
+        .confirm-modal {
+            background: white;
+            border-radius: 12px;
+            max-width: 560px;
+            width: 100%;
+            padding: 24px;
+            box-shadow: 0 20px 50px rgba(0, 0, 0, 0.2);
+        }
+
+        .confirm-modal h3 {
+            color: #9a3412;
+            margin-bottom: 10px;
+        }
+
+        .confirm-modal p {
+            color: #444;
+            font-size: 14px;
+            line-height: 1.5;
+            margin-bottom: 10px;
+        }
+
+        .confirm-preview {
+            background: #fff7ed;
+            border: 1px solid #fdba74;
+            border-radius: 8px;
+            padding: 10px 12px;
+            font-size: 13px;
+            color: #7c2d12;
+            max-height: 160px;
+            overflow: auto;
+            margin-bottom: 16px;
+            white-space: pre-wrap;
+        }
+
+        .confirm-actions {
+            display: flex;
+            justify-content: flex-end;
+            gap: 10px;
+        }
+
+        .result-banner {
+            display: none;
+            margin-bottom: 8px;
+            padding: 8px 12px;
+            border-radius: 8px;
+            font-size: 13px;
+            flex-shrink: 0;
+        }
+
+        .result-banner.success {
+            display: block;
+            background: #ecfdf5;
+            color: #065f46;
+        }
+
+        .result-banner.error {
+            display: block;
+            background: #fef2f2;
+            color: #991b1b;
+        }
+    </style>
+</head>
+
+<body>
+    <nav class="navbar">
+        <h1>DBQ Admin Panel</h1>
+        <div class="nav-links">
+            <a href="{{ url_for('dashboard') }}#advanced-tools">Dashboard</a>
+            <a href="{{ url_for('logout') }}">Logout</a>
+        </div>
+    </nav>
+
+    <div class="page">
+        <a class="back-link" href="{{ url_for('dashboard') }}#advanced-tools">← Back to Advanced Tools</a>
+
+        <div id="result-banner" class="result-banner"></div>
+
+        <div class="toolbar">
+            <div class="field">
+                <label for="backup-file">XLS backup file</label>
+                <select id="backup-file"></select>
+                <button type="button" class="btn btn-primary" id="create-backup-btn">Create Backup Now</button>
+            </div>
+            <div class="legend">
+                <span><span class="swatch diff"></span>Different</span>
+                <span><span class="swatch selected"></span>Selected to restore</span>
+                <span><span class="swatch missing"></span>Empty / missing</span>
+            </div>
+            <div class="toolbar-actions">
+                <label class="status-text">
+                    <input type="checkbox" id="diffs-only"> Show differences only
+                </label>
+                <button type="button" class="btn btn-secondary" id="select-diffs">Select differences</button>
+                <button type="button" class="btn btn-secondary" id="clear-selection">Clear selection</button>
+                <button type="button" class="btn btn-danger" id="restore-btn" disabled>Restore selected</button>
+            </div>
+        </div>
+        <p class="hint" id="status-line">Loading backup files…</p>
+
+        <div class="split">
+            <div class="pane-header">
+                <div class="pane-title-row">
+                    <h2>MariaDB tiledb</h2>
+                    <label class="table-inline" for="table-select">Table:
+                        <select id="table-select"></select>
+                    </label>
+                </div>
+                <div class="pane-meta" id="live-meta">Live database</div>
+            </div>
+            <div class="pane-header">
+                <div class="pane-title-row">
+                    <h2>XLS backup</h2>
+                    <label class="table-inline" title="Treat XLS datetime as local time and show it in UTC. Restore uses the value currently shown.">
+                        <input type="checkbox" id="xls-utc"> Show datetime in UTC
+                    </label>
+                </div>
+                <div class="pane-meta" id="backup-meta">Choose a backup file</div>
+            </div>
+            <div class="pane-body" id="live-body">
+                <div class="empty-state">Select a table</div>
+            </div>
+            <div class="pane-body" id="backup-body">
+                <div class="empty-state">Loading…</div>
+            </div>
+        </div>
+    </div>
+
+    <div class="overlay" id="confirm-overlay">
+        <div class="confirm-modal">
+            <h3>Restore live MariaDB data?</h3>
+            <p>
+                This overwrites the selected cells in the live <strong>tiledb</strong> database
+                with values from the XLS backup. This cannot be undone from this tool.
+            </p>
+            <div class="confirm-preview" id="confirm-preview"></div>
+            <div class="confirm-actions">
+                <button type="button" class="btn btn-secondary" id="confirm-cancel">Cancel</button>
+                <button type="button" class="btn btn-danger" id="confirm-restore">Restore anyway</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const fileSelect = document.getElementById('backup-file');
+        const tableSelect = document.getElementById('table-select');
+        const createBackupBtn = document.getElementById('create-backup-btn');
+        const liveBody = document.getElementById('live-body');
+        const backupBody = document.getElementById('backup-body');
+        const liveMeta = document.getElementById('live-meta');
+        const backupMeta = document.getElementById('backup-meta');
+        const statusLine = document.getElementById('status-line');
+        const restoreBtn = document.getElementById('restore-btn');
+        const diffsOnly = document.getElementById('diffs-only');
+        const xlsUtc = document.getElementById('xls-utc');
+        const resultBanner = document.getElementById('result-banner');
+        const confirmOverlay = document.getElementById('confirm-overlay');
+        const confirmPreview = document.getElementById('confirm-preview');
+
+        let compareData = null;
+        const selectedColumns = new Set();
+        const selectedRows = new Set();
+        const selectedCells = new Set();
+        let loadingToken = 0;
+        let syncingScroll = false;
+
+        function cellId(keyId, column) {
+            return `${keyId}||${column}`;
+        }
+
+        function escapeHtml(value) {
+            return String(value ?? '')
+                .replace(/&/g, '&amp;')
+                .replace(/</g, '&lt;')
+                .replace(/>/g, '&gt;')
+                .replace(/"/g, '&quot;');
+        }
+
+        function displayValue(value) {
+            return value === null || value === undefined ? 'NULL' : String(value);
+        }
+
+        const DATETIME_RE = /^(\d{4})-(\d{2})-(\d{2})[ T](\d{2}):(\d{2}):(\d{2})(?:\.\d+)?$/;
+
+        function datetimeToUtc(raw) {
+            if (raw === null || raw === undefined || raw === '') return raw;
+            const match = DATETIME_RE.exec(String(raw).trim());
+            if (!match) return raw;
+            const local = new Date(
+                Number(match[1]),
+                Number(match[2]) - 1,
+                Number(match[3]),
+                Number(match[4]),
+                Number(match[5]),
+                Number(match[6]),
+            );
+            if (Number.isNaN(local.getTime())) return raw;
+            const pad = (part) => String(part).padStart(2, '0');
+            return (
+                `${local.getUTCFullYear()}-${pad(local.getUTCMonth() + 1)}-${pad(local.getUTCDate())} `
+                + `${pad(local.getUTCHours())}:${pad(local.getUTCMinutes())}:${pad(local.getUTCSeconds())}`
+            );
+        }
+
+        function backupShownValue(raw) {
+            return xlsUtc && xlsUtc.checked ? datetimeToUtc(raw) : raw;
+        }
+
+        function jsValuesEqual(left, right) {
+            const a = left === null || left === undefined || left === '' ? null : String(left).trim();
+            const b = right === null || right === undefined || right === '' ? null : String(right).trim();
+            if (a === null && b === null) return true;
+            if (a === null || b === null) return false;
+            if (a === b) return true;
+            const an = Number(a);
+            const bn = Number(b);
+            return Number.isFinite(an) && Number.isFinite(bn) && an === bn;
+        }
+
+        function cellDiffers(row, column) {
+            if (!row.backup && !row.live) return false;
+            if (!row.backup || !row.live) return true;
+            return !jsValuesEqual(backupShownValue(row.backup[column]), row.live[column]);
+        }
+
+        function showBanner(kind, message) {
+            resultBanner.className = `result-banner ${kind}`;
+            resultBanner.textContent = message;
+        }
+
+        function clearBanner() {
+            resultBanner.className = 'result-banner';
+            resultBanner.textContent = '';
+        }
+
+        function updateRestoreState() {
+            const count = currentSelectionCount();
+            restoreBtn.disabled = count === 0;
+            restoreBtn.textContent = count ? `Restore selected (${count})` : 'Restore selected';
+        }
+
+        function currentSelectionCount() {
+            if (!compareData) return 0;
+            const columns = compareData.columns || [];
+            const liveColumns = new Set(compareData.live_columns || columns);
+            const pkSet = new Set(compareData.primary_key || []);
+            let count = 0;
+            for (const row of compareData.rows || []) {
+                if (!row.backup) continue;
+                for (const column of columns) {
+                    if (!liveColumns.has(column)) continue;
+                    if (pkSet.has(column) && row.live) continue;
+                    if (selectedColumns.has(column)
+                        || selectedRows.has(row.key_id)
+                        || selectedCells.has(cellId(row.key_id, column))) {
+                        count += 1;
+                    }
+                }
+            }
+            return count;
+        }
+
+        let cellIndex = new Map();
+
+        function indexCells() {
+            cellIndex = new Map();
+            const add = (body, slot) => {
+                body.querySelectorAll('td.cell').forEach(cell => {
+                    const id = cellId(cell.dataset.key, cell.dataset.column);
+                    let pair = cellIndex.get(id);
+                    if (!pair) {
+                        pair = [null, null];
+                        cellIndex.set(id, pair);
+                    }
+                    pair[slot] = cell;
+                });
+            };
+            add(liveBody, 0);
+            add(backupBody, 1);
+        }
+
+        function cellsFor(keyId, column) {
+            return cellIndex.get(cellId(keyId, column)) || [null, null];
+        }
+
+        function refreshSelectionUI() {
+            document.querySelectorAll('.col-toggle').forEach(input => {
+                input.checked = selectedColumns.has(input.dataset.column);
+            });
+            document.querySelectorAll('.row-toggle').forEach(input => {
+                input.checked = selectedRows.has(input.dataset.key);
+            });
+            cellIndex.forEach((pair, id) => {
+                const sep = id.indexOf('||');
+                const keyId = id.slice(0, sep);
+                const column = id.slice(sep + 2);
+                const on = isCellSelected(keyId, column);
+                if (pair[0]) pair[0].classList.toggle('selected', on);
+                if (pair[1]) pair[1].classList.toggle('selected', on);
+            });
+            updateRestoreState();
+        }
+
+        function visibleRows() {
+            const rows = compareData.rows || [];
+            if (!diffsOnly.checked) return rows;
+            return rows.filter(row => {
+                if (!row.backup || !row.live) return true;
+                return (compareData.columns || []).some(column => cellDiffers(row, column));
+            });
+        }
+
+        function renderTables() {
+            if (!compareData) return;
+            const liveScroll = { top: liveBody.scrollTop, left: liveBody.scrollLeft };
+            const backupScroll = { top: backupBody.scrollTop, left: backupBody.scrollLeft };
+            liveBody.innerHTML = renderTable('live');
+            backupBody.innerHTML = renderTable('backup');
+            alignTables();
+            indexCells();
+            liveBody.scrollTop = liveScroll.top;
+            liveBody.scrollLeft = liveScroll.left;
+            backupBody.scrollTop = backupScroll.top;
+            backupBody.scrollLeft = backupScroll.left;
+            updateRestoreState();
+        }
+
+        function renderTable(side) {
+            const columns = compareData.columns || [];
+            const pkSet = new Set(compareData.primary_key || []);
+            const rows = visibleRows();
+            if (!columns.length) {
+                return `<div class="empty-state">No columns in this table.</div>`;
+            }
+            let html = '<table class="compare-table"><colgroup></colgroup><thead><tr>';
+            html += '<th class="row-check"></th>';
+            columns.forEach(column => {
+                const pkClass = pkSet.has(column) ? ' pk-col' : '';
+                const checked = selectedColumns.has(column) ? 'checked' : '';
+                html += `<th class="${pkClass}"><input type="checkbox" class="col-toggle" data-column="${escapeHtml(column)}" ${checked}> ${escapeHtml(column)}</th>`;
+            });
+            html += '</tr></thead><tbody>';
+            if (!rows.length) {
+                html += `<tr><td colspan="${columns.length + 1}" class="empty-cell"></td></tr>`;
+            }
+            rows.forEach(row => {
+                const source = row[side];
+                const missingRow = !source;
+                html += '<tr>';
+                html += `<td class="row-check"><input type="checkbox" class="row-toggle" data-key="${escapeHtml(row.key_id)}" ${selectedRows.has(row.key_id) ? 'checked' : ''}></td>`;
+                columns.forEach(column => {
+                    const pkClass = pkSet.has(column) ? ' pk-col' : '';
+                    const classes = ['cell'];
+                    if (pkClass) classes.push('pk-col');
+                    const empty = missingRow || !sideHasColumn(side, column);
+                    if (empty) classes.push('empty-cell');
+                    if (cellDiffers(row, column)) classes.push('diff');
+                    if (isCellSelected(row.key_id, column)) classes.push('selected');
+                    let value = '';
+                    if (!empty) {
+                        const raw = source[column];
+                        value = displayValue(side === 'backup' ? backupShownValue(raw) : raw);
+                    }
+                    const title = empty ? 'Missing on this side' : value;
+                    html += `<td class="${classes.join(' ')}" data-key="${escapeHtml(row.key_id)}" data-column="${escapeHtml(column)}" title="${escapeHtml(title)}">${escapeHtml(value)}</td>`;
+                });
+                html += '</tr>';
+            });
+            html += '</tbody></table>';
+            return html;
+        }
+
+        function alignTables() {
+            const tables = [liveBody.querySelector('table'), backupBody.querySelector('table')];
+            if (!tables[0] || !tables[1]) return;
+            const colCount = tables[0].querySelectorAll('thead th').length;
+            if (!colCount) return;
+
+            const widths = [];
+            const sampleRows = 20;
+            for (let i = 0; i < colCount; i++) {
+                let width = i === 0 ? 36 : 72;
+                tables.forEach(table => {
+                    const limit = Math.min(table.rows.length, sampleRows);
+                    for (let r = 0; r < limit; r++) {
+                        const cell = table.rows[r].children[i];
+                        if (!cell) continue;
+                        width = Math.max(width, Math.min(cell.scrollWidth + 8, 260));
+                    }
+                });
+                widths[i] = width;
+            }
+
+            const total = widths.reduce((sum, width) => sum + width, 0);
+            tables.forEach(table => {
+                const colgroup = table.querySelector('colgroup');
+                if (colgroup) {
+                    colgroup.innerHTML = widths.map(width => `<col style="width:${width}px">`).join('');
+                }
+                table.style.tableLayout = 'fixed';
+                table.style.width = `${total}px`;
+            });
+        }
+
+        function toggleCell(keyId, column) {
+            const id = cellId(keyId, column);
+            const grouped = selectedColumns.has(column) || selectedRows.has(keyId);
+            if (grouped) {
+                selectedColumns.delete(column);
+                selectedRows.delete(keyId);
+                selectedCells.delete(id);
+                refreshSelectionUI();
+                return;
+            }
+            if (selectedCells.has(id)) selectedCells.delete(id);
+            else selectedCells.add(id);
+            const on = isCellSelected(keyId, column);
+            const pair = cellsFor(keyId, column);
+            if (pair[0]) pair[0].classList.toggle('selected', on);
+            if (pair[1]) pair[1].classList.toggle('selected', on);
+            updateRestoreState();
+        }
+
+        function highlightPairById(id, on) {
+            const pair = cellIndex.get(id);
+            if (!pair) return;
+            if (pair[0]) pair[0].classList.toggle('paired-hover', on);
+            if (pair[1]) pair[1].classList.toggle('paired-hover', on);
+        }
+
+        function bindPaneDelegation() {
+            let hoverId = null;
+            const onChange = (event) => {
+                const target = event.target;
+                if (target.classList.contains('col-toggle')) {
+                    if (target.checked) selectedColumns.add(target.dataset.column);
+                    else selectedColumns.delete(target.dataset.column);
+                    refreshSelectionUI();
+                    return;
+                }
+                if (target.classList.contains('row-toggle')) {
+                    if (target.checked) selectedRows.add(target.dataset.key);
+                    else selectedRows.delete(target.dataset.key);
+                    refreshSelectionUI();
+                }
+            };
+            const onClick = (event) => {
+                if (event.target.closest('input')) return;
+                const cell = event.target.closest('td.cell');
+                if (!cell) return;
+                toggleCell(cell.dataset.key, cell.dataset.column);
+            };
+            const onOver = (event) => {
+                const cell = event.target.closest('td.cell');
+                if (!cell) return;
+                const id = cellId(cell.dataset.key, cell.dataset.column);
+                if (hoverId === id) return;
+                if (hoverId) highlightPairById(hoverId, false);
+                hoverId = id;
+                highlightPairById(id, true);
+            };
+            const onOut = (event) => {
+                if (!hoverId) return;
+                const next = event.relatedTarget && event.relatedTarget.closest
+                    ? event.relatedTarget.closest('td.cell')
+                    : null;
+                if (next && cellId(next.dataset.key, next.dataset.column) === hoverId) return;
+                highlightPairById(hoverId, false);
+                hoverId = null;
+            };
+            [liveBody, backupBody].forEach(body => {
+                body.addEventListener('change', onChange);
+                body.addEventListener('click', onClick);
+                body.addEventListener('mouseover', onOver);
+                body.addEventListener('mouseout', onOut);
+            });
+        }
+
+        function bindScrollSync() {
+            const sync = (from, to) => {
+                if (syncingScroll) return;
+                syncingScroll = true;
+                to.scrollTop = from.scrollTop;
+                to.scrollLeft = from.scrollLeft;
+                syncingScroll = false;
+            };
+            liveBody.addEventListener('scroll', () => sync(liveBody, backupBody), { passive: true });
+            backupBody.addEventListener('scroll', () => sync(backupBody, liveBody), { passive: true });
+        }
+
+        function expandSelection() {
+            if (!compareData) return [];
+            const columns = compareData.columns || [];
+            const liveColumns = new Set(compareData.live_columns || columns);
+            const pkSet = new Set(compareData.primary_key || []);
+            const out = [];
+            const seen = new Set();
+            for (const row of compareData.rows || []) {
+                if (!row.backup) continue;
+                for (const column of columns) {
+                    if (!liveColumns.has(column)) continue;
+                    const covered = selectedColumns.has(column)
+                        || selectedRows.has(row.key_id)
+                        || selectedCells.has(cellId(row.key_id, column));
+                    if (!covered) continue;
+                    if (pkSet.has(column) && row.live) continue;
+                    const id = cellId(row.key_id, column);
+                    if (seen.has(id)) continue;
+                    seen.add(id);
+                    out.push({
+                        key: row.key,
+                        key_id: row.key_id,
+                        column,
+                        from: row.live ? row.live[column] : null,
+                        to: backupShownValue(row.backup[column]),
+                    });
+                }
+            }
+            return out;
+        }
+
+        function isCellSelected(keyId, column) {
+            return selectedColumns.has(column)
+                || selectedRows.has(keyId)
+                || selectedCells.has(cellId(keyId, column));
+        }
+
+        function sideHasColumn(side, column) {
+            const list = side === 'backup'
+                ? (compareData.backup_columns || compareData.columns || [])
+                : (compareData.live_columns || compareData.columns || []);
+            return list.includes(column);
+        }
+
+        async function loadMeta() {
+            const response = await fetch('/api/mariadb_backup/meta');
+            const data = await response.json();
+            if (!response.ok) throw new Error(data.error || 'Failed to load backup metadata');
+            fileSelect.innerHTML = (data.files || []).map(file => (
+                `<option value="${escapeHtml(file.filename)}" ${file.latest ? 'selected' : ''}>${escapeHtml(file.label)}</option>`
+            )).join('');
+            tableSelect.innerHTML = (data.tables || []).map(table => (
+                `<option value="${escapeHtml(table)}">${escapeHtml(table)}</option>`
+            )).join('');
+            if (!data.files || !data.files.length) {
+                statusLine.textContent = 'No XLS backups found in /var/www/html/drive/mariadb_backup/.';
+                backupBody.innerHTML = '<div class="empty-state">No backup files found.</div>';
+                return;
+            }
+            if (!data.tables || !data.tables.length) {
+                statusLine.textContent = 'No MariaDB tables found.';
+                return;
+            }
+            await loadCompare();
+        }
+
+        async function loadCompare() {
+            const filename = fileSelect.value;
+            const table = tableSelect.value;
+            if (!filename || !table) return;
+            const token = ++loadingToken;
+            clearBanner();
+            selectedColumns.clear();
+            selectedRows.clear();
+            selectedCells.clear();
+            liveBody.innerHTML = '<div class="empty-state">Loading MariaDB table…</div>';
+            backupBody.innerHTML = '<div class="empty-state">Loading backup table…</div>';
+            statusLine.textContent = 'Loading tables…';
+            const params = new URLSearchParams({ file: filename, table });
+            const response = await fetch(`/api/mariadb_backup/compare?${params.toString()}`);
+            const data = await response.json();
+            if (token !== loadingToken) return;
+            if (!response.ok) {
+                compareData = null;
+                liveBody.innerHTML = `<div class="error-state">${escapeHtml(data.error || 'Failed to load MariaDB table')}</div>`;
+                backupBody.innerHTML = `<div class="error-state">${escapeHtml(data.error || 'Failed to load backup')}</div>`;
+                statusLine.textContent = data.error || 'Failed to load tables.';
+                updateRestoreState();
+                return;
+            }
+            compareData = data;
+            const backupRows = (data.rows || []).filter(row => row.backup).length;
+            const liveRows = (data.rows || []).filter(row => row.live).length;
+            const datetimeNote = data.interpret_datetimes_as_utc === false
+                ? ` · shown as ${data.local_timezone || 'local time'}`
+                : ' · shown as UTC';
+            liveMeta.textContent = `${data.table} · ${liveRows} row(s)${datetimeNote}`;
+            backupMeta.textContent = data.backup_sheet
+                ? `${data.backup_sheet} · ${backupRows} row(s)`
+                : 'Sheet not found in this file';
+            renderTables();
+            updateDiffStatus();
+        }
+
+        function updateDiffStatus() {
+            if (!compareData) return;
+            let diffs = 0;
+            for (const row of compareData.rows || []) {
+                for (const column of compareData.columns || []) {
+                    if (cellDiffers(row, column)) diffs += 1;
+                }
+            }
+            const utcNote = xlsUtc && xlsUtc.checked ? ' XLS datetime shown in UTC.' : '';
+            statusLine.textContent = `${diffs} differing value(s). Tick a column, row, or cell, then restore.${utcNote}`;
+        }
+
+        bindPaneDelegation();
+        bindScrollSync();
+
+        document.getElementById('select-diffs').addEventListener('click', () => {
+            if (!compareData) return;
+            selectedCells.clear();
+            for (const row of compareData.rows || []) {
+                if (!row.backup) continue;
+                for (const column of compareData.columns || []) {
+                    if (cellDiffers(row, column)) {
+                        selectedCells.add(cellId(row.key_id, column));
+                    }
+                }
+                if (!row.live) selectedRows.add(row.key_id);
+            }
+            refreshSelectionUI();
+        });
+
+        document.getElementById('clear-selection').addEventListener('click', () => {
+            selectedColumns.clear();
+            selectedRows.clear();
+            selectedCells.clear();
+            refreshSelectionUI();
+        });
+
+        diffsOnly.addEventListener('change', renderTables);
+        xlsUtc.addEventListener('change', () => {
+            if (compareData) {
+                renderTables();
+                updateDiffStatus();
+            }
+        });
+        fileSelect.addEventListener('change', loadCompare);
+        tableSelect.addEventListener('change', loadCompare);
+        createBackupBtn.addEventListener('click', async () => {
+            if (!window.confirm(
+                'Create a backup of the current MariaDB tiledb tables now?\n\n'
+                + 'This writes a new XLS file (and SQLite copy) into /var/www/html/drive/mariadb_backup/.'
+            )) return;
+            createBackupBtn.disabled = true;
+            const previousLabel = createBackupBtn.textContent;
+            createBackupBtn.textContent = 'Creating backup…';
+            statusLine.textContent = 'Creating backup of the current database…';
+            try {
+                const response = await fetch('/api/mariadb_backup/create', { method: 'POST' });
+                const data = await response.json();
+                if (!response.ok) throw new Error(data.error || 'Backup failed');
+                showBanner('success', data.message || `Backup created: ${data.filename}`);
+                fileSelect.innerHTML = (data.files || []).map(file => (
+                    `<option value="${escapeHtml(file.filename)}" ${file.filename === data.filename ? 'selected' : ''}>${escapeHtml(file.label)}</option>`
+                )).join('');
+                if (data.filename) fileSelect.value = data.filename;
+                await loadCompare();
+            } catch (error) {
+                showBanner('error', error.message || 'Backup failed');
+                statusLine.textContent = error.message || 'Backup failed.';
+            } finally {
+                createBackupBtn.disabled = false;
+                createBackupBtn.textContent = previousLabel;
+            }
+        });
+        window.addEventListener('resize', () => {
+            if (compareData) alignTables();
+        });
+
+        restoreBtn.addEventListener('click', () => {
+            const items = expandSelection();
+            if (!items.length) return;
+            const sample = items.slice(0, 12).map(item => {
+                const key = Object.entries(item.key || {}).map(([k, v]) => `${k}=${v}`).join(', ');
+                return `${item.column} [${key}]: ${displayValue(item.from)} → ${displayValue(item.to)}`;
+            });
+            if (items.length > 12) sample.push(`… and ${items.length - 12} more`);
+            confirmPreview.textContent = [
+                `Backup: ${fileSelect.value}`,
+                `Table: ${tableSelect.value}`,
+                `Cells to restore: ${items.length}`,
+                '',
+                ...sample,
+            ].join('\n');
+            confirmOverlay.classList.add('visible');
+        });
+
+        document.getElementById('confirm-cancel').addEventListener('click', () => {
+            confirmOverlay.classList.remove('visible');
+        });
+        confirmOverlay.addEventListener('click', (event) => {
+            if (event.target === confirmOverlay) confirmOverlay.classList.remove('visible');
+        });
+
+        document.getElementById('confirm-restore').addEventListener('click', async () => {
+            const items = expandSelection();
+            confirmOverlay.classList.remove('visible');
+            restoreBtn.disabled = true;
+            statusLine.textContent = 'Restoring selected cells…';
+            try {
+                const response = await fetch('/api/mariadb_backup/restore', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        file: fileSelect.value,
+                        table: tableSelect.value,
+                        columns: Array.from(selectedColumns),
+                        rows: Array.from(selectedRows),
+                        cells: Array.from(selectedCells).map(id => {
+                            const [keyId, column] = id.split('||');
+                            return { key_id: keyId, column };
+                        }),
+                        values: items.map(item => ({
+                            key_id: item.key_id,
+                            column: item.column,
+                            value: item.to,
+                        })),
+                    }),
+                });
+                const data = await response.json();
+                if (!response.ok) throw new Error(data.error || 'Restore failed');
+                showBanner('success', data.message || `Restored ${data.updated || 0} cell(s).`);
+                await loadCompare();
+            } catch (error) {
+                showBanner('error', error.message || 'Restore failed');
+                updateRestoreState();
+            }
+        });
+
+        loadMeta().catch(error => {
+            statusLine.textContent = error.message || 'Failed to load backup metadata.';
+            liveBody.innerHTML = `<div class="error-state">${escapeHtml(error.message)}</div>`;
+        });
+    </script>
+</body>
+
+</html>

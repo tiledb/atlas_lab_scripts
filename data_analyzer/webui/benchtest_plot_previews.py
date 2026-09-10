@@ -684,14 +684,35 @@ def _run_png_jobs(png_jobs, *, drive_dir, force_png):
             entry['can_generate'] = bool(entry.get('has_html'))
 
 
-def _previews_from_sidecar(sidecar, board_path, drive_dir, ensure_png, force_png):
-    """Rebuild preview entries from sidecar JSON. Returns None if incomplete."""
+def _previews_from_sidecar(
+    sidecar,
+    board_path,
+    serial_no,
+    md_number,
+    drive_dir,
+    ensure_png,
+    force_png,
+):
+    """Rebuild preview entries from sidecar JSON. Returns None if stale/empty."""
     by_key = {
         entry.get('key'): entry
         for entry in (sidecar.get('previews') or [])
         if isinstance(entry, dict) and entry.get('key')
     }
     if not all(spec['key'] in by_key for spec in PREVIEW_SPECS):
+        return None
+
+    # Completely empty placeholders (seeded before plots existed) must not
+    # block Statistics.yaml / on-disk resolution.
+    if not any(
+        (
+            raw.get('html')
+            or raw.get('png')
+            or raw.get('channel') is not None
+            or raw.get('score') is not None
+        )
+        for raw in by_key.values()
+    ):
         return None
 
     previews = []
@@ -703,6 +724,34 @@ def _previews_from_sidecar(sidecar, board_path, drive_dir, ensure_png, force_png
             if raw.get(field) is not None:
                 entry[field] = raw.get(field)
         _refresh_preview_flags(entry, board_path, drive_dir=drive_dir)
+
+        # Sidecar may have worst-channel but missing/stale html name — re-find.
+        if not entry.get('has_html'):
+            html_path = find_existing_plot(
+                board_path,
+                serial_no,
+                spec['file_token'],
+                md_number,
+                gain=spec['gain'],
+                channel_index=entry.get('channel'),
+            )
+            if html_path is None and entry.get('channel') is not None:
+                html_path = find_existing_plot(
+                    board_path,
+                    serial_no,
+                    spec['file_token'],
+                    md_number,
+                    gain=spec['gain'],
+                    channel_index=None,
+                )
+                if html_path is not None:
+                    match = re.search(r'_CH(\d+)', html_path.name)
+                    if match:
+                        entry['channel'] = int(match.group(1))
+            if html_path is not None:
+                entry['html'] = html_path.name
+                _refresh_preview_flags(entry, board_path, drive_dir=drive_dir)
+
         if force_png and entry.get('has_html'):
             html_path = board_path / entry['html']
             if html_path.exists():
@@ -712,6 +761,20 @@ def _previews_from_sidecar(sidecar, board_path, drive_dir, ensure_png, force_png
             if html_path.exists():
                 png_jobs.append((entry, html_path))
         previews.append(entry)
+
+    any_available = any(e.get('has_html') or e.get('has_png') for e in previews)
+    if not any_available:
+        # Named files in sidecar but gone from disk → force full re-resolve.
+        if any(raw.get('html') or raw.get('png') for raw in by_key.values()):
+            return None
+        # Channel/score present but no plots for this MD → legitimate miss.
+        if any(
+            raw.get('channel') is not None or raw.get('score') is not None
+            for raw in by_key.values()
+        ):
+            return previews, png_jobs
+        return None
+
     return previews, png_jobs
 
 
@@ -870,7 +933,13 @@ def build_slot_previews(
     sidecar = load_hover_previews_sidecar(board_path, serial_no, md_number)
     if sidecar is not None:
         loaded = _previews_from_sidecar(
-            sidecar, board_path, drive_dir, ensure_png, force_png,
+            sidecar,
+            board_path,
+            serial_no,
+            md_number,
+            drive_dir,
+            ensure_png,
+            force_png,
         )
         if loaded is not None:
             previews, png_jobs = loaded
@@ -884,6 +953,7 @@ def build_slot_previews(
                 (
                     entry.get('png') != (raw_by_key.get(entry['key']) or {}).get('png')
                     or entry.get('html') != (raw_by_key.get(entry['key']) or {}).get('html')
+                    or entry.get('channel') != (raw_by_key.get(entry['key']) or {}).get('channel')
                 )
                 for entry in previews
             )

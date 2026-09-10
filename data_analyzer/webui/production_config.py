@@ -1,7 +1,8 @@
 """Production configuration for schedule uploads and timeline offsets."""
 
-from datetime import datetime
+from datetime import datetime, timezone
 from pathlib import Path
+from zoneinfo import ZoneInfo
 
 from ruamel.yaml import YAML
 
@@ -212,6 +213,7 @@ DEFAULT_CONFIG = {
     'history_plot_end_date': '',
     'history_plot_x_ticks': 8,
     'history_plot_y_ticks': 6,
+    'interpret_datetimes_as_utc': True,
 }
 
 
@@ -450,7 +452,25 @@ def _normalize_config(data):
         source = data.get(key, config.get(key))
         config[key] = _normalize_tick_count(source, DEFAULT_CONFIG[key])
 
+    config['interpret_datetimes_as_utc'] = _normalize_bool(
+        data.get('interpret_datetimes_as_utc', config.get('interpret_datetimes_as_utc')),
+        DEFAULT_CONFIG['interpret_datetimes_as_utc'],
+    )
+
     return config
+
+
+def _normalize_bool(value, default=True):
+    if isinstance(value, bool):
+        return value
+    if isinstance(value, (int, float)):
+        return bool(value)
+    text = str(value or '').strip().lower()
+    if text in ('1', 'true', 'yes', 'on'):
+        return True
+    if text in ('0', 'false', 'no', 'off'):
+        return False
+    return bool(default)
 
 
 def _normalize_optional_date(value):
@@ -622,3 +642,121 @@ def save_schedule_text(csv_text, path=None):
 
     target_path.write_text(csv_text, encoding='utf-8')
     return target_path.name
+
+
+LOCAL_DATETIME_TZ_NAME = 'Europe/Stockholm'
+
+
+def interpret_datetimes_as_utc():
+    return bool(load_production_config().get('interpret_datetimes_as_utc', True))
+
+
+def local_datetime_timezone():
+    try:
+        return ZoneInfo(LOCAL_DATETIME_TZ_NAME)
+    except Exception:
+        return timezone.utc
+
+
+def interpret_db_datetime(value, as_utc=None):
+    """Interpret a datetime gathered from MariaDB as UTC or local wall time."""
+    if not isinstance(value, datetime):
+        return value
+    naive = value.replace(tzinfo=None)
+    if as_utc if as_utc is not None else interpret_datetimes_as_utc():
+        return naive
+    aware_utc = naive.replace(tzinfo=timezone.utc)
+    return aware_utc.astimezone(local_datetime_timezone()).replace(tzinfo=None)
+
+
+def utc_from_interpreted_db_datetime(value, as_utc=None):
+    """Convert a Local Config-interpreted datetime back to naive UTC."""
+    if not isinstance(value, datetime):
+        return value
+    naive = value.replace(tzinfo=None)
+    if as_utc if as_utc is not None else interpret_datetimes_as_utc():
+        return naive
+    aware_local = naive.replace(tzinfo=local_datetime_timezone())
+    return aware_local.astimezone(timezone.utc).replace(tzinfo=None)
+
+
+def interpret_db_row(row, as_utc=None):
+    if row is None:
+        return None
+    if isinstance(row, dict):
+        return {key: interpret_db_datetime(val, as_utc=as_utc) for key, val in row.items()}
+    if isinstance(row, tuple):
+        return tuple(interpret_db_datetime(val, as_utc=as_utc) for val in row)
+    if isinstance(row, list):
+        return [interpret_db_datetime(val, as_utc=as_utc) for val in row]
+    return interpret_db_datetime(row, as_utc=as_utc)
+
+
+class InterpretedCursor:
+    """Cursor wrapper that interprets fetched datetimes using Local Config."""
+
+    def __init__(self, cursor, as_utc=False):
+        self._cursor = cursor
+        self._as_utc = bool(as_utc)
+
+    def execute(self, *args, **kwargs):
+        result = self._cursor.execute(*args, **kwargs)
+        return self if result is self._cursor or result is None else result
+
+    def executemany(self, *args, **kwargs):
+        result = self._cursor.executemany(*args, **kwargs)
+        return self if result is self._cursor or result is None else result
+
+    def fetchall(self):
+        return [interpret_db_row(row, as_utc=self._as_utc) for row in self._cursor.fetchall()]
+
+    def fetchone(self):
+        return interpret_db_row(self._cursor.fetchone(), as_utc=self._as_utc)
+
+    def fetchmany(self, size=None):
+        if size is None:
+            rows = self._cursor.fetchmany()
+        else:
+            rows = self._cursor.fetchmany(size)
+        return [interpret_db_row(row, as_utc=self._as_utc) for row in rows]
+
+    def __iter__(self):
+        for row in self._cursor:
+            yield interpret_db_row(row, as_utc=self._as_utc)
+
+    def __enter__(self):
+        self._cursor.__enter__()
+        return self
+
+    def __exit__(self, exc_type, exc, traceback):
+        return self._cursor.__exit__(exc_type, exc, traceback)
+
+    def __getattr__(self, name):
+        return getattr(self._cursor, name)
+
+
+def wrap_connection_datetime_interpretation(connection, as_utc=None):
+    as_utc = interpret_datetimes_as_utc() if as_utc is None else bool(as_utc)
+    original_cursor = connection.cursor
+
+    def cursor(*args, **kwargs):
+        return InterpretedCursor(original_cursor(*args, **kwargs), as_utc=as_utc)
+
+    connection.cursor = cursor
+    return connection
+
+
+def local_config_payload(config=None):
+    config = config or load_production_config()
+    return {
+        'interpret_datetimes_as_utc': bool(config.get('interpret_datetimes_as_utc', True)),
+        'local_timezone': LOCAL_DATETIME_TZ_NAME,
+    }
+
+
+def save_local_config(payload):
+    current = load_production_config()
+    if 'interpret_datetimes_as_utc' in (payload or {}):
+        current['interpret_datetimes_as_utc'] = payload.get('interpret_datetimes_as_utc')
+    return local_config_payload(save_production_config(current))
+

@@ -37,13 +37,29 @@ from production_config import (
     SCHEDULE_CSV_PATH,
     backup_and_save_schedule,
     dashboard_tab_order_payload,
+    interpret_datetimes_as_utc,
     load_production_config,
+    local_config_payload,
     save_burn_in_config,
     save_dashboard_tab_order,
+    save_local_config,
     save_long_burn_in_config,
     save_production_config,
+    wrap_connection_datetime_interpretation,
 )
 from production_schedule import load_calendar_grid, save_calendar_grid
+from mariadb_backup import (
+    BackupInProgress,
+    coerce_for_mysql,
+    create_current_backup,
+    is_safe_ident,
+    list_backup_files,
+    load_backup_sheet,
+    resolve_backup_path,
+    row_key_id,
+    serialize_value,
+    values_equal,
+)
 
 os.environ['TZ'] = 'UTC'
 app = Flask(__name__)
@@ -122,7 +138,9 @@ edit_burn_in_template = "edit_burn_in.html"
 edit_long_burn_in_template = "edit_long_burn_in.html"
 edit_history_cache_template = "edit_history_cache.html"
 edit_tab_order_template = "edit_tab_order.html"
+edit_local_config_template = "edit_local_config.html"
 edit_dbq_plot_template = "edit_dbq_plot.html"
+restore_mariadb_template = "restore_mariadb.html"
 
 def load_secrets():
     """Load database credentials from secrets.yaml."""
@@ -147,11 +165,13 @@ def require_full_access():
     return None
 
 
-def get_db_connection():
+def get_db_connection(interpret_datetimes=True):
     """Create and return a database connection.
 
     Uses the logged-in Flask session when available; otherwise falls back to
     credentials in secrets.yaml (for CLI tools such as --rebuild-history-cache).
+    Datetimes are kept as UTC on the wire; when Local Config is set to local
+    time they are converted after fetch for display.
     """
     db_user = None
     db_pass = None
@@ -180,6 +200,8 @@ def get_db_connection():
             database=db_name,
         )
         conn.time_zone = '+00:00'
+        if interpret_datetimes and not interpret_datetimes_as_utc():
+            wrap_connection_datetime_interpretation(conn, as_utc=False)
         return conn
     except Error as e:
         print("Error while connecting to database:", e)
@@ -573,6 +595,395 @@ def run_script():
     
     return render_template(run_script_template, message=message, error=error)
 
+
+def _require_tools_api():
+    if not session.get('logged_in'):
+        return jsonify({'error': 'Not logged in'}), 401
+    if is_guest_mode():
+        return jsonify({'error': 'Not allowed in guest mode'}), 403
+    return None
+
+
+def _list_mariadb_tables(cursor):
+    cursor.execute('SHOW TABLES')
+    tables = []
+    for row in cursor.fetchall():
+        name = next(iter(row.values())) if isinstance(row, dict) else row[0]
+        if is_safe_ident(name):
+            tables.append(name)
+    return tables
+
+
+def _mariadb_table_info(cursor, table):
+    cursor.execute(f'SHOW COLUMNS FROM `{table}`')
+    columns = []
+    types = {}
+    for row in cursor.fetchall():
+        if isinstance(row, dict):
+            name = row.get('Field')
+            types[name] = row.get('Type') or ''
+        else:
+            name = row[0]
+            types[name] = row[1] or ''
+        if is_safe_ident(name):
+            columns.append(name)
+    cursor.execute(f"SHOW KEYS FROM `{table}` WHERE Key_name = 'PRIMARY'")
+    pk_rows = []
+    for row in cursor.fetchall():
+        if isinstance(row, dict):
+            pk_rows.append((row.get('Seq_in_index') or 0, row.get('Column_name')))
+        else:
+            pk_rows.append((row[3], row[4]))
+    pk_rows.sort()
+    primary_key = [name for _, name in pk_rows if is_safe_ident(name)]
+    return columns, types, primary_key
+
+
+def _serialize_db_row(row):
+    return {key: serialize_value(value) for key, value in (row or {}).items()}
+
+
+def _union_columns(live_columns, backup_columns):
+    columns = []
+    for name in list(live_columns or []) + list(backup_columns or []):
+        if name and name not in columns:
+            columns.append(name)
+    return columns
+
+
+def _compare_backup_and_live(backup_sheet, live_rows, live_columns, primary_key):
+    backup_rows = backup_sheet['rows'] if backup_sheet else []
+    backup_columns = list(backup_sheet['columns']) if backup_sheet else []
+    columns = _union_columns(live_columns, backup_columns)
+    backup_by_key = {}
+    live_by_key = {}
+    for row in backup_rows:
+        key_id = row_key_id(primary_key, row)
+        if key_id:
+            backup_by_key[key_id] = row
+    for row in live_rows:
+        serialized = _serialize_db_row(row)
+        key_id = row_key_id(primary_key, serialized)
+        if key_id:
+            live_by_key[key_id] = serialized
+
+    ordered_keys = []
+    seen = set()
+    for row in backup_rows:
+        key_id = row_key_id(primary_key, row)
+        if key_id and key_id not in seen:
+            ordered_keys.append(key_id)
+            seen.add(key_id)
+    for row in live_rows:
+        serialized = _serialize_db_row(row)
+        key_id = row_key_id(primary_key, serialized)
+        if key_id and key_id not in seen:
+            ordered_keys.append(key_id)
+            seen.add(key_id)
+
+    aligned = []
+    diff_count = 0
+    for key_id in ordered_keys:
+        backup_row = backup_by_key.get(key_id)
+        live_row = live_by_key.get(key_id)
+        backup_serialized = (
+            {column: serialize_value(backup_row.get(column)) for column in columns}
+            if backup_row else None
+        )
+        live_serialized = (
+            {column: live_row.get(column) for column in columns}
+            if live_row else None
+        )
+        diffs = []
+        if backup_serialized and live_serialized:
+            for column in columns:
+                if not values_equal(backup_serialized.get(column), live_serialized.get(column)):
+                    diffs.append(column)
+        elif backup_serialized and not live_serialized:
+            diffs = list(columns)
+        diff_count += len(diffs)
+        key = {}
+        source = backup_serialized or live_serialized or {}
+        for column in primary_key:
+            key[column] = source.get(column)
+        aligned.append({
+            'key': key,
+            'key_id': key_id,
+            'backup': backup_serialized,
+            'live': live_serialized,
+            'diffs': diffs,
+        })
+    return aligned, diff_count, columns, backup_columns
+
+
+def _expand_restore_selection(payload, aligned_rows, columns, primary_key):
+    selected_columns = set(payload.get('columns') or [])
+    selected_rows = set(str(item) for item in (payload.get('rows') or []))
+    selected_cells = set()
+    for item in payload.get('cells') or []:
+        if isinstance(item, dict):
+            key_id = str(item.get('key_id') or '')
+            column = item.get('column')
+        else:
+            continue
+        if key_id and column:
+            selected_cells.add((key_id, column))
+
+    pk_set = set(primary_key)
+    by_key = {}
+    for row in aligned_rows:
+        if not row.get('backup'):
+            continue
+        key_id = row['key_id']
+        chosen = []
+        for column in columns:
+            covered = (
+                column in selected_columns
+                or key_id in selected_rows
+                or (key_id, column) in selected_cells
+            )
+            if not covered:
+                continue
+            if column in pk_set and row.get('live'):
+                continue
+            chosen.append(column)
+        if chosen:
+            by_key[key_id] = {
+                'row': row,
+                'columns': chosen,
+            }
+    return by_key
+
+
+@app.route('/restore_mariadb')
+def restore_mariadb():
+    if not session.get('logged_in'):
+        return redirect(url_for('login'))
+    blocked = require_full_access()
+    if blocked:
+        return blocked
+    return render_template(restore_mariadb_template)
+
+
+@app.route('/api/mariadb_backup/meta')
+def mariadb_backup_meta():
+    blocked = _require_tools_api()
+    if blocked:
+        return blocked
+    conn = get_db_connection()
+    if not conn:
+        return jsonify({'error': 'Database connection failed'}), 500
+    try:
+        cursor = conn.cursor(dictionary=True)
+        tables = _list_mariadb_tables(cursor)
+        cursor.close()
+    finally:
+        conn.close()
+    return jsonify({
+        'success': True,
+        'files': list_backup_files(),
+        'tables': tables,
+    })
+
+
+@app.route('/api/mariadb_backup/create', methods=['POST'])
+def mariadb_backup_create():
+    blocked = _require_tools_api()
+    if blocked:
+        return blocked
+    conn = get_db_connection(interpret_datetimes=False)
+    if not conn:
+        return jsonify({'error': 'Database connection failed'}), 500
+    try:
+        result = create_current_backup(conn)
+    except BackupInProgress as exc:
+        return jsonify({'error': str(exc)}), 409
+    except Exception as exc:
+        return jsonify({'error': f'Backup failed: {exc}'}), 500
+    finally:
+        conn.close()
+    return jsonify({
+        'success': True,
+        'files': list_backup_files(),
+        'message': (
+            f"Backup created: {result['filename']} "
+            f"({result['table_count']} table(s), {result['row_count']} row(s))."
+        ),
+        **result,
+    })
+
+
+@app.route('/api/mariadb_backup/compare')
+def mariadb_backup_compare():
+    blocked = _require_tools_api()
+    if blocked:
+        return blocked
+    filename = request.args.get('file')
+    table = request.args.get('table')
+    if not is_safe_ident(table):
+        return jsonify({'error': 'Invalid table name'}), 400
+    path = resolve_backup_path(filename)
+    if not path:
+        return jsonify({'error': 'Backup file not found'}), 404
+
+    conn = get_db_connection()
+    if not conn:
+        return jsonify({'error': 'Database connection failed'}), 500
+    try:
+        cursor = conn.cursor(dictionary=True)
+        tables = _list_mariadb_tables(cursor)
+        if table not in tables:
+            return jsonify({'error': f'Table {table} not found in MariaDB'}), 404
+        live_columns, _types, primary_key = _mariadb_table_info(cursor, table)
+        if not primary_key:
+            return jsonify({'error': f'Table {table} has no primary key; restore is disabled.'}), 400
+        cursor.execute(f'SELECT * FROM `{table}`')
+        live_rows = cursor.fetchall()
+        cursor.close()
+    finally:
+        conn.close()
+
+    try:
+        backup_sheet = load_backup_sheet(path, table)
+    except Exception as exc:
+        return jsonify({'error': f'Failed to read XLS backup: {exc}'}), 500
+
+    aligned, diff_count, columns, backup_columns = _compare_backup_and_live(
+        backup_sheet, live_rows, live_columns, primary_key
+    )
+    return jsonify({
+        'success': True,
+        'file': path.name,
+        'table': table,
+        'backup_sheet': table if backup_sheet else None,
+        'columns': columns,
+        'live_columns': live_columns,
+        'backup_columns': backup_columns,
+        'primary_key': primary_key,
+        'rows': aligned,
+        'diff_count': diff_count,
+        'backup_row_count': len(backup_sheet['rows']) if backup_sheet else 0,
+        'live_row_count': len(live_rows),
+        **local_config_payload(),
+    })
+
+
+@app.route('/api/mariadb_backup/restore', methods=['POST'])
+def mariadb_backup_restore():
+    blocked = _require_tools_api()
+    if blocked:
+        return blocked
+    payload = request.get_json(silent=True) or {}
+    filename = payload.get('file')
+    table = payload.get('table')
+    if not is_safe_ident(table):
+        return jsonify({'error': 'Invalid table name'}), 400
+    path = resolve_backup_path(filename)
+    if not path:
+        return jsonify({'error': 'Backup file not found'}), 404
+
+    conn = get_db_connection(interpret_datetimes=False)
+    if not conn:
+        return jsonify({'error': 'Database connection failed'}), 500
+    try:
+        cursor = conn.cursor(dictionary=True)
+        tables = _list_mariadb_tables(cursor)
+        if table not in tables:
+            return jsonify({'error': f'Table {table} not found in MariaDB'}), 404
+        columns, types, primary_key = _mariadb_table_info(cursor, table)
+        if not primary_key:
+            return jsonify({'error': f'Table {table} has no primary key; restore is disabled.'}), 400
+        cursor.execute(f'SELECT * FROM `{table}`')
+        live_rows = cursor.fetchall()
+        try:
+            backup_sheet = load_backup_sheet(path, table)
+        except Exception as exc:
+            return jsonify({'error': f'Failed to read XLS backup: {exc}'}), 500
+        if not backup_sheet:
+            return jsonify({'error': f'Table {table} is not in the selected backup file'}), 400
+
+        aligned, _diff_count, _display_columns, _backup_columns = _compare_backup_and_live(
+            backup_sheet, live_rows, columns, primary_key
+        )
+        selection = _expand_restore_selection(payload, aligned, columns, primary_key)
+        if not selection:
+            return jsonify({'error': 'No restorable cells were selected'}), 400
+
+        override_values = {}
+        for item in payload.get('values') or []:
+            if not isinstance(item, dict):
+                continue
+            key_id = str(item.get('key_id') or '')
+            column = item.get('column')
+            if key_id and column:
+                override_values[(key_id, column)] = item.get('value')
+
+        def _value_for(row, column, backup_row):
+            key = (row['key_id'], column)
+            if key in override_values:
+                return override_values[key]
+            return backup_row.get(column)
+
+        updated_cells = 0
+        inserted_rows = 0
+        for item in selection.values():
+            row = item['row']
+            chosen = [column for column in item['columns'] if column in columns]
+            backup_row = row.get('backup') or {}
+            if not chosen:
+                continue
+            if row.get('live'):
+                assignments = ', '.join(f'`{column}` = %s' for column in chosen)
+                where = ' AND '.join(f'`{column}` = %s' for column in primary_key)
+                values = [
+                    coerce_for_mysql(_value_for(row, column, backup_row), types.get(column))
+                    for column in chosen
+                ]
+                values.extend([
+                    coerce_for_mysql(row['key'].get(column), types.get(column))
+                    for column in primary_key
+                ])
+                cursor.execute(
+                    f'UPDATE `{table}` SET {assignments} WHERE {where}',
+                    values,
+                )
+                updated_cells += len(chosen)
+            else:
+                insert_cols = []
+                for column in primary_key + chosen:
+                    if column not in insert_cols:
+                        insert_cols.append(column)
+                placeholders = ', '.join(['%s'] * len(insert_cols))
+                col_sql = ', '.join(f'`{column}`' for column in insert_cols)
+                values = [
+                    coerce_for_mysql(_value_for(row, column, backup_row), types.get(column))
+                    for column in insert_cols
+                ]
+                cursor.execute(
+                    f'INSERT INTO `{table}` ({col_sql}) VALUES ({placeholders})',
+                    values,
+                )
+                inserted_rows += 1
+                updated_cells += len(chosen)
+        conn.commit()
+        cursor.close()
+    except Exception as exc:
+        conn.rollback()
+        return jsonify({'error': f'Restore failed: {exc}'}), 500
+    finally:
+        conn.close()
+
+    parts = [f'Restored {updated_cells} cell(s) in {table} from {path.name}.']
+    if inserted_rows:
+        parts.append(f'Inserted {inserted_rows} missing row(s).')
+    return jsonify({
+        'success': True,
+        'updated': updated_cells,
+        'inserted_rows': inserted_rows,
+        'message': ' '.join(parts),
+    })
+
+
 @app.route('/edit_vars', methods=['GET', 'POST'])
 def edit_vars():
     if not session.get('logged_in'):
@@ -784,6 +1195,43 @@ def dashboard_tab_order_api():
         return jsonify({'success': True, **payload})
     except Exception as exc:
         print(f'Error saving dashboard tab order: {exc}')
+        return jsonify({'error': str(exc)}), 500
+
+
+@app.route('/edit_local_config')
+def edit_local_config():
+    if not session.get('logged_in'):
+        return redirect(url_for('login'))
+    blocked = require_full_access()
+    if blocked:
+        return blocked
+
+    payload = local_config_payload()
+    return render_template(
+        edit_local_config_template,
+        interpret_datetimes_as_utc=payload['interpret_datetimes_as_utc'],
+        local_timezone=payload['local_timezone'],
+    )
+
+
+@app.route('/api/local_config', methods=['GET', 'POST'])
+def local_config_api():
+    if not session.get('logged_in'):
+        return jsonify({'error': 'Not logged in'}), 401
+
+    if request.method == 'GET':
+        return jsonify({'success': True, **local_config_payload()})
+
+    blocked = require_full_access()
+    if blocked:
+        return jsonify({'error': 'Not allowed in guest mode'}), 403
+
+    try:
+        data = request.get_json() or {}
+        payload = save_local_config(data)
+        return jsonify({'success': True, **payload})
+    except Exception as exc:
+        print(f'Error saving local config: {exc}')
         return jsonify({'error': str(exc)}), 500
 
 @app.route('/api/brick_wall_data')

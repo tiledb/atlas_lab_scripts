@@ -1,0 +1,571 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DBQ Admin - Burn in slot management</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            background: #f5f7fa;
+            min-height: 100vh;
+            color: #333;
+        }
+
+        .navbar {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            padding: 20px 40px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+        }
+
+        .navbar h1 { color: white; font-size: 24px; font-weight: 600; }
+
+        .nav-links { display: flex; gap: 20px; }
+        .nav-links a { color: white; text-decoration: none; font-size: 14px; opacity: 0.9; }
+        .nav-links a:hover { opacity: 1; }
+
+        .container { max-width: 1280px; margin: 40px auto; padding: 0 20px 48px; }
+
+        .back-link {
+            display: inline-block;
+            margin-bottom: 20px;
+            color: #667eea;
+            text-decoration: none;
+            font-size: 14px;
+        }
+        .back-link:hover { text-decoration: underline; }
+
+        .card {
+            background: white;
+            border-radius: 12px;
+            padding: 28px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+            margin-bottom: 24px;
+        }
+
+        .card h2 { font-size: 22px; margin-bottom: 8px; }
+        .help { color: #666; font-size: 14px; line-height: 1.45; margin-bottom: 18px; }
+
+        table { width: 100%; border-collapse: collapse; font-size: 14px; }
+        th, td { text-align: left; padding: 8px 10px; border-bottom: 1px solid #e8ecf1; vertical-align: top; }
+        th { font-size: 12px; text-transform: uppercase; letter-spacing: 0.03em; color: #667; background: #f8f9fb; }
+        tr.selected td { background: #fff6ee; }
+
+        .table-wrap {
+            max-height: 560px;
+            overflow: auto;
+            border: 1px solid #e1e5e9;
+            border-radius: 8px;
+        }
+        .table-wrap thead th { position: sticky; top: 0; z-index: 1; }
+
+        .slots-table td { white-space: nowrap; }
+        .slots-table td.boards-cell { white-space: normal; min-width: 220px; }
+
+        details summary { cursor: pointer; color: #0f766e; }
+        .serial-list { margin-top: 8px; color: #444; line-height: 1.5; white-space: normal; }
+
+        .use-period-btn, .text-btn, .declare-btn {
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 13px;
+            font-weight: 600;
+        }
+        .use-period-btn, .text-btn {
+            background: #f3f0ff;
+            color: #5b4b8a;
+            padding: 6px 10px;
+        }
+        .use-period-btn:hover, .text-btn:hover { background: #e6e0fb; }
+        .text-btn { background: #f5f5f5; color: #555; }
+        .text-btn:hover { background: #ececec; }
+
+        .declare-btn {
+            background: #e67e22;
+            color: white;
+            padding: 12px 18px;
+            font-size: 15px;
+        }
+        .declare-btn:hover { background: #d35400; }
+        .declare-btn:disabled { opacity: 0.6; cursor: wait; }
+
+        .form-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 16px;
+            margin-bottom: 18px;
+        }
+        .form-grid label, .filters label {
+            display: block;
+            font-size: 13px;
+            font-weight: 600;
+            color: #555;
+            margin-bottom: 6px;
+        }
+        input[type="text"], input[type="datetime-local"], textarea, select {
+            width: 100%;
+            padding: 10px 12px;
+            border: 2px solid #e1e5e9;
+            border-radius: 6px;
+            font-size: 14px;
+            font-family: inherit;
+        }
+        textarea { min-height: 84px; resize: vertical; }
+        input:focus, textarea:focus, select:focus { outline: none; border-color: #667eea; }
+        .span-2 { grid-column: span 2; }
+
+        .filters {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 12px;
+            align-items: end;
+            margin: 8px 0 12px;
+        }
+        .filters .field { min-width: 180px; flex: 1; }
+
+        .toolbar {
+            display: flex;
+            justify-content: space-between;
+            gap: 12px;
+            align-items: center;
+            margin: 12px 0;
+            flex-wrap: wrap;
+        }
+        .selection-note { font-size: 14px; color: #555; }
+        .selection-note strong { color: #333; }
+        .warn { color: #9a6700; }
+
+        .message {
+            display: none;
+            border-radius: 6px;
+            padding: 12px 14px;
+            margin-bottom: 16px;
+            font-size: 14px;
+            line-height: 1.4;
+        }
+        .message.show { display: block; }
+        .message.success { background: #e8f6ee; color: #146c43; }
+        .message.error { background: #fdecea; color: #b42318; }
+
+        .empty { color: #777; padding: 18px; text-align: center; }
+        .check-col { width: 36px; text-align: center; }
+        .check-col input { width: auto; }
+
+        @media (max-width: 800px) {
+            .form-grid { grid-template-columns: 1fr; }
+            .span-2 { grid-column: span 1; }
+            .navbar { padding: 16px 20px; }
+        }
+    </style>
+</head>
+<body>
+    <nav class="navbar">
+        <h1>DBQ Admin Panel</h1>
+        <div class="nav-links">
+            <a href="{{ url_for('dashboard') }}#advanced-tools">Dashboard</a>
+            <a href="{{ url_for('logout') }}">Logout</a>
+        </div>
+    </nav>
+
+    <div class="container">
+        <a class="back-link" href="{{ url_for('dashboard') }}#advanced-tools">← Back to Advanced Tools</a>
+
+        <div class="card">
+            <h2>Burn-in slots</h2>
+            <p class="help">A slot is the set of boards that share the same burn-in start and stop. Newest periods are listed first.</p>
+            <div id="slots-message" class="empty">Loading burn-in slots...</div>
+            <div class="table-wrap" id="slots-wrap" style="display: none;">
+                <table class="slots-table">
+                    <thead>
+                        <tr>
+                            <th>Slot</th>
+                            <th>Start</th>
+                            <th>Stop</th>
+                            <th>Hours</th>
+                            <th>Batches</th>
+                            <th>Boards</th>
+                            <th></th>
+                        </tr>
+                    </thead>
+                    <tbody id="slots-body"></tbody>
+                </table>
+            </div>
+        </div>
+
+        <div class="card" id="declare-card">
+            <h2>Declare a burn-in slot</h2>
+            <p class="help">Select one or more boards, then save a shared start and stop. Boards already in another slot are moved to this period. Each selected board gets a comment.</p>
+            <div id="declare-message" class="message"></div>
+            <form id="declare-form">
+                <div class="form-grid">
+                    <div>
+                        <label for="declare-op">Operator (OP)</label>
+                        <input type="text" id="declare-op" placeholder="Enter operator name" autocomplete="name">
+                    </div>
+                    <div>
+                        <label for="declare-reason">Reason</label>
+                        <textarea id="declare-reason" placeholder="Enter reason for declaring this burn-in"></textarea>
+                    </div>
+                    <div>
+                        <label for="declare-start">Burn-in start</label>
+                        <input type="datetime-local" id="declare-start" step="1">
+                    </div>
+                    <div>
+                        <label for="declare-stop">Burn-in stop</label>
+                        <input type="datetime-local" id="declare-stop" step="1">
+                    </div>
+                </div>
+
+                <div class="filters">
+                    <div class="field">
+                        <label for="board-search">Serial</label>
+                        <input type="text" id="board-search" placeholder="Filter by serial" autocomplete="off">
+                    </div>
+                    <div class="field">
+                        <label for="batch-filter">Batch</label>
+                        <select id="batch-filter">
+                            <option value="">All batches</option>
+                        </select>
+                    </div>
+                    <div class="field">
+                        <label for="status-filter">Burn-in</label>
+                        <select id="status-filter">
+                            <option value="">All boards</option>
+                            <option value="open">Not in a slot</option>
+                            <option value="assigned">Already in a slot</option>
+                        </select>
+                    </div>
+                    <button type="button" class="text-btn" id="clear-selection">Clear selection</button>
+                </div>
+
+                <div class="toolbar">
+                    <div class="selection-note" id="selection-note">No boards selected.</div>
+                    <button type="submit" class="declare-btn" id="declare-submit">Declare burn-in slot</button>
+                </div>
+
+                <div class="table-wrap">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th class="check-col"><input type="checkbox" id="select-visible" title="Select visible boards"></th>
+                                <th>Serial</th>
+                                <th>Batch</th>
+                                <th>Position</th>
+                                <th>Slot</th>
+                                <th>Start</th>
+                                <th>Stop</th>
+                                <th>Operator</th>
+                            </tr>
+                        </thead>
+                        <tbody id="boards-body">
+                            <tr><td colspan="8" class="empty">Loading boards...</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        let slots = [];
+        let boards = [];
+        const selectedSerials = new Set();
+
+        const slotsMessage = document.getElementById('slots-message');
+        const slotsWrap = document.getElementById('slots-wrap');
+        const slotsBody = document.getElementById('slots-body');
+        const boardsBody = document.getElementById('boards-body');
+        const declareMessage = document.getElementById('declare-message');
+        const declareForm = document.getElementById('declare-form');
+        const declareSubmit = document.getElementById('declare-submit');
+        const boardSearch = document.getElementById('board-search');
+        const batchFilter = document.getElementById('batch-filter');
+        const statusFilter = document.getElementById('status-filter');
+        const selectVisible = document.getElementById('select-visible');
+        const selectionNote = document.getElementById('selection-note');
+
+        function escapeHtml(value) {
+            return String(value ?? '')
+                .replace(/&/g, '&amp;')
+                .replace(/</g, '&lt;')
+                .replace(/>/g, '&gt;')
+                .replace(/"/g, '&quot;');
+        }
+
+        function toDatetimeLocal(value) {
+            if (!value) return '';
+            const text = String(value).trim().replace(' ', 'T');
+            const match = text.match(/^(\d{4}-\d{2}-\d{2}T\d{2}:\d{2}(?::\d{2})?)/);
+            return match ? match[1] : '';
+        }
+
+        function showDeclareMessage(text, isError) {
+            declareMessage.textContent = text;
+            declareMessage.className = 'message show ' + (isError ? 'error' : 'success');
+        }
+
+        function formatBatches(batches) {
+            const values = batches || [];
+            if (!values.length) return '—';
+            if (values.length <= 8) return values.join(', ');
+            return values.slice(0, 8).join(', ') + ' +' + (values.length - 8);
+        }
+
+        function renderSlots() {
+            if (!slots.length) {
+                slotsWrap.style.display = 'none';
+                slotsMessage.style.display = 'block';
+                slotsMessage.textContent = 'No burn-in slots yet.';
+                return;
+            }
+            slotsMessage.style.display = 'none';
+            slotsWrap.style.display = 'block';
+            slotsBody.innerHTML = slots.map((slot) => {
+                const serials = (slot.boards || []).map((board) => board.serial).join(', ');
+                return `
+                    <tr>
+                        <td>${escapeHtml(slot.slot_id)}</td>
+                        <td>${escapeHtml(slot.burn_in_start)}</td>
+                        <td>${escapeHtml(slot.burn_in_stop)}</td>
+                        <td>${escapeHtml(slot.duration_hours)}</td>
+                        <td>${escapeHtml(formatBatches(slot.batches))}</td>
+                        <td class="boards-cell">
+                            <details>
+                                <summary>${slot.board_count} boards</summary>
+                                <div class="serial-list">${escapeHtml(serials)}</div>
+                            </details>
+                        </td>
+                        <td>
+                            <button type="button" class="use-period-btn" data-use-period
+                                data-start="${escapeHtml(slot.burn_in_start)}"
+                                data-stop="${escapeHtml(slot.burn_in_stop)}">Use this period</button>
+                        </td>
+                    </tr>
+                `;
+            }).join('');
+        }
+
+        function populateBatchFilter() {
+            const current = batchFilter.value;
+            const batches = [...new Set(boards.map((board) => board.batch))].sort((a, b) => a - b);
+            batchFilter.innerHTML = '<option value="">All batches</option>' + batches.map((batch) => {
+                return `<option value="${batch}">Batch ${batch}</option>`;
+            }).join('');
+            if (batches.map(String).includes(current)) {
+                batchFilter.value = current;
+            }
+        }
+
+        function filteredBoards() {
+            const query = boardSearch.value.trim();
+            const batch = batchFilter.value;
+            const status = statusFilter.value;
+            return boards.filter((board) => {
+                if (query && !String(board.serial).includes(query)) return false;
+                if (batch && String(board.batch) !== batch) return false;
+                if (status === 'open' && board.slot_id) return false;
+                if (status === 'assigned' && !board.slot_id) return false;
+                return true;
+            });
+        }
+
+        function renderBoards() {
+            const visible = filteredBoards();
+            if (!visible.length) {
+                boardsBody.innerHTML = '<tr><td colspan="8" class="empty">No boards match these filters.</td></tr>';
+                syncHeaderCheckbox(visible);
+                updateSelectionSummary(visible);
+                return;
+            }
+            boardsBody.innerHTML = visible.map((board) => {
+                const checked = selectedSerials.has(board.serial) ? ' checked' : '';
+                const rowClass = selectedSerials.has(board.serial) ? ' class="selected"' : '';
+                return `
+                    <tr data-serial="${board.serial}"${rowClass}>
+                        <td class="check-col"><input type="checkbox" class="board-check" data-serial="${board.serial}"${checked}></td>
+                        <td>${board.serial}</td>
+                        <td>${board.batch}</td>
+                        <td>${board.position}</td>
+                        <td>${escapeHtml(board.slot_id || '—')}</td>
+                        <td>${escapeHtml(board.burn_in_start || '—')}</td>
+                        <td>${escapeHtml(board.burn_in_stop || '—')}</td>
+                        <td>${escapeHtml(board.burn_in_op || '—')}</td>
+                    </tr>
+                `;
+            }).join('');
+            syncHeaderCheckbox(visible);
+            updateSelectionSummary(visible);
+        }
+
+        function syncHeaderCheckbox(visible) {
+            const rows = visible || filteredBoards();
+            const selectedVisible = rows.filter((board) => selectedSerials.has(board.serial)).length;
+            selectVisible.checked = rows.length > 0 && selectedVisible === rows.length;
+            selectVisible.indeterminate = selectedVisible > 0 && selectedVisible < rows.length;
+        }
+
+        function updateSelectionSummary(visible) {
+            const rows = visible || filteredBoards();
+            const visibleSerials = new Set(rows.map((board) => board.serial));
+            const hiddenSelected = [...selectedSerials].filter((serial) => !visibleSerials.has(serial)).length;
+            const assigned = boards.filter((board) => selectedSerials.has(board.serial) && board.slot_id).length;
+            if (!selectedSerials.size) {
+                selectionNote.innerHTML = `Showing ${rows.length} of ${boards.length} boards. No boards selected.`;
+                return;
+            }
+            let text = `<strong>${selectedSerials.size}</strong> selected`;
+            text += `. Showing ${rows.length} of ${boards.length} boards.`;
+            if (hiddenSelected) {
+                text += ` <span class="warn">${hiddenSelected} selected boards are hidden by the current filters.</span>`;
+            }
+            if (assigned) {
+                text += ` <span class="warn">${assigned} selected boards already belong to a slot and will be moved.</span>`;
+            }
+            selectionNote.innerHTML = text;
+        }
+
+        function usePeriod(start, stop) {
+            document.getElementById('declare-start').value = toDatetimeLocal(start);
+            document.getElementById('declare-stop').value = toDatetimeLocal(stop);
+            document.getElementById('declare-card').scrollIntoView({ behavior: 'smooth', block: 'start' });
+        }
+
+        async function loadData() {
+            const response = await fetch('/api/burn_in_slots');
+            const data = await response.json().catch(() => ({}));
+            if (!response.ok || !data.success) {
+                slotsMessage.textContent = data.error || 'Failed to load burn-in slots';
+                boardsBody.innerHTML = `<tr><td colspan="8" class="empty">${escapeHtml(data.error || 'Failed to load boards')}</td></tr>`;
+                return;
+            }
+            slots = data.slots || [];
+            boards = data.boards || [];
+            renderSlots();
+            populateBatchFilter();
+            renderBoards();
+        }
+
+        slotsBody.addEventListener('click', (event) => {
+            const button = event.target.closest('[data-use-period]');
+            if (!button) return;
+            usePeriod(button.dataset.start, button.dataset.stop);
+        });
+
+        boardsBody.addEventListener('change', (event) => {
+            const box = event.target.closest('.board-check');
+            if (!box) return;
+            const serial = Number(box.dataset.serial);
+            if (box.checked) selectedSerials.add(serial);
+            else selectedSerials.delete(serial);
+            const row = box.closest('tr');
+            if (row) row.classList.toggle('selected', box.checked);
+            syncHeaderCheckbox();
+            updateSelectionSummary();
+        });
+
+        boardsBody.addEventListener('click', (event) => {
+            if (event.target.closest('input, a, button, summary')) return;
+            const row = event.target.closest('tr[data-serial]');
+            if (!row) return;
+            const box = row.querySelector('.board-check');
+            if (!box) return;
+            box.checked = !box.checked;
+            box.dispatchEvent(new Event('change', { bubbles: true }));
+        });
+
+        selectVisible.addEventListener('change', () => {
+            filteredBoards().forEach((board) => {
+                if (selectVisible.checked) selectedSerials.add(board.serial);
+                else selectedSerials.delete(board.serial);
+            });
+            renderBoards();
+        });
+
+        document.getElementById('clear-selection').addEventListener('click', () => {
+            selectedSerials.clear();
+            renderBoards();
+        });
+
+        boardSearch.addEventListener('input', renderBoards);
+        batchFilter.addEventListener('change', renderBoards);
+        statusFilter.addEventListener('change', renderBoards);
+
+        declareForm.addEventListener('submit', async (event) => {
+            event.preventDefault();
+            const op = document.getElementById('declare-op').value.trim();
+            const reason = document.getElementById('declare-reason').value.trim();
+            const burnInStart = document.getElementById('declare-start').value;
+            const burnInStop = document.getElementById('declare-stop').value;
+            if (!selectedSerials.size) {
+                showDeclareMessage('Select at least one board.', true);
+                return;
+            }
+            if (!op) {
+                showDeclareMessage('Enter an operator name.', true);
+                document.getElementById('declare-op').focus();
+                return;
+            }
+            if (!reason) {
+                showDeclareMessage('Enter a reason.', true);
+                document.getElementById('declare-reason').focus();
+                return;
+            }
+            if (!burnInStart || !burnInStop) {
+                showDeclareMessage('Enter burn-in start and stop.', true);
+                return;
+            }
+            if (new Date(burnInStop) <= new Date(burnInStart)) {
+                showDeclareMessage('Burn-in stop must be after burn-in start.', true);
+                return;
+            }
+
+            const assigned = boards.filter((board) => selectedSerials.has(board.serial) && board.slot_id).length;
+            const prompt = assigned
+                ? `Declare this burn-in for ${selectedSerials.size} boards? ${assigned} already belong to a slot and will be moved to this period.`
+                : `Declare this burn-in for ${selectedSerials.size} boards?`;
+            if (!window.confirm(prompt)) return;
+
+            declareSubmit.disabled = true;
+            try {
+                const response = await fetch('/api/burn_in_slots', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        op: op,
+                        reason: reason,
+                        burn_in_start: burnInStart,
+                        burn_in_stop: burnInStop,
+                        serial_nos: [...selectedSerials],
+                    }),
+                });
+                const data = await response.json().catch(() => ({}));
+                if (!response.ok || !data.success) {
+                    showDeclareMessage(data.error || 'Failed to declare burn-in slot', true);
+                    return;
+                }
+                selectedSerials.clear();
+                document.getElementById('declare-reason').value = '';
+                showDeclareMessage(
+                    `Declared burn-in for ${data.board_count} boards, ${data.burn_in_start} to ${data.burn_in_stop}.`,
+                    false,
+                );
+                await loadData();
+            } catch (error) {
+                showDeclareMessage('Error declaring burn-in slot', true);
+            } finally {
+                declareSubmit.disabled = false;
+            }
+        });
+
+        loadData().catch(() => {
+            slotsMessage.textContent = 'Error loading burn-in slots';
+        });
+    </script>
+</body>
+</html>

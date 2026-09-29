@@ -11,7 +11,7 @@ import argparse
 import sys
 
 from production_summary import build_production_summary
-from production_statistics import build_production_statistics
+from production_statistics import build_production_statistics, statistics_failure_config_payload
 from production_history import (
     build_history_snapshot,
     build_production_history,
@@ -30,7 +30,12 @@ from production_history_video import (
     resolve_slideshow_path,
     resolve_video_path,
 )
-from burn_in import build_burn_in_overview, build_burn_in_plot_all_slots, build_burn_in_plot_for_slot
+from burn_in import (
+    build_burn_in_overview,
+    build_burn_in_plot_all_slots,
+    build_burn_in_plot_for_slot,
+    build_burn_in_slot_management,
+)
 from benchtest_results import get_failed_tests_for_serial
 from long_burn_in import build_long_burn_in_overview, build_long_burn_in_plot
 from production_config import (
@@ -40,11 +45,13 @@ from production_config import (
     interpret_datetimes_as_utc,
     load_production_config,
     local_config_payload,
+    utc_from_interpreted_db_datetime,
     save_burn_in_config,
     save_dashboard_tab_order,
     save_local_config,
     save_long_burn_in_config,
     save_production_config,
+    save_statistics_failure_config,
     wrap_connection_datetime_interpretation,
 )
 from production_schedule import load_calendar_grid, save_calendar_grid
@@ -134,6 +141,7 @@ dashboard_template = "dashboard.html"
 run_script_template = "run_script.html"
 edit_vars_template = "edit_vars.html"
 edit_production_template = "edit_production.html"
+edit_production_statistics_template = "edit_production_statistics.html"
 edit_burn_in_template = "edit_burn_in.html"
 edit_long_burn_in_template = "edit_long_burn_in.html"
 edit_history_cache_template = "edit_history_cache.html"
@@ -141,6 +149,7 @@ edit_tab_order_template = "edit_tab_order.html"
 edit_local_config_template = "edit_local_config.html"
 edit_dbq_plot_template = "edit_dbq_plot.html"
 restore_mariadb_template = "restore_mariadb.html"
+burn_in_slots_template = "burn_in_slots.html"
 
 def load_secrets():
     """Load database credentials from secrets.yaml."""
@@ -1049,6 +1058,47 @@ def edit_production():
         config=load_production_config(),
     )
 
+
+@app.route('/edit_production_statistics')
+def edit_production_statistics():
+    if not session.get('logged_in'):
+        return redirect(url_for('login'))
+    blocked = require_full_access()
+    if blocked:
+        return blocked
+
+    return render_template(edit_production_statistics_template)
+
+
+@app.route('/api/production_statistics/config', methods=['GET', 'POST'])
+def production_statistics_config():
+    if not session.get('logged_in'):
+        return jsonify({'error': 'Not logged in'}), 401
+
+    if request.method == 'GET':
+        return jsonify({
+            'success': True,
+            'config': statistics_failure_config_payload(),
+        })
+
+    blocked = require_full_access()
+    if blocked:
+        return jsonify({'error': 'Not allowed in guest mode'}), 403
+
+    try:
+        data = request.get_json(silent=True) or {}
+        saved = save_statistics_failure_config({
+            'statistics_failure_groups': data.get('statistics_failure_groups'),
+            'statistics_failure_mode_groups': data.get('statistics_failure_mode_groups'),
+        })
+        return jsonify({
+            'success': True,
+            'config': statistics_failure_config_payload(saved),
+        })
+    except Exception as exc:
+        print(f'Error saving production statistics config: {exc}')
+        return jsonify({'error': str(exc)}), 500
+
 @app.route('/edit_burn_in')
 def edit_burn_in():
     if not session.get('logged_in'):
@@ -1062,6 +1112,16 @@ def edit_burn_in():
         edit_burn_in_template,
         config=_burn_in_config_payload(load_production_config()),
     )
+
+
+@app.route('/burn_in_slots')
+def burn_in_slots_page():
+    if not session.get('logged_in'):
+        return redirect(url_for('login'))
+    blocked = require_full_access()
+    if blocked:
+        return blocked
+    return render_template(burn_in_slots_template)
 
 @app.route('/edit_long_burn_in')
 def edit_long_burn_in():
@@ -1956,6 +2016,270 @@ def qualify_board():
         return jsonify({'error': str(e)}), 500
 
 
+def _parse_declared_burn_in_datetime(value):
+    """Parse a burn-in datetime from the declare form (local display time)."""
+    from datetime import datetime
+
+    text = str(value or '').strip().replace('T', ' ')
+    if len(text) == 16:
+        text = f'{text}:00'
+    try:
+        return datetime.strptime(text[:19], '%Y-%m-%d %H:%M:%S')
+    except ValueError:
+        return None
+
+
+def _burn_in_declaration_from_payload(data):
+    """Validate operator, reason, and burn-in times shared by both declare forms."""
+    op = (data.get('op') or '').strip()
+    reason = (data.get('reason') or '').strip()
+    start_dt = _parse_declared_burn_in_datetime(data.get('burn_in_start'))
+    stop_dt = _parse_declared_burn_in_datetime(data.get('burn_in_stop'))
+    if not op:
+        return 'Operator name required', None
+    if len(op) > 255:
+        return 'Operator name is too long', None
+    if not reason:
+        return 'Reason required', None
+    if start_dt is None or stop_dt is None:
+        return 'Burn-in start and stop are required', None
+    if stop_dt <= start_dt:
+        return 'Burn-in stop must be after burn-in start', None
+
+    start_text = start_dt.strftime('%Y-%m-%d %H:%M:%S')
+    stop_text = stop_dt.strftime('%Y-%m-%d %H:%M:%S')
+    note = f'Declared burn-in {start_text} to {stop_text}, reason: {reason}'
+    if len(note) > 4000:
+        return 'Reason is too long', None
+    return None, {
+        'op': op,
+        'start_text': start_text,
+        'stop_text': stop_text,
+        'note': note,
+        'start_utc': utc_from_interpreted_db_datetime(start_dt),
+        'stop_utc': utc_from_interpreted_db_datetime(stop_dt),
+    }
+
+
+def _parse_serial_list(values):
+    if isinstance(values, (str, int)):
+        values = [values]
+    if not isinstance(values, list) or not values:
+        return None, 'Select at least one board'
+    serials = []
+    seen = set()
+    for value in values:
+        try:
+            serial = int(value)
+        except (TypeError, ValueError):
+            return None, 'Invalid serial number'
+        if serial not in seen:
+            seen.add(serial)
+            serials.append(serial)
+    if len(serials) > 5000:
+        return None, 'Too many boards selected'
+    return serials, None
+
+
+def _write_declared_burn_in(cursor, serial_no, op, start_utc, stop_utc, note):
+    cursor.execute(
+        """
+        UPDATE daughterboard
+        SET burn_in = 1,
+            burn_in_start = %s,
+            burn_in_stop = %s,
+            burn_in_op = %s
+        WHERE serial_no = %s
+        """,
+        (start_utc, stop_utc, op, serial_no),
+    )
+    cursor.execute(
+        """
+        INSERT INTO comment (foreign_typ, foreign_id, tstamp, op, note)
+        VALUES (3, %s, NOW(), %s, %s)
+        """,
+        (serial_no, op, note),
+    )
+
+
+def _fetch_burn_in_management_rows():
+    conn = get_db_connection()
+    if not conn:
+        return None, 'Database connection failed'
+    cursor = conn.cursor(dictionary=True)
+    try:
+        cursor.execute("""
+            SELECT serial_no, burn_in, burn_in_start, burn_in_stop, burn_in_op
+            FROM daughterboard
+            ORDER BY serial_no
+        """)
+        return cursor.fetchall(), None
+    finally:
+        cursor.close()
+        conn.close()
+
+
+@app.route('/api/declare_burn_in', methods=['POST'])
+def declare_burn_in():
+    """Mark a board burned in, save start/stop, and insert a comment."""
+    if not session.get('logged_in'):
+        return jsonify({'error': 'Not logged in'}), 401
+    if is_guest_mode():
+        return jsonify({'error': 'Not allowed in guest mode'}), 403
+
+    conn = None
+    cursor = None
+    try:
+        data = request.get_json(silent=True) or {}
+        error, declaration = _burn_in_declaration_from_payload(data)
+        if error:
+            return jsonify({'error': error}), 400
+
+        serial_no = data.get('serial_no')
+        if serial_no is None or str(serial_no).strip() == '':
+            return jsonify({'error': 'Serial number required'}), 400
+        try:
+            serial_no = int(serial_no)
+        except (TypeError, ValueError):
+            return jsonify({'error': 'Invalid serial number'}), 400
+
+        conn = get_db_connection()
+        if not conn:
+            return jsonify({'error': 'Database connection failed'}), 500
+
+        cursor = conn.cursor(dictionary=True)
+        cursor.execute(
+            'SELECT serial_no FROM daughterboard WHERE serial_no = %s',
+            (serial_no,),
+        )
+        row = cursor.fetchone()
+        if not row:
+            return jsonify({'error': f'Board {serial_no} not found'}), 404
+
+        _write_declared_burn_in(
+            cursor,
+            serial_no,
+            declaration['op'],
+            declaration['start_utc'],
+            declaration['stop_utc'],
+            declaration['note'],
+        )
+        conn.commit()
+
+        return jsonify({
+            'success': True,
+            'serial_no': serial_no,
+            'burn_in': 1,
+            'burn_in_start': declaration['start_text'],
+            'burn_in_stop': declaration['stop_text'],
+            'burn_in_op': declaration['op'],
+            'comment': declaration['note'],
+        })
+
+    except Exception as e:
+        if conn is not None:
+            conn.rollback()
+        print(f"Error declaring burn-in: {e}")
+        import traceback
+        traceback.print_exc()
+        return jsonify({'error': str(e)}), 500
+    finally:
+        if cursor is not None:
+            cursor.close()
+        if conn is not None:
+            conn.close()
+
+
+@app.route('/api/burn_in_slots')
+def burn_in_slots_api():
+    if not session.get('logged_in'):
+        return jsonify({'error': 'Not logged in'}), 401
+    if is_guest_mode():
+        return jsonify({'error': 'Not allowed in guest mode'}), 403
+
+    try:
+        rows, error = _fetch_burn_in_management_rows()
+        if error:
+            return jsonify({'error': error}), 500
+        return jsonify(build_burn_in_slot_management(rows))
+    except Exception as e:
+        print(f'Error fetching burn-in slots: {e}')
+        import traceback
+        traceback.print_exc()
+        return jsonify({'error': str(e)}), 500
+
+
+@app.route('/api/burn_in_slots', methods=['POST'])
+def declare_burn_in_slot():
+    """Declare one burn-in period for every selected board."""
+    if not session.get('logged_in'):
+        return jsonify({'error': 'Not logged in'}), 401
+    if is_guest_mode():
+        return jsonify({'error': 'Not allowed in guest mode'}), 403
+
+    conn = None
+    cursor = None
+    try:
+        data = request.get_json(silent=True) or {}
+        error, declaration = _burn_in_declaration_from_payload(data)
+        if error:
+            return jsonify({'error': error}), 400
+        serials, serial_error = _parse_serial_list(data.get('serial_nos'))
+        if serial_error:
+            return jsonify({'error': serial_error}), 400
+
+        conn = get_db_connection()
+        if not conn:
+            return jsonify({'error': 'Database connection failed'}), 500
+
+        cursor = conn.cursor(dictionary=True)
+        placeholders = ', '.join(['%s'] * len(serials))
+        cursor.execute(
+            f'SELECT serial_no FROM daughterboard WHERE serial_no IN ({placeholders})',
+            serials,
+        )
+        found = {row['serial_no'] for row in cursor.fetchall()}
+        missing = [serial for serial in serials if serial not in found]
+        if missing:
+            shown = ', '.join(str(serial) for serial in missing[:10])
+            extra = '' if len(missing) <= 10 else f' and {len(missing) - 10} more'
+            return jsonify({'error': f'Board not found: {shown}{extra}'}), 404
+
+        for serial_no in serials:
+            _write_declared_burn_in(
+                cursor,
+                serial_no,
+                declaration['op'],
+                declaration['start_utc'],
+                declaration['stop_utc'],
+                declaration['note'],
+            )
+        conn.commit()
+
+        return jsonify({
+            'success': True,
+            'board_count': len(serials),
+            'serial_nos': serials,
+            'burn_in_start': declaration['start_text'],
+            'burn_in_stop': declaration['stop_text'],
+            'burn_in_op': declaration['op'],
+            'comment': declaration['note'],
+        })
+
+    except Exception as e:
+        if conn is not None:
+            conn.rollback()
+        print(f'Error declaring burn-in slot: {e}')
+        import traceback
+        traceback.print_exc()
+        return jsonify({'error': str(e)}), 500
+    finally:
+        if cursor is not None:
+            cursor.close()
+        if conn is not None:
+            conn.close()
+
+
 @app.route('/api/rerun_analysis', methods=['POST'])
 def rerun_analysis():
     if not session.get('logged_in'):
@@ -2361,6 +2685,9 @@ def burn_in_config_api():
             'burnin_activation_energies': data.get('activation_energies', []),
             'burnin_default_use_profile': data.get('default_use_profile'),
             'burnin_default_activation_energy_ev': data.get('default_activation_energy_ev'),
+            'burnin_accrued_min_start': data.get('accrued_min_start', 0),
+            'burnin_accrued_min_end': data.get('accrued_min_end', 7200),
+            'burnin_gap_threshold_min': data.get('gap_threshold_min', 30),
         })
         from burn_in import _burn_in_config_payload
         return jsonify({'success': True, 'config': _burn_in_config_payload(saved)})
@@ -2439,6 +2766,8 @@ def long_burn_in_config_api():
             'long_burnin_fpga_a_label': data.get('fpga_a_label', 'KU FPGA A'),
             'long_burnin_fpga_b_label': data.get('fpga_b_label', 'KU FPGA B'),
             'long_burnin_temperature_offset_c': data.get('temperature_offset_c', 0),
+            'long_burnin_ignore_temp_min_c': data.get('ignore_temp_min_c'),
+            'long_burnin_ignore_temp_max_c': data.get('ignore_temp_max_c'),
             'long_burnin_use_profiles': data.get('use_profiles', []),
             'long_burnin_activation_energies': data.get('activation_energies', []),
             'long_burnin_default_use_profile': data.get('default_use_profile'),

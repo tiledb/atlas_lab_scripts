@@ -267,7 +267,12 @@
 
         <div class="form-card">
             <h2>Timeline Offsets</h2>
-            <p class="help-text">Configure offsets used by Production Summary expected traces.</p>
+            <p class="help-text">
+                Offsets used by Production Summary expected traces, measured from the calendar schedule date:
+                Expected Produced = calendar date;
+                Expected Burned = calendar + pretest + burn-in;
+                Expected Tested = calendar + pretest + burn-in + post-test.
+            </p>
             <form id="offsets-form">
                 <div class="config-grid">
                     <div class="config-field">

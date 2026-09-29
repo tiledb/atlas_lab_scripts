@@ -251,6 +251,12 @@
             <p class="help-text">
                 Configure accelerated aging parameters used by the <strong>Burn In</strong> dashboard tab.
                 The temperature offset is added to InfluxDB <code>Toven</code> before aging is calculated.
+                <code>BurninAccruedMins</code> is the oven burn-in minute counter; a complete test runs from the
+                configured start value to the end value (default 0 to 7200).
+                If Influx data is missing for longer than the gap threshold, aging is filled with a linear
+                <code>BurninAccruedMins</code> ramp at the average temperature of the surrounding samples.
+                Missing values at the start of the test begin at the start minute; missing values at the end
+                finish at the end minute.
                 Edit the <code>T_use</code> profiles and activation energies to control which traces are plotted.
                 Cached plot data is stored as JSON/HTML files under the configured cache folder.
             </p>
@@ -274,6 +280,34 @@
                             id="burnin-cache-dir"
                             value="{{ config.cache_dir }}"
                             placeholder="/var/www/html/drive/production_plots/burn_in"
+                        >
+                    </div>
+                    <div class="config-field">
+                        <label for="burnin-accrued-min-start">BurninAccruedMins Start</label>
+                        <input
+                            type="number"
+                            id="burnin-accrued-min-start"
+                            step="1"
+                            value="{{ config.accrued_min_start }}"
+                        >
+                    </div>
+                    <div class="config-field">
+                        <label for="burnin-accrued-min-end">BurninAccruedMins End</label>
+                        <input
+                            type="number"
+                            id="burnin-accrued-min-end"
+                            step="1"
+                            value="{{ config.accrued_min_end }}"
+                        >
+                    </div>
+                    <div class="config-field">
+                        <label for="burnin-gap-threshold">Missing Data Gap (minutes)</label>
+                        <input
+                            type="number"
+                            id="burnin-gap-threshold"
+                            step="1"
+                            min="0"
+                            value="{{ config.gap_threshold_min }}"
                         >
                     </div>
                 </div>
@@ -476,6 +510,9 @@
             burnInConfig = config;
             document.getElementById('burnin-temperature-offset').value = config.temperature_offset_c ?? 0;
             document.getElementById('burnin-cache-dir').value = config.cache_dir || '';
+            document.getElementById('burnin-accrued-min-start').value = config.accrued_min_start ?? 0;
+            document.getElementById('burnin-accrued-min-end').value = config.accrued_min_end ?? 7200;
+            document.getElementById('burnin-gap-threshold').value = config.gap_threshold_min ?? 30;
             renderProfileRows(config.use_profiles || []);
             renderEnergyRows(config.activation_energies || []);
             updateEquation();
@@ -543,6 +580,9 @@
             const payload = {
                 temperature_offset_c: Number(document.getElementById('burnin-temperature-offset').value || 0),
                 cache_dir: document.getElementById('burnin-cache-dir').value.trim(),
+                accrued_min_start: Number(document.getElementById('burnin-accrued-min-start').value || 0),
+                accrued_min_end: Number(document.getElementById('burnin-accrued-min-end').value || 7200),
+                gap_threshold_min: Number(document.getElementById('burnin-gap-threshold').value || 30),
                 use_profiles: collectProfiles(),
                 activation_energies: collectEnergies(),
                 default_use_profile: getSelectedDefaultProfile(),

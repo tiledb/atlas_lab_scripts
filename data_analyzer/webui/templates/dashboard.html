@@ -875,9 +875,32 @@
             background: #0f766e;
         }
 
-        .qualify-btn:disabled {
+        .qualify-btn:disabled,
+        .declare-burnin-btn:disabled {
             opacity: 0.65;
             cursor: wait;
+        }
+
+        .declare-burnin-btn {
+            background: #e67e22;
+            color: white;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 500;
+            transition: background 0.3s ease;
+        }
+
+        .declare-burnin-btn:hover {
+            background: #d35400;
+        }
+
+        #declare-burnin-modal {
+            width: 440px;
+            max-height: 90vh;
+            overflow-y: auto;
         }
 
         .qualify-warning {
@@ -2229,6 +2252,47 @@
             height: 380px;
         }
 
+        .summary-chart-card.summary-chart-card-pie-list {
+            height: auto;
+        }
+
+        .summary-chart-card.summary-chart-card-pie-list .summary-chart-plot {
+            flex: 0 0 auto;
+            height: 260px;
+            min-height: 260px;
+        }
+
+        .summary-fail-board-list {
+            border-top: 1px solid #e8ebef;
+            padding: 8px 10px 10px;
+            max-height: 160px;
+            overflow: auto;
+        }
+
+        .summary-fail-board-list-title {
+            font-size: 12px;
+            font-weight: 600;
+            color: #555;
+            margin-bottom: 6px;
+        }
+
+        .summary-fail-board-list ul {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 6px 10px;
+            list-style: none;
+            margin: 0;
+            padding: 0;
+            font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+            font-size: 12px;
+            color: #333;
+        }
+
+        .summary-fail-board-empty {
+            font-size: 12px;
+            color: #888;
+        }
+
         .summary-chart-card.summary-chart-card-statistics-pie {
             grid-column: 1 / -1;
             height: auto;
@@ -2259,6 +2323,18 @@
             flex: 0 0 auto;
             width: 100%;
             min-height: 3200px;
+        }
+
+        .statistics-groups-pie-plot {
+            flex: 0 0 auto;
+            width: 100%;
+            min-height: 420px;
+        }
+
+        .statistics-groups-bar-plot {
+            flex: 0 0 auto;
+            width: 100%;
+            min-height: 720px;
         }
 
         .summary-chart-card.summary-chart-card-burn-in {
@@ -2333,6 +2409,13 @@
             width: 100%;
             height: 600px;
             position: relative;
+        }
+
+        #long-burn-in-plot-arrhenius.burn-in-plot,
+        #long-burn-in-plot-eyring.burn-in-plot,
+        #long-burn-in-plot-peck.burn-in-plot {
+            height: 680px;
+            overflow: visible;
         }
 
         .burn-in-plot-wrapper {
@@ -2426,6 +2509,53 @@
             color: #555;
             width: 100%;
             overflow-x: auto;
+        }
+
+        .burn-in-slots-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+            font-size: 12px;
+            color: #333;
+        }
+
+        .burn-in-slots-table th,
+        .burn-in-slots-table td {
+            text-align: left;
+            padding: 7px 14px 7px 0;
+            white-space: nowrap;
+            border-bottom: 1px solid #eceff3;
+            vertical-align: top;
+        }
+
+        .burn-in-slots-table th {
+            color: #666;
+            font-weight: 600;
+        }
+
+        .burn-in-slot-compare {
+            display: none;
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+            gap: 16px;
+            margin-top: 16px;
+        }
+
+        @media (max-width: 900px) {
+            .burn-in-slot-compare {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .burn-in-compare-card {
+            background: #fff;
+            border: 1px solid #e4e8ee;
+            border-radius: 8px;
+            padding: 6px 8px 2px;
+        }
+
+        .burn-in-compare-plot {
+            width: 100%;
+            height: 300px;
         }
 
         .burn-in-slot-list-item {
@@ -4046,6 +4176,12 @@
                     <p>Edit the production schedule calendar, timeline offsets, and upload updated CSV planning files.</p>
                 </a>
 
+                <a href="{{ url_for('edit_production_statistics') }}" class="card">
+                    <div class="card-icon">📊</div>
+                    <h3>Production Statistics</h3>
+                    <p>Assign benchtests to Link, Fast Readout, Slow Readout, and Electrical failure groups for the grouped plots.</p>
+                </a>
+
                 <a href="{{ url_for('edit_burn_in') }}" class="card">
                     <div class="card-icon">🔥</div>
                     <h3>Burn-In Configuration</h3>
@@ -4093,6 +4229,12 @@
                     <h3>Restore MariaDB from Backup</h3>
                     <p>Compare tiledb tables with XLS backups in mariadb_backup and restore selected columns, rows, or cells.</p>
                 </a>
+
+                <a href="{{ url_for('burn_in_slots_page') }}" class="card">
+                    <div class="card-icon">🔥</div>
+                    <h3>Burn in slot management</h3>
+                    <p>Review burn-in slots and declare a new slot for boards selected from the table.</p>
+                </a>
             </div>
         </div>
         {% endif %}
@@ -4125,6 +4267,7 @@
                     {% if not session.get('guest_mode') %}
                     <button class="rerun-btn" id="rerun-btn" onclick="rerunBenchtest()">Rerun Analysis</button>
                     <button class="qualify-btn" id="qualify-btn" onclick="qualifyBoard()">Qualify Board</button>
+                    <button class="declare-burnin-btn" id="declare-burnin-btn" onclick="declareBurnIn()">Declare burn-in</button>
                     <button class="add-comment-btn" id="add-comment-btn" onclick="openAddCommentModal()">Add
                         Comment</button>
                     {% endif %}
@@ -4192,6 +4335,45 @@
                 <div class="add-comment-actions">
                     <button class="add-comment-cancel" id="qualify-cancel">Cancel</button>
                     <button class="qualify-accept" id="qualify-accept">Accept</button>
+                </div>
+            </div>
+        </div>
+
+        <div class="modal-overlay" id="declare-burnin-overlay"></div>
+        <div class="add-comment-modal" id="declare-burnin-modal">
+            <div class="add-comment-header">
+                <div class="add-comment-title">Enter burn-in details</div>
+                <button class="add-comment-close" id="declare-burnin-close">&times;</button>
+            </div>
+            <div class="add-comment-content">
+                <div class="qualify-warning" id="declare-burnin-warning">
+                    This will mark the board as burned in and save the start and stop below.
+                    You can change either time before accepting.
+                </div>
+                <div class="add-comment-field">
+                    <label for="declare-burnin-serial">Serial Number:</label>
+                    <input type="text" id="declare-burnin-serial" class="add-comment-input" readonly>
+                </div>
+                <div class="add-comment-field">
+                    <label for="declare-burnin-op">Operator (OP):</label>
+                    <input type="text" id="declare-burnin-op" class="add-comment-input" placeholder="Enter operator name">
+                </div>
+                <div class="add-comment-field">
+                    <label for="declare-burnin-reason">Reason:</label>
+                    <textarea id="declare-burnin-reason" class="add-comment-textarea"
+                        placeholder="Enter reason for declaring burn-in"></textarea>
+                </div>
+                <div class="add-comment-field">
+                    <label for="declare-burnin-start">Burn-in Start:</label>
+                    <input type="datetime-local" id="declare-burnin-start" class="add-comment-input" step="1">
+                </div>
+                <div class="add-comment-field">
+                    <label for="declare-burnin-stop">Burn-in Stop:</label>
+                    <input type="datetime-local" id="declare-burnin-stop" class="add-comment-input" step="1">
+                </div>
+                <div class="add-comment-actions">
+                    <button class="add-comment-cancel" id="declare-burnin-cancel">Cancel</button>
+                    <button class="qualify-accept" id="declare-burnin-accept">Accept</button>
                 </div>
             </div>
         </div>
@@ -4277,6 +4459,7 @@
         applyDashboardTabOrder();
         const MAX_BRICK_WALL_BATCH = 13;
         const BURN_IN_PLOT_HEIGHT = 600;
+        let lastBurnInPlotHeight = BURN_IN_PLOT_HEIGHT;
 
         function filesystemCacheToWebUrl(cacheDir, filename) {
             if (!filename) {
@@ -4487,8 +4670,8 @@
             return fallback;
         }
 
-        function getBurnInPlotHeight() {
-            return BURN_IN_PLOT_HEIGHT;
+        function getBurnInPlotHeight(fallback = BURN_IN_PLOT_HEIGHT) {
+            return lastBurnInPlotHeight || fallback;
         }
 
         function getBurnInPlotWidth() {
@@ -4747,10 +4930,17 @@
             }
 
             const organizedModes = options.skipOrganize ? modes : organizeFailureModes(modes);
+            const totalBoards = organizedModes.reduce(
+                (sum, mode) => sum + Number(mode.value ?? mode.total ?? 0),
+                0
+            );
             legend.innerHTML = organizedModes.map((mode, index) => {
-                const meta = options.showCount
-                    ? `${mode.total ?? mode.value ?? 0}`
-                    : `${mode.percentage ?? 0}%`;
+                const count = Number(mode.value ?? mode.total ?? 0);
+                const percentage = (mode.percentage != null && mode.percentage !== '')
+                    ? Number(mode.percentage)
+                    : (totalBoards > 0 ? count / totalBoards * 100 : 0);
+                const boardsWord = count === 1 ? 'board' : 'boards';
+                const meta = `${count} ${boardsWord} (${percentage.toFixed(1)}%)`;
                 return `
                     <div class="failure-mode-legend-item" data-failure-mode-index="${index}">
                         <span class="failure-mode-legend-swatch" style="background:${mode.color};"></span>
@@ -4935,6 +5125,10 @@
                 if (elementId === 'burn-in-plot') {
                     const { width, height } = getBurnInPlotSize();
                     Plotly.relayout(elementId, { width, height });
+                    return;
+                }
+                if (String(elementId).startsWith('burn-in-compare-')) {
+                    Plotly.Plots.resize(element);
                     return;
                 }
                 Plotly.relayout(elementId, { height: getSummaryPlotHeight(elementId) });
@@ -5145,6 +5339,78 @@
             };
         }
 
+        function renderExclusiveFailBoardList(elementId, boards) {
+            const element = document.getElementById(elementId);
+            if (!element) {
+                return;
+            }
+            if (!boards || !boards.length) {
+                element.innerHTML = '<div class="summary-fail-board-empty">None</div>';
+                return;
+            }
+            element.innerHTML = `
+                <div class="summary-fail-board-list-title">Boards (${boards.length})</div>
+                <ul>
+                    ${boards.map((board) => {
+                        const serial = String(board.serial || board);
+                        return `<li>${serial}</li>`;
+                    }).join('')}
+                </ul>
+            `;
+        }
+
+        function renderExclusiveFailPie(options) {
+            const payload = options.payload || {};
+            const boards = payload.boards || [];
+            const failedCount = Number.isFinite(payload.count) ? payload.count : boards.length;
+            const otherCount = Number.isFinite(payload.other_count) ? payload.other_count : 0;
+            const burnedIn = Number.isFinite(payload.burned_in)
+                ? payload.burned_in
+                : failedCount + otherCount;
+            const subtitle = document.getElementById(options.subtitleId);
+            if (subtitle) {
+                const rate = burnedIn > 0
+                    ? (failedCount / burnedIn * 100).toFixed(1)
+                    : '0.0';
+                subtitle.textContent = (
+                    `${failedCount} of ${burnedIn} burned-in boards (${rate}%)`
+                );
+            }
+
+            const plotElement = document.getElementById(options.plotId);
+            if (!plotElement) {
+                return;
+            }
+            if (burnedIn <= 0 && failedCount <= 0 && otherCount <= 0) {
+                plotElement.innerHTML = '<div class="summary-loading">No burned-in boards.</div>';
+            } else {
+                const legend = buildSummaryBottomLegend(2);
+                renderSummaryPlot(options.plotId, [{
+                    type: 'pie',
+                    labels: [options.failedLabel, options.otherLabel],
+                    values: [failedCount, otherCount],
+                    marker: {
+                        colors: [
+                            options.failedColor,
+                            options.otherColor,
+                        ],
+                    },
+                    textinfo: 'percent',
+                    textposition: 'inside',
+                    insidetextorientation: 'radial',
+                    domain: legend.domain,
+                    hovertemplate: '%{label}: %{value} (%{percent})<extra></extra>',
+                }], {
+                    margin: legend.margin,
+                    showlegend: true,
+                    legend: legend.legend,
+                });
+            }
+            if (options.listId) {
+                renderExclusiveFailBoardList(options.listId, boards);
+            }
+        }
+
         function renderProductionSummaryCharts(data) {
             readChartLabelSettings();
             lastProductionSummaryData = data;
@@ -5168,6 +5434,17 @@
                         <div class="summary-chart-title">Total Produced vs Expected</div>
                         <div class="summary-chart-subtitle" id="total-produced-chart-subtitle">Produced: -- / --</div>
                         <div id="total-produced-pie-chart" class="summary-chart-plot"></div>
+                    </div>
+                    <div class="summary-chart-card summary-chart-card-pie summary-chart-card-pie-list">
+                        <div class="summary-chart-title">Failed Burn-in</div>
+                        <div class="summary-chart-subtitle" id="pass-before-not-after-subtitle">--</div>
+                        <div id="pass-before-not-after-pie-chart" class="summary-chart-plot"></div>
+                        <div id="pass-before-not-after-list" class="summary-fail-board-list"></div>
+                    </div>
+                    <div class="summary-chart-card summary-chart-card-pie">
+                        <div class="summary-chart-title">Passed After Burn-In</div>
+                        <div class="summary-chart-subtitle" id="pass-after-subtitle">--</div>
+                        <div id="pass-after-pie-chart" class="summary-chart-plot"></div>
                     </div>
                     <div class="summary-chart-card wide">
                         <div class="summary-chart-title">Cumulative Board Count (by Batch)</div>
@@ -5332,6 +5609,26 @@
                 });
             }
 
+            renderExclusiveFailPie({
+                payload: data.passed_before_last_after_failed || data.passed_before_not_after || {},
+                plotId: 'pass-before-not-after-pie-chart',
+                listId: 'pass-before-not-after-list',
+                subtitleId: 'pass-before-not-after-subtitle',
+                failedLabel: 'Failed Burn-in',
+                otherLabel: 'Other burned-in',
+                failedColor: colors.passed_before_last_after_failed || colors.passed_before_not_after || colors.failed,
+                otherColor: colors.other_burned_in || colors.not_yet_produced,
+            });
+            renderExclusiveFailPie({
+                payload: data.passed_after_burnin || {},
+                plotId: 'pass-after-pie-chart',
+                subtitleId: 'pass-after-subtitle',
+                failedLabel: 'Passed after',
+                otherLabel: 'Other burned-in',
+                failedColor: colors.passed_after_burnin || colors.passed,
+                otherColor: colors.other_burned_in || colors.not_yet_produced,
+            });
+
             const batchData = data.cumulative_by_batch;
             const batchTraces = [
                 {
@@ -5394,11 +5691,27 @@
                     x: planned.map(point => point.x),
                     y: planned.map(point => point.y),
                     mode: 'lines+markers',
-                    name: 'Expected Produced (Planned)',
+                    name: 'Expected Produced',
                     line: { color: colors.expected_produced, width: 2, dash: 'dash' },
                     marker: { color: colors.expected_produced, size: 7, symbol: 'diamond' },
                     text: planned.map(point =>
                         `Batch ${point.batch}<br>Expected Produced: ${point.x}<br>Boards in Batch: ${point.board_count}<br>Expected Cumulative: ${point.y}`
+                    ),
+                    hovertemplate: '%{text}<extra></extra>',
+                });
+            }
+
+            const expectedBurned = (data.schedule && data.schedule.expected_burned_by_time) || [];
+            if (expectedBurned.length > 0) {
+                timeTraces.push({
+                    x: expectedBurned.map(point => point.x),
+                    y: expectedBurned.map(point => point.y),
+                    mode: 'lines+markers',
+                    name: 'Expected Burned',
+                    line: { color: colors.expected_burnin, width: 2, dash: 'dashdot' },
+                    marker: { color: colors.expected_burnin, size: 7, symbol: 'diamond' },
+                    text: expectedBurned.map(point =>
+                        `Batch ${point.batch}<br>Expected Burned: ${point.x}<br>Boards in Batch: ${point.board_count}<br>Expected Cumulative: ${point.y}`
                     ),
                     hovertemplate: '%{text}<extra></extra>',
                 });
@@ -5590,6 +5903,7 @@
 
         let productionStatisticsLoaded = false;
         let lastFailureModePieModes = [];
+        let lastGroupedFailureModePieModes = [];
         let burnInLoaded = false;
         let burnInSlots = [];
         let burnInBoardLookup = { bySerial: {}, byBatchPosition: {} };
@@ -5831,7 +6145,6 @@
         }
 
         function buildBurnInChartLayout(legendItemCount, axisRanges = null, options = {}) {
-            const height = BURN_IN_PLOT_HEIGHT;
             const width = getBurnInPlotWidth();
             const itemsPerRow = Math.max(1, options.legendItemsPerRow || 4);
             const legendRows = Math.max(1, Math.ceil(legendItemCount / itemsPerRow));
@@ -5839,22 +6152,28 @@
             const legendHeightPx = legendRows * legendRowHeight;
             const xAxisTicksPx = 38;
             const xAxisTitlePx = 18;
+            const marginTop = 48;
             const marginBottom = (
                 xAxisTicksPx
                 + BURN_IN_XAXIS_TITLE_STANDOFF
                 + xAxisTitlePx
                 + BURN_IN_LEGEND_GAP_PX
                 + legendHeightPx
-                + 6
+                + 16
             );
-            const legendOffsetPx = BURN_IN_LEGEND_GAP_PX + legendHeightPx;
-            const legendY = -(legendOffsetPx / Math.max(height, 1));
+            const extraLegendPx = Math.max(0, legendHeightPx - legendRowHeight);
+            const height = BURN_IN_PLOT_HEIGHT + extraLegendPx;
+            lastBurnInPlotHeight = height;
+            const plotElement = document.getElementById('burn-in-plot');
+            if (plotElement) {
+                plotElement.style.height = `${height}px`;
+            }
 
             const layout = {
                 autosize: false,
                 width,
                 height,
-                margin: { t: 48, r: 80, b: marginBottom, l: 120 },
+                margin: { t: marginTop, r: 80, b: marginBottom, l: 120 },
                 hovermode: 'x unified',
                 hoverlabel: {
                     namelength: -1,
@@ -5871,8 +6190,9 @@
                     orientation: 'h',
                     x: 0.5,
                     xanchor: 'center',
-                    y: legendY,
-                    yanchor: 'top',
+                    y: 0,
+                    yanchor: 'bottom',
+                    yref: 'container',
                     tracegroupgap: 8,
                     font: { size: 11 },
                 },
@@ -5962,7 +6282,242 @@
             }
         }
 
-        function renderBurnInSlotsList() {
+        function computeAverageBurnInTemperature(series) {
+            const temps = series?.toven_c || [];
+            const power = series?.lvpower || [];
+            const countLimit = Math.min(temps.length, power.length);
+            let sum = 0;
+            let count = 0;
+            for (let index = 0; index < countLimit; index += 1) {
+                if (power[index] === 1 && temps[index] != null && Number.isFinite(temps[index])) {
+                    sum += temps[index];
+                    count += 1;
+                }
+            }
+            return count ? sum / count : null;
+        }
+
+        function buildBurnInSlotStats(slot, profile, energy) {
+            const series = withStretchedBurnInElapsed(slot.series || {});
+            const elapsed = series.elapsed_hours || [];
+            let agingHours = [];
+            let powerOnHours = 0;
+            let avgAf = null;
+            if (profile && energy && elapsed.length) {
+                agingHours = computeBurnInAging(series, profile.temperature_c, energy.value);
+                powerOnHours = computeSeriesPowerOnHours(series, 'lvpower');
+                avgAf = computeAverageAccelerationFactor(agingHours, powerOnHours);
+            }
+            const runningHours = elapsed.length
+                ? elapsed[elapsed.length - 1]
+                : (Number(slot.duration_hours) || 0);
+            return {
+                slotId: slot.slot_id,
+                start: slot.burn_in_start || '—',
+                stop: slot.burn_in_stop || '—',
+                boards: slot.boards || [],
+                runningHours,
+                burnInHours: powerOnHours,
+                avgAf,
+                avgTemp: computeAverageBurnInTemperature(series),
+                totalAging: agingHours.length ? agingHours[agingHours.length - 1] : 0,
+                agingHours,
+                series,
+            };
+        }
+
+        function collectBurnInAllSlotStats() {
+            const profile = getSelectedBurnInProfile();
+            const energy = getSelectedBurnInEnergy();
+            return (lastBurnInAllSlotsData?.slots || []).map(
+                slot => buildBurnInSlotStats(slot, profile, energy),
+            );
+        }
+
+        function hideBurnInSlotComparePlots() {
+            const container = document.getElementById('burn-in-slot-compare');
+            if (container) {
+                container.style.display = 'none';
+            }
+            [
+                'burn-in-compare-af',
+                'burn-in-compare-aging',
+                'burn-in-compare-running',
+                'burn-in-compare-burnin',
+                'burn-in-compare-temp',
+            ].forEach((plotId) => {
+                burnInChartIds = burnInChartIds.filter(id => id !== plotId);
+                const element = document.getElementById(plotId);
+                if (element) {
+                    element.innerHTML = '';
+                }
+            });
+        }
+
+        function finiteBurnInBarValues(values) {
+            return (values || [])
+                .map(Number)
+                .filter(value => Number.isFinite(value));
+        }
+
+        function meanStdBurnInBarValues(values) {
+            const nums = finiteBurnInBarValues(values);
+            if (!nums.length) {
+                return null;
+            }
+            const mean = nums.reduce((sum, value) => sum + value, 0) / nums.length;
+            if (nums.length === 1) {
+                return { mean, std: 0 };
+            }
+            const variance = nums.reduce(
+                (sum, value) => sum + ((value - mean) ** 2),
+                0,
+            ) / (nums.length - 1);
+            return { mean, std: Math.sqrt(variance) };
+        }
+
+        function formatBurnInBarNumber(value, digits) {
+            if (value == null || !Number.isFinite(value)) {
+                return '';
+            }
+            return Number(value).toFixed(digits);
+        }
+
+        function formatBurnInCompareTitle(title, values, digits, unit = '') {
+            const stats = meanStdBurnInBarValues(values);
+            if (!stats) {
+                return title;
+            }
+            const unitText = unit ? ` ${unit}` : '';
+            return (
+                `${title}  ·  ${formatBurnInBarNumber(stats.mean, digits)}`
+                + ` ± ${formatBurnInBarNumber(stats.std, digits)}${unitText}`
+            );
+        }
+
+        function renderBurnInSlotComparePlots(stats) {
+            const container = document.getElementById('burn-in-slot-compare');
+            if (!container) {
+                return;
+            }
+            if (!stats.length) {
+                hideBurnInSlotComparePlots();
+                return;
+            }
+            container.style.display = 'grid';
+            const labels = stats.map(stat => stat.slotId);
+            const colors = stats.map((_, index) => (
+                BURN_IN_SLOT_COLORS[index % BURN_IN_SLOT_COLORS.length]
+            ));
+            const periods = stats.map(stat => `${stat.start} -> ${stat.stop}`);
+            const plots = [
+                {
+                    id: 'burn-in-compare-af',
+                    title: 'Average AF',
+                    yTitle: 'AF',
+                    values: stats.map(stat => stat.avgAf),
+                    digits: 2,
+                    hover: '%{y:.2f}',
+                },
+                {
+                    id: 'burn-in-compare-aging',
+                    title: 'Accelerated Aging',
+                    yTitle: 'Days',
+                    values: stats.map(stat => (
+                        Number.isFinite(stat.totalAging) ? stat.totalAging / 24 : null
+                    )),
+                    digits: 1,
+                    unit: 'd',
+                    hover: '%{y:.1f} d',
+                },
+                {
+                    id: 'burn-in-compare-running',
+                    title: 'Running Time',
+                    yTitle: 'Hours',
+                    values: stats.map(stat => stat.runningHours),
+                    digits: 1,
+                    unit: 'h',
+                    hover: '%{y:.1f} h',
+                },
+                {
+                    id: 'burn-in-compare-burnin',
+                    title: 'Burn-In Time',
+                    yTitle: 'Hours',
+                    values: stats.map(stat => stat.burnInHours),
+                    digits: 1,
+                    unit: 'h',
+                    hover: '%{y:.1f} h',
+                },
+                {
+                    id: 'burn-in-compare-temp',
+                    title: 'Average Burn-In Temp',
+                    yTitle: '°C',
+                    values: stats.map(stat => stat.avgTemp),
+                    digits: 1,
+                    unit: '°C',
+                    hover: '%{y:.1f} °C',
+                },
+            ];
+            plots.forEach((plot) => {
+                const element = document.getElementById(plot.id);
+                if (!element) {
+                    return;
+                }
+                const yValues = plot.values.map(value => (
+                    value == null || !Number.isFinite(value) ? 0 : value
+                ));
+                const yMax = Math.max(0, ...yValues);
+                Plotly.newPlot(plot.id, [{
+                    x: labels,
+                    y: yValues,
+                    type: 'bar',
+                    marker: { color: colors },
+                    text: plot.values.map(value => (
+                        formatBurnInBarNumber(value, plot.digits)
+                    )),
+                    textposition: 'outside',
+                    textfont: { size: 11 },
+                    cliponaxis: false,
+                    constraintext: 'none',
+                    customdata: periods,
+                    hovertemplate: (
+                        `%{x}<br>${plot.title}: ${plot.hover}<br>%{customdata}<extra></extra>`
+                    ),
+                }], {
+                    autosize: true,
+                    height: 300,
+                    margin: { t: 52, r: 16, b: 80, l: 56 },
+                    title: {
+                        text: formatBurnInCompareTitle(
+                            plot.title,
+                            plot.values,
+                            plot.digits,
+                            plot.unit || '',
+                        ),
+                        font: { size: 13 },
+                    },
+                    xaxis: {
+                        tickangle: labels.length > 6 ? -40 : 0,
+                        automargin: true,
+                    },
+                    yaxis: {
+                        title: plot.yTitle,
+                        rangemode: 'tozero',
+                        zeroline: true,
+                        range: [0, yMax > 0 ? yMax * 1.22 : 1],
+                    },
+                    showlegend: false,
+                }, {
+                    responsive: true,
+                    displayModeBar: false,
+                });
+                if (!burnInChartIds.includes(plot.id)) {
+                    burnInChartIds.push(plot.id);
+                }
+            });
+        }
+
+        function renderBurnInSlotsList(slotStats = null) {
             const listElement = document.getElementById('burn-in-slots-list');
             if (!listElement) {
                 return;
@@ -5971,63 +6526,262 @@
             if (!burnInAllSlotsMode || !lastBurnInAllSlotsData) {
                 listElement.innerHTML = '';
                 listElement.style.display = 'none';
+                hideBurnInSlotComparePlots();
                 return;
             }
 
-            const profile = getSelectedBurnInProfile();
-            const energy = getSelectedBurnInEnergy();
-            const slots = lastBurnInAllSlotsData.slots || [];
+            const stats = slotStats || collectBurnInAllSlotStats();
             listElement.style.display = 'block';
-            listElement.innerHTML = slots.map(slot => {
-                const boardLabels = (slot.boards || [])
-                    .map(board => String(board.serial))
-                    .join(', ');
-                let agingText = '—';
-                let afText = '—';
-                let timeText = formatBurnInHoursDaysTick(slot.duration_hours || 0);
-                if (profile && energy && slot.series?.elapsed_hours?.length) {
-                    const agingHours = computeBurnInAging(
-                        slot.series,
-                        profile.temperature_c,
-                        energy.value,
+            listElement.innerHTML = `
+                <table class="burn-in-slots-table">
+                    <thead>
+                        <tr>
+                            <th>Slot</th>
+                            <th>Period</th>
+                            <th>Time</th>
+                            <th>Aging</th>
+                            <th>AF</th>
+                            <th>Boards</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        ${stats.map((stat) => {
+                            const boardLabels = (stat.boards || [])
+                                .map(board => String(board.serial))
+                                .join(', ');
+                            return `
+                                <tr>
+                                    <td>${stat.slotId}</td>
+                                    <td>${stat.start} -> ${stat.stop}</td>
+                                    <td>${formatBurnInHoursDaysTick(stat.runningHours || 0)}</td>
+                                    <td>${formatBurnInAgedLegend(stat.totalAging || 0)}</td>
+                                    <td>${formatAverageAfValue(stat.avgAf)}</td>
+                                    <td>${boardLabels || '—'}</td>
+                                </tr>
+                            `;
+                        }).join('')}
+                    </tbody>
+                </table>
+            `;
+            renderBurnInSlotComparePlots(stats);
+        }
+
+        function getBurnInGapThresholdHours(series = null) {
+            if (series && Number.isFinite(Number(series.gap_threshold_hours))) {
+                return Number(series.gap_threshold_hours);
+            }
+            const minutes = Number(getBurnInActiveConfig()?.gap_threshold_min);
+            if (Number.isFinite(minutes) && minutes >= 0) {
+                return minutes / 60;
+            }
+            return 0.5;
+        }
+
+        function stretchBurnInElapsedHours(series) {
+            const elapsed = series?.elapsed_hours || [];
+            const accrued = series?.accrued_mins || [];
+            const gapFill = series?.gap_fill || [];
+            if (elapsed.length < 2) {
+                return elapsed.slice();
+            }
+            const adjusted = [Number(elapsed[0])];
+            let extra = 0;
+            for (let index = 1; index < elapsed.length; index += 1) {
+                const wallDt = Number(elapsed[index]) - Number(elapsed[index - 1]);
+                let dt = wallDt;
+                if (
+                    gapFill[index] === 1
+                    && accrued[index] != null
+                    && accrued[index - 1] != null
+                ) {
+                    const accruedDt = Math.max(
+                        0,
+                        (Number(accrued[index]) - Number(accrued[index - 1])) / 60,
                     );
-                    const powerOnHours = computeSeriesPowerOnHours(slot.series, 'lvpower');
-                    const avgAf = computeAverageAccelerationFactor(agingHours, powerOnHours);
-                    const totalAging = agingHours.length ? agingHours[agingHours.length - 1] : 0;
-                    const elapsed = slot.series.elapsed_hours[slot.series.elapsed_hours.length - 1] || 0;
-                    timeText = formatBurnInHoursDaysTick(elapsed);
-                    agingText = formatBurnInAgedLegend(totalAging);
-                    afText = formatAverageAfValue(avgAf);
+                    dt = Math.max(wallDt, accruedDt);
                 }
-                return `
-                    <div class="burn-in-slot-list-item">
-                        ${slot.slot_id}
-                        &nbsp;·&nbsp; Time: ${timeText}
-                        &nbsp;·&nbsp; ${agingText}
-                        &nbsp;·&nbsp; AF: ${afText}
-                        &nbsp;·&nbsp; Boards: ${boardLabels || '—'}
-                    </div>
-                `;
-            }).join('');
+                extra += dt - wallDt;
+                adjusted.push(Number((Number(elapsed[index]) + extra).toFixed(4)));
+            }
+            return adjusted;
+        }
+
+        function withStretchedBurnInElapsed(series) {
+            if (!series) {
+                return series;
+            }
+            return Object.assign({}, series, {
+                elapsed_hours: stretchBurnInElapsedHours(series),
+            });
+        }
+
+        function iterBurnInGapFillSegments(gapFill, length) {
+            const segments = [];
+            if (length <= 0) {
+                return segments;
+            }
+            if (length === 1) {
+                segments.push({ start: 0, end: 0, fill: false });
+                return segments;
+            }
+            let segmentStart = 0;
+            let segmentFill = gapFill[1] === 1;
+            for (let index = 2; index < length; index += 1) {
+                const isFill = gapFill[index] === 1;
+                if (isFill !== segmentFill) {
+                    segments.push({
+                        start: segmentStart,
+                        end: index - 1,
+                        fill: segmentFill,
+                    });
+                    segmentStart = index - 1;
+                    segmentFill = isFill;
+                }
+            }
+            segments.push({
+                start: segmentStart,
+                end: length - 1,
+                fill: segmentFill,
+            });
+            return segments;
+        }
+
+        function buildBurnInSplitTraces(series, yValues, options = {}) {
+            const xValues = series.elapsed_hours || [];
+            const values = yValues || [];
+            const gapFill = series.gap_fill || [];
+            const segments = iterBurnInGapFillSegments(gapFill, xValues.length);
+            const traces = [];
+            let legendShown = false;
+            segments.forEach((segment) => {
+                const trace = {
+                    x: xValues.slice(segment.start, segment.end + 1),
+                    y: values.slice(segment.start, segment.end + 1),
+                    name: options.name,
+                    type: 'scatter',
+                    mode: 'lines',
+                    line: {
+                        color: options.color,
+                        width: options.width || 2.2,
+                        dash: segment.fill
+                            ? (options.fillDash || 'dash')
+                            : (options.solidDash || 'solid'),
+                    },
+                    yaxis: options.yaxis,
+                    legendgroup: options.legendgroup || options.name,
+                    showlegend: false,
+                };
+                if (options.shape) {
+                    trace.line.shape = options.shape;
+                }
+                if (options.xaxis) {
+                    trace.xaxis = options.xaxis;
+                }
+                if (options.hovertemplate) {
+                    trace.hovertemplate = options.hovertemplate;
+                }
+                if (options.hoverinfo) {
+                    trace.hoverinfo = options.hoverinfo;
+                }
+                if (options.customdata) {
+                    trace.customdata = options.customdata.slice(
+                        segment.start,
+                        segment.end + 1,
+                    );
+                }
+                traces.push(trace);
+                if (options.showlegend !== false && !legendShown && !segment.fill) {
+                    trace.showlegend = true;
+                    legendShown = true;
+                }
+            });
+            if (options.showlegend !== false && !legendShown && traces.length) {
+                traces[0].showlegend = true;
+            }
+            return traces;
+        }
+
+        function burnInIntervalIsAccruedFill(series, index) {
+            if (index <= 0) {
+                return false;
+            }
+            const gapFill = series.gap_fill || [];
+            if (gapFill[index] === 1) {
+                return true;
+            }
+            const elapsed = series.elapsed_hours || [];
+            const accrued = series.accrued_mins || [];
+            if (index >= elapsed.length || index >= accrued.length) {
+                return false;
+            }
+            const dtHours = elapsed[index] - elapsed[index - 1];
+            if (!(dtHours > getBurnInGapThresholdHours(series))) {
+                return false;
+            }
+            return accrued[index] != null && accrued[index - 1] != null;
+        }
+
+        function burnInIntervalDurationHours(series, index) {
+            const elapsed = series.elapsed_hours || [];
+            if (index <= 0 || index >= elapsed.length) {
+                return 0;
+            }
+            const elapsedDt = elapsed[index] - elapsed[index - 1];
+            if (!burnInIntervalIsAccruedFill(series, index)) {
+                return Math.max(0, elapsedDt);
+            }
+            const accrued = series.accrued_mins || [];
+            const previous = accrued[index - 1];
+            const current = accrued[index];
+            if (previous == null || current == null) {
+                return Math.max(0, elapsedDt);
+            }
+            return Math.max(0, (current - previous) / 60);
+        }
+
+        function burnInIntervalTemperature(series, index) {
+            const temps = series.toven_c || [];
+            const current = temps[index];
+            if (!burnInIntervalIsAccruedFill(series, index)) {
+                return current;
+            }
+            const previous = temps[index - 1];
+            if (previous != null && current != null) {
+                return (previous + current) / 2;
+            }
+            return current != null ? current : previous;
         }
 
         function computeBurnInAging(series, useTemperatureC, activationEnergyEv) {
             const aging = [];
             let cumulative = 0;
             for (let index = 0; index < series.elapsed_hours.length; index += 1) {
-                if (
-                    index > 0
-                    && series.lvpower[index - 1] === 1
-                    && series.toven_c[index] != null
-                ) {
-                    const dtHours = series.elapsed_hours[index] - series.elapsed_hours[index - 1];
-                    const tTestK = series.toven_c[index] + 273.15;
-                    const tUseK = useTemperatureC + 273.15;
-                    const af = Math.exp(
-                        (activationEnergyEv / BURN_IN_BOLTZMANN_EV_K)
-                        * ((1 / tUseK) - (1 / tTestK))
-                    );
-                    cumulative += af * dtHours;
+                if (index > 0) {
+                    if (burnInIntervalIsAccruedFill(series, index)) {
+                        const temperature = burnInIntervalTemperature(series, index);
+                        const dtHours = burnInIntervalDurationHours(series, index);
+                        if (temperature != null && dtHours > 0) {
+                            const tTestK = temperature + 273.15;
+                            const tUseK = useTemperatureC + 273.15;
+                            const af = Math.exp(
+                                (activationEnergyEv / BURN_IN_BOLTZMANN_EV_K)
+                                * ((1 / tUseK) - (1 / tTestK))
+                            );
+                            cumulative += af * dtHours;
+                        }
+                    } else if (
+                        series.lvpower[index - 1] === 1
+                        && series.toven_c[index] != null
+                    ) {
+                        const dtHours = burnInIntervalDurationHours(series, index);
+                        const tTestK = series.toven_c[index] + 273.15;
+                        const tUseK = useTemperatureC + 273.15;
+                        const af = Math.exp(
+                            (activationEnergyEv / BURN_IN_BOLTZMANN_EV_K)
+                            * ((1 / tUseK) - (1 / tTestK))
+                        );
+                        cumulative += af * dtHours;
+                    }
                 }
                 aging.push(Number(cumulative.toFixed(4)));
             }
@@ -6039,7 +6793,9 @@
             const powerValues = series[powerField] || [];
             let total = 0;
             for (let index = 1; index < elapsedHours.length; index += 1) {
-                if (powerValues[index - 1] === 1) {
+                if (burnInIntervalIsAccruedFill(series, index)) {
+                    total += burnInIntervalDurationHours(series, index);
+                } else if (powerValues[index - 1] === 1) {
                     total += elapsedHours[index] - elapsedHours[index - 1];
                 }
             }
@@ -6180,7 +6936,7 @@
                 return;
             }
 
-            const series = lastBurnInPlotData.series;
+            const series = withStretchedBurnInElapsed(lastBurnInPlotData.series);
             const agingHours = computeBurnInAging(series, profile.temperature_c, energy.value);
             const powerOnHours = computeSeriesPowerOnHours(series, 'lvpower');
             const avgAf = computeAverageAccelerationFactor(agingHours, powerOnHours);
@@ -6188,6 +6944,12 @@
             const offset = lastBurnInPlotData.config.temperature_offset_c ?? 0;
             const agingLabel = `${profile.name} ${profile.temperature_c}°C, Ea=${energy.value} eV`;
             const agedLegend = formatBurnInAgedLegend(totalAging || 0);
+            const hoverCustomdata = buildBurnInHoverCustomdata(
+                series.elapsed_hours,
+                agingHours,
+                avgAf,
+            );
+            const lvStates = (series.lvpower || []).map(value => (value === 1 ? 'ON' : 'OFF'));
 
             if (meta) {
                 const boardSerials = (lastBurnInPlotData.boards || [])
@@ -6211,36 +6973,36 @@
             }
 
             Plotly.newPlot('burn-in-plot', [
-                {
-                    x: series.elapsed_hours,
-                    y: agingHours,
+                ...buildBurnInSplitTraces(series, agingHours, {
                     name: `Accelerated · ${agedLegend}${formatLegendAverageAf(avgAf)} (${agingLabel})`,
-                    type: 'scatter',
-                    mode: 'lines',
-                    line: { color: '#AB63FA', width: 2.2 },
+                    color: '#AB63FA',
                     yaxis: 'y',
-                    customdata: buildBurnInHoverCustomdata(series.elapsed_hours, agingHours, avgAf),
+                    customdata: hoverCustomdata,
                     hovertemplate: (
                         'Time: %{customdata[0]}  ·  Aging: %{customdata[1]}  ·  AF: %{customdata[2]}'
                         + '<extra></extra>'
                     ),
-                },
-                {
-                    x: series.elapsed_hours,
-                    y: series.toven_c,
+                }),
+                ...buildBurnInSplitTraces(series, series.toven_c, {
                     name: `Oven Temperature (Toven + ${offset}°C)`,
-                    type: 'scatter',
-                    mode: 'lines',
-                    line: { color: '#EF553B', width: 2.2 },
+                    color: '#EF553B',
                     yaxis: 'y2',
                     customdata: (series.elapsed_hours || []).map(timeHours => [
                         formatBurnInHoursDaysTick(timeHours || 0),
                     ]),
                     hovertemplate: 'Time: %{customdata[0]}  ·  Toven: %{y:.2f} °C<extra></extra>',
-                },
-                buildBurnInLvPowerTrace(series, {
+                }),
+                ...buildBurnInSplitTraces(series, series.lvpower, {
                     name: 'LVPower',
                     color: '#19D3F3',
+                    yaxis: 'y3',
+                    xaxis: 'x2',
+                    shape: 'hv',
+                    customdata: (series.elapsed_hours || []).map((timeHours, index) => ([
+                        formatBurnInHoursDaysTick(timeHours || 0),
+                        lvStates[index] || 'OFF',
+                    ])),
+                    hovertemplate: 'Time: %{customdata[0]}  ·  LVPower: %{customdata[1]}<extra></extra>',
                 }),
             ], buildBurnInChartLayout(3, computeBurnInAxisRangesFromData([series], [agingHours])), {
                 responsive: true,
@@ -6277,65 +7039,53 @@
 
             const offset = lastBurnInAllSlotsData.config.temperature_offset_c ?? 0;
             const slots = lastBurnInAllSlotsData.slots || [];
+            const slotStats = collectBurnInAllSlotStats();
             const traces = [];
             const agingSeriesList = [];
 
-            slots.forEach((slot, index) => {
+            slotStats.forEach((stat, index) => {
                 const color = BURN_IN_SLOT_COLORS[index % BURN_IN_SLOT_COLORS.length];
-                const agingHours = computeBurnInAging(
-                    slot.series,
-                    profile.temperature_c,
-                    energy.value,
-                );
-                const powerOnHours = computeSeriesPowerOnHours(slot.series, 'lvpower');
-                const avgAf = computeAverageAccelerationFactor(agingHours, powerOnHours);
-                const elapsedHours = slot.series.elapsed_hours || [];
-                const totalElapsed = elapsedHours.length ? elapsedHours[elapsedHours.length - 1] : 0;
-                const totalAging = agingHours.length ? agingHours[agingHours.length - 1] : 0;
-                const legendTime = formatBurnInHoursDaysTick(totalElapsed || 0);
-                const legendAging = formatBurnInAgedLegend(totalAging || 0);
-                const legendAf = formatAverageAfValue(avgAf);
+                const agingHours = stat.agingHours || [];
+                const legendTime = formatBurnInHoursDaysTick(stat.runningHours || 0);
+                const legendAging = formatBurnInAgedLegend(stat.totalAging || 0);
+                const legendAf = formatAverageAfValue(stat.avgAf);
                 agingSeriesList.push(agingHours);
-                traces.push({
-                    x: slot.series.elapsed_hours,
-                    y: agingHours,
+                traces.push(...buildBurnInSplitTraces(stat.series, agingHours, {
                     name: (
-                        `${slot.slot_id}`
+                        `${stat.slotId}`
                         + ` · Time: ${legendTime}`
                         + ` · ${legendAging}`
                         + ` · AF: ${legendAf}`
                     ),
-                    type: 'scatter',
-                    mode: 'lines',
-                    line: { color, width: 2.2 },
+                    color,
                     yaxis: 'y',
-                    legendgroup: slot.slot_id,
+                    legendgroup: stat.slotId,
                     customdata: buildBurnInHoverCustomdata(
-                        slot.series.elapsed_hours,
+                        stat.series.elapsed_hours,
                         agingHours,
-                        avgAf,
+                        stat.avgAf,
                     ),
                     hovertemplate: (
                         'Time: %{customdata[0]}  ·  Aging: %{customdata[1]}  ·  AF: %{customdata[2]}'
                         + '<extra></extra>'
                     ),
-                });
-                traces.push({
-                    x: slot.series.elapsed_hours,
-                    y: slot.series.toven_c,
-                    name: `${slot.slot_id} Temp`,
-                    type: 'scatter',
-                    mode: 'lines',
-                    line: { color, width: 2.2, dash: 'dot' },
-                    yaxis: 'y2',
-                    legendgroup: slot.slot_id,
-                    hoverinfo: 'skip',
-                    showlegend: false,
-                });
-                traces.push(buildBurnInLvPowerTrace(slot.series, {
-                    name: `${slot.slot_id} LVPower`,
+                }));
+                traces.push(...buildBurnInSplitTraces(stat.series, stat.series.toven_c, {
+                    name: `${stat.slotId} Temp`,
                     color,
-                    legendgroup: slot.slot_id,
+                    yaxis: 'y2',
+                    legendgroup: stat.slotId,
+                    showlegend: false,
+                    solidDash: 'dot',
+                    hoverinfo: 'skip',
+                }));
+                traces.push(...buildBurnInSplitTraces(stat.series, stat.series.lvpower, {
+                    name: `${stat.slotId} LVPower`,
+                    color,
+                    yaxis: 'y3',
+                    xaxis: 'x2',
+                    shape: 'hv',
+                    legendgroup: stat.slotId,
                     showlegend: false,
                     hoverinfo: 'skip',
                 }));
@@ -6348,7 +7098,12 @@
                     <span><strong>Mode:</strong> All slots (${slots.length}${skippedNote})</span>
                     <span><strong>T_use / Ea:</strong> ${profile.name} ${profile.temperature_c}°C, ${energy.value} eV</span>
                     <span><strong>Offset:</strong> ${offset} °C</span>
-                    <span><strong>Traces:</strong> solid = accelerated aging, dotted = oven temperature (same color per slot)</span>
+                    <span><strong>Gap fill:</strong> missing data longer than ${
+                        Number(lastBurnInAllSlotsData.config?.gap_threshold_min ?? 30)
+                    } min uses BurninAccruedMins at average oven temp (${
+                        lastBurnInAllSlotsData.config?.accrued_min_start ?? 0
+                    } → ${lastBurnInAllSlotsData.config?.accrued_min_end ?? 7200} min)</span>
+                    <span><strong>Traces:</strong> solid = accelerated aging, dotted = oven temperature, dashed = gap fill (same color per slot)</span>
                 `;
             }
 
@@ -6358,9 +7113,9 @@
             }
 
             Plotly.newPlot('burn-in-plot', traces, buildBurnInChartLayout(
-                slots.length,
+                slotStats.length,
                 computeBurnInAxisRangesFromData(
-                    slots.map(slot => slot.series),
+                    slotStats.map(stat => stat.series),
                     agingSeriesList,
                 ),
                 {
@@ -6371,7 +7126,7 @@
                 responsive: true,
                 displayModeBar: true,
             });
-            renderBurnInSlotsList();
+            renderBurnInSlotsList(slotStats);
             updateBurnInCacheBadge(lastBurnInAllSlotsData);
             setBurnInRecomputeEnabled(true);
             const plotWrapper = document.querySelector('#burn-in .burn-in-plot-wrapper')
@@ -6406,6 +7161,21 @@
                             <div id="failures-by-batch-legend" class="failure-mode-html-legend"></div>
                         </div>
                     </div>
+                    <div class="summary-chart-card summary-chart-card-statistics-pie">
+                        <div class="summary-chart-title">Failure Groups (Failed Boards)</div>
+                        <div class="summary-chart-subtitle" id="failure-groups-chart-subtitle">Failed Boards: --</div>
+                        <div class="statistics-pie-layout">
+                            <div id="failure-groups-pie-chart" class="summary-chart-plot statistics-groups-pie-plot"></div>
+                            <div id="failure-groups-pie-legend" class="failure-mode-html-legend"></div>
+                        </div>
+                    </div>
+                    <div class="summary-chart-card summary-chart-card-statistics-bar">
+                        <div class="summary-chart-title">Failure Groups by Batch</div>
+                        <div class="statistics-bar-layout">
+                            <div id="failure-groups-by-batch-chart" class="summary-chart-plot statistics-groups-bar-plot"></div>
+                            <div id="failure-groups-by-batch-legend" class="failure-mode-html-legend"></div>
+                        </div>
+                    </div>
                 </div>
             `;
 
@@ -6415,7 +7185,15 @@
             lastFailureModePieModes = pieModes;
             const failureSubtitle = document.getElementById('failure-modes-chart-subtitle');
             if (failureSubtitle) {
-                failureSubtitle.textContent = `Failed Boards: ${data.total_failed_boards || 0}`;
+                failureSubtitle.textContent = `Failed After Burn-In: ${data.total_failed_boards || 0}`;
+            }
+            const groupedPieModes = organizeFailureModes(
+                getOccurringPieModes(data.failure_groups_pie || { modes: [] })
+            );
+            lastGroupedFailureModePieModes = groupedPieModes;
+            const groupedSubtitle = document.getElementById('failure-groups-chart-subtitle');
+            if (groupedSubtitle) {
+                groupedSubtitle.textContent = `Failed After Burn-In: ${data.total_failed_boards || 0}`;
             }
 
             const renderCharts = () => {
@@ -6486,7 +7264,6 @@
                         'failures-by-batch-legend',
                         {
                             skipOrganize: true,
-                            showCount: true,
                         onClick: (mode) => {
                             const pieMode = lastFailureModePieModes.find(
                                 item => item.name === mode.name
@@ -6504,7 +7281,102 @@
                             dtick: 1,
                             standoff: 18,
                         },
-                        yaxis: { title: 'Failure Occurrences', dtick: 1 },
+                        yaxis: { title: 'Failed Boards', dtick: 1 },
+                        showlegend: false,
+                    }, statisticsChartIds);
+                }
+
+                const groupedPieChart = document.getElementById('failure-groups-pie-chart');
+                const groupedPieLegend = document.getElementById('failure-groups-pie-legend');
+                if (!groupedPieModes.length) {
+                    if (groupedPieChart) {
+                        groupedPieChart.innerHTML =
+                            '<div class="summary-loading">No grouped failure data found.</div>';
+                    }
+                    if (groupedPieLegend) {
+                        groupedPieLegend.innerHTML = '';
+                    }
+                } else {
+                    renderFailureModeHtmlLegend(groupedPieModes, 'failure-groups-pie-legend', { skipOrganize: true });
+                    renderSummaryPlot('failure-groups-pie-chart', [{
+                        type: 'pie',
+                        labels: groupedPieModes.map(mode => shortenFailureModeLabel(mode.name)),
+                        values: groupedPieModes.map(mode => mode.value),
+                        marker: { colors: groupedPieModes.map(mode => mode.color) },
+                        text: groupedPieModes.map(mode => `${mode.percentage}%`),
+                        textinfo: 'text',
+                        textposition: 'inside',
+                        insidetextorientation: 'radial',
+                        customdata: groupedPieModes.map(mode => buildFailureModeHoverText(mode)),
+                        hovertemplate: (
+                            '<b>%{label}</b><br>' +
+                            'Count: %{value} (%{percent})<br>' +
+                            '%{customdata}<br>' +
+                            '<i>Click slice for full list</i>' +
+                            '<extra></extra>'
+                        ),
+                    }], {
+                        margin: { t: 16, b: 16, l: 16, r: 16 },
+                        showlegend: false,
+                        hoverlabel: {
+                            align: 'left',
+                            bgcolor: '#ffffff',
+                            bordercolor: '#cccccc',
+                            font: { size: 11, color: '#222222' },
+                        },
+                    }, statisticsChartIds);
+
+                    if (groupedPieChart && groupedPieChart.removeAllListeners) {
+                        groupedPieChart.removeAllListeners('plotly_click');
+                    }
+                    if (groupedPieChart) {
+                        groupedPieChart.on('plotly_click', (eventData) => {
+                            const pointIndex = eventData.points[0].pointNumber;
+                            openFailureModeModal(lastGroupedFailureModePieModes[pointIndex]);
+                        });
+                    }
+                }
+
+                const groupedBatchData = filterOccurringBatchFailures(
+                    data.failure_groups_by_batch || { batches: [], modes: [] }
+                );
+                if (!groupedBatchData.batches.length || !groupedBatchData.modes.length) {
+                    document.getElementById('failure-groups-by-batch-chart').innerHTML =
+                        '<div class="summary-loading">No grouped failure data by batch available.</div>';
+                } else {
+                    const groupedBarTraces = groupedBatchData.modes.map(mode => ({
+                        x: groupedBatchData.batches,
+                        y: mode.values,
+                        name: mode.name,
+                        type: 'bar',
+                        marker: { color: mode.color },
+                        hovertemplate: 'Batch %{x}<br>%{fullData.name}: %{y}<extra></extra>',
+                    }));
+                    const groupedBarLayout = buildStatisticsBarPlotLayout();
+                    renderFailureModeHtmlLegend(
+                        organizeFailureModes(groupedBatchData.modes),
+                        'failure-groups-by-batch-legend',
+                        {
+                            skipOrganize: true,
+                            onClick: (mode) => {
+                                const pieMode = lastGroupedFailureModePieModes.find(
+                                    item => item.name === mode.name
+                                );
+                                if (pieMode) {
+                                    openFailureModeModal(pieMode);
+                                }
+                            },
+                        }
+                    );
+                    renderSummaryPlot('failure-groups-by-batch-chart', groupedBarTraces, {
+                        barmode: 'group',
+                        margin: groupedBarLayout.margin,
+                        xaxis: {
+                            title: 'Decoded Batch',
+                            dtick: 1,
+                            standoff: 18,
+                        },
+                        yaxis: { title: 'Failed Boards', dtick: 1 },
                         showlegend: false,
                     }, statisticsChartIds);
                 }
@@ -6578,6 +7450,23 @@
                                 <div id="burn-in-plot" class="summary-chart-plot burn-in-plot"></div>
                             </div>
                             <div id="burn-in-slots-list" class="burn-in-slots-list"></div>
+                            <div id="burn-in-slot-compare" class="burn-in-slot-compare">
+                                <div class="burn-in-compare-card">
+                                    <div id="burn-in-compare-af" class="burn-in-compare-plot"></div>
+                                </div>
+                                <div class="burn-in-compare-card">
+                                    <div id="burn-in-compare-aging" class="burn-in-compare-plot"></div>
+                                </div>
+                                <div class="burn-in-compare-card">
+                                    <div id="burn-in-compare-running" class="burn-in-compare-plot"></div>
+                                </div>
+                                <div class="burn-in-compare-card">
+                                    <div id="burn-in-compare-burnin" class="burn-in-compare-plot"></div>
+                                </div>
+                                <div class="burn-in-compare-card">
+                                    <div id="burn-in-compare-temp" class="burn-in-compare-plot"></div>
+                                </div>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -6607,6 +7496,7 @@
             setupBurnInBoardSearch();
 
             selectedBurnInSlot = burnInSlots[0].slot_id;
+            attachSummaryResizeListener();
             loadBurnInPlot(selectedBurnInSlot);
         }
 
@@ -6649,7 +7539,12 @@
             if (meta) {
                 meta.innerHTML = '';
             }
-            renderBurnInSlotsList();
+            const listElement = document.getElementById('burn-in-slots-list');
+            if (listElement) {
+                listElement.innerHTML = '';
+                listElement.style.display = 'none';
+            }
+            hideBurnInSlotComparePlots();
 
             try {
                 const url = `/api/burn_in/plot_all${recompute ? '?recompute=1' : ''}`;
@@ -6660,6 +7555,7 @@
                     burnInAllSlotsMode = false;
                     updateBurnInAllSlotsToggle();
                     setBurnInSelectionControlsEnabled(true);
+                    hideBurnInSlotComparePlots();
                     plotElement.innerHTML = `<div class="summary-error">${data.error || 'Failed to load all burn-in slots.'}</div>`;
                     return;
                 }
@@ -6673,6 +7569,7 @@
                 burnInAllSlotsMode = false;
                 updateBurnInAllSlotsToggle();
                 setBurnInSelectionControlsEnabled(true);
+                hideBurnInSlotComparePlots();
                 plotElement.innerHTML = '<div class="summary-error">Error loading all burn-in slots.</div>';
             } finally {
                 if (toggleButton) {
@@ -6792,7 +7689,7 @@
 
         let longBurnInLoaded = false;
         let lastLongBurnInPlotData = null;
-        const LONG_BURN_IN_PLOT_HEIGHT = 600;
+        const LONG_BURN_IN_PLOT_HEIGHT = 680;
         const LONG_BURN_IN_COLORS = {
             env: '#636EFA',
             fpgaA: '#EF553B',
@@ -6847,14 +7744,28 @@
             return 0;
         }
 
+        function longBurnInTempValidFlags(series, temperatureKey) {
+            const validKey = {
+                env_temp_c: 'env_temp_valid',
+                fpga_a_temp_c: 'fpga_a_temp_valid',
+                fpga_b_temp_c: 'fpga_b_temp_valid',
+            }[temperatureKey];
+            return validKey ? (series[validKey] || []) : [];
+        }
+
         function computeLongBurnInAgingWithModel(series, temperatureKey, model, params) {
             const aging = [];
             let cumulative = 0;
             const temperatures = series[temperatureKey] || [];
+            const validFlags = longBurnInTempValidFlags(series, temperatureKey);
             for (let index = 0; index < series.elapsed_hours.length; index += 1) {
+                const previousValid = validFlags.length
+                    ? validFlags[Math.max(index - 1, 0)] === 1
+                    : true;
                 if (
                     index > 0
                     && series.power_on[index - 1] === 1
+                    && previousValid
                     && temperatures[index] != null
                 ) {
                     const dtHours = series.elapsed_hours[index] - series.elapsed_hours[index - 1];
@@ -6879,16 +7790,36 @@
             });
         }
 
-        const LONG_BURN_IN_MAIN_Y_DOMAIN = [0.38, 1];
-        const LONG_BURN_IN_POWER_STATE_Y_DOMAIN = [0.2, 0.34];
-        const LONG_BURN_IN_POWER_GOOD_Y_DOMAIN = [0, 0.16];
+        const LONG_BURN_IN_MAIN_Y_DOMAIN = [0.32, 1];
+        const LONG_BURN_IN_POWER_STATE_Y_DOMAIN = [0.21, 0.29];
+        const LONG_BURN_IN_POWER_GOOD_Y_DOMAIN = [0.11, 0.19];
+        const LONG_BURN_IN_TEMP_READ_Y_DOMAIN = [0, 0.08];
+
+        function buildLongBurnInBinaryYAxis(domain, anchor, label) {
+            return {
+                domain,
+                anchor,
+                title: { text: '' },
+                tickmode: 'array',
+                tickvals: [0, 1],
+                ticktext: [`${label} - OFF`, `${label} - ON`],
+                tickfont: { size: 11 },
+                ticks: '',
+                showgrid: false,
+                zeroline: false,
+                range: [-0.15, 1.15],
+                fixedrange: true,
+                automargin: true,
+            };
+        }
 
         function buildLongBurnInPowerTrace(series, fieldName, options = {}) {
+            const label = options.name || fieldName;
             const states = (series[fieldName] || []).map(value => (value === 1 ? 'ON' : 'OFF'));
             return {
                 x: series.elapsed_hours,
-                y: series[fieldName],
-                name: options.name || fieldName,
+                y: series[fieldName] || [],
+                name: label,
                 type: 'scatter',
                 mode: 'lines',
                 line: { color: options.color || '#19D3F3', width: 2, shape: 'hv' },
@@ -6897,9 +7828,9 @@
                 showlegend: options.showlegend !== false,
                 customdata: (series.elapsed_hours || []).map((timeHours, index) => ([
                     formatBurnInHoursDaysTick(timeHours || 0),
-                    states[index] || 'OFF',
+                    `${label} ${states[index] || 'OFF'}`,
                 ])),
-                hovertemplate: `Time: %{customdata[0]}  ·  ${options.name || fieldName}: %{customdata[1]}<extra></extra>`,
+                hovertemplate: 'Time: %{customdata[0]}  ·  %{customdata[1]}<extra></extra>',
             };
         }
 
@@ -6915,24 +7846,27 @@
             plotElementId = 'long-burn-in-plot-arrhenius',
             options = {},
         ) {
+            const plotElement = document.getElementById(plotElementId);
+            if (plotElement) {
+                plotElement.style.height = `${LONG_BURN_IN_PLOT_HEIGHT}px`;
+            }
             const height = LONG_BURN_IN_PLOT_HEIGHT;
             const width = getLongBurnInPlotWidth(plotElementId);
-            const legendRows = Math.max(1, Math.ceil(legendItemCount / 4));
-            const legendHeightPx = legendRows * 24;
+            const legendRows = Math.max(1, Math.ceil(legendItemCount / 3));
+            const legendHeightPx = legendRows * 26;
             const marginBottom = (
                 38
                 + BURN_IN_XAXIS_TITLE_STANDOFF
                 + 18
                 + BURN_IN_LEGEND_GAP_PX
                 + legendHeightPx
-                + 6
+                + 16
             );
-            const legendY = -((BURN_IN_LEGEND_GAP_PX + legendHeightPx) / Math.max(height, 1));
             const layout = {
                 autosize: false,
                 width,
                 height,
-                margin: { t: 48, r: 90, b: marginBottom, l: 120 },
+                margin: { t: 48, r: 90, b: marginBottom, l: 150 },
                 hovermode: 'x unified',
                 hoverlabel: {
                     namelength: -1,
@@ -6949,8 +7883,12 @@
                     orientation: 'h',
                     x: 0.5,
                     xanchor: 'center',
-                    y: legendY,
-                    yanchor: 'top',
+                    y: 0,
+                    yanchor: 'bottom',
+                    yref: 'container',
+                    valign: 'middle',
+                    font: { size: 11 },
+                    tracegroupgap: 8,
                 },
                 xaxis: { domain: [0, 1], anchor: 'y', showticklabels: false },
                 xaxis2: {
@@ -6962,6 +7900,12 @@
                 xaxis3: {
                     domain: [0, 1],
                     anchor: 'y4',
+                    matches: 'x',
+                    showticklabels: false,
+                },
+                xaxis4: {
+                    domain: [0, 1],
+                    anchor: 'y5',
                     matches: 'x',
                     title: { text: 'Elapsed Time (hours)', standoff: BURN_IN_XAXIS_TITLE_STANDOFF },
                 },
@@ -6975,31 +7919,15 @@
                     overlaying: 'y',
                     side: 'right',
                 },
-                yaxis3: {
-                    domain: LONG_BURN_IN_POWER_STATE_Y_DOMAIN,
-                    anchor: 'x2',
-                    title: { text: 'power_state', standoff: 8 },
-                    tickmode: 'array',
-                    tickvals: [0, 1],
-                    ticktext: ['OFF', 'ON'],
-                    range: [-0.05, 1.05],
-                    fixedrange: true,
-                },
-                yaxis4: {
-                    domain: LONG_BURN_IN_POWER_GOOD_Y_DOMAIN,
-                    anchor: 'x3',
-                    title: { text: 'power_good', standoff: 8 },
-                    tickmode: 'array',
-                    tickvals: [0, 1],
-                    ticktext: ['OFF', 'ON'],
-                    range: [-0.05, 1.05],
-                    fixedrange: true,
-                },
+                yaxis3: buildLongBurnInBinaryYAxis(LONG_BURN_IN_POWER_STATE_Y_DOMAIN, 'x2', 'power state'),
+                yaxis4: buildLongBurnInBinaryYAxis(LONG_BURN_IN_POWER_GOOD_Y_DOMAIN, 'x3', 'power good'),
+                yaxis5: buildLongBurnInBinaryYAxis(LONG_BURN_IN_TEMP_READ_Y_DOMAIN, 'x4', 'temp read'),
             };
             if (axisRanges) {
                 Object.assign(layout.xaxis, axisRanges.xaxis);
                 Object.assign(layout.xaxis2, axisRanges.xaxis2);
                 Object.assign(layout.xaxis3, axisRanges.xaxis3);
+                Object.assign(layout.xaxis4, axisRanges.xaxis4);
                 Object.assign(layout.yaxis, axisRanges.yaxis);
                 Object.assign(layout.yaxis2, axisRanges.yaxis2);
             }
@@ -7043,6 +7971,7 @@
                 xaxis: ranges.xaxis,
                 xaxis2: ranges.xaxis2,
                 xaxis3: ranges.xaxis2,
+                xaxis4: ranges.xaxis2,
                 yaxis: ranges.yaxis,
                 yaxis2: ranges.yaxis2,
             };
@@ -7301,22 +8230,40 @@
             }
             traces.push(
                 buildLongBurnInPowerTrace(series, 'power_state', {
-                    name: 'power_state',
+                    name: 'power state',
                     color: LONG_BURN_IN_COLORS.powerState,
                     xaxis: 'x2',
                     yaxis: 'y3',
                 }),
                 buildLongBurnInPowerTrace(series, 'power_good', {
-                    name: 'power_good',
+                    name: 'power good',
                     color: LONG_BURN_IN_COLORS.powerGood,
                     xaxis: 'x3',
                     yaxis: 'y4',
+                }),
+                buildLongBurnInPowerTrace(series, 'env_temp_valid', {
+                    name: 'Env read',
+                    color: LONG_BURN_IN_COLORS.env,
+                    xaxis: 'x4',
+                    yaxis: 'y5',
+                }),
+                buildLongBurnInPowerTrace(series, 'fpga_a_temp_valid', {
+                    name: `${config.fpga_a_label} read`,
+                    color: LONG_BURN_IN_COLORS.fpgaA,
+                    xaxis: 'x4',
+                    yaxis: 'y5',
+                }),
+                buildLongBurnInPowerTrace(series, 'fpga_b_temp_valid', {
+                    name: `${config.fpga_b_label} read`,
+                    color: LONG_BURN_IN_COLORS.fpgaB,
+                    xaxis: 'x4',
+                    yaxis: 'y5',
                 }),
             );
 
             Plotly.newPlot(plotId, traces, buildLongBurnInChartLayout(
                 axisRanges,
-                includeHumidity ? 9 : 8,
+                includeHumidity ? 12 : 11,
                 plotId,
                 {
                     rightAxisTitle: includeHumidity
@@ -11752,6 +12699,18 @@
         const qualifyReasonInput = document.getElementById('qualify-reason');
         const qualifyWarning = document.getElementById('qualify-warning');
 
+        const declareBurnInModal = document.getElementById('declare-burnin-modal');
+        const declareBurnInOverlay = document.getElementById('declare-burnin-overlay');
+        const declareBurnInClose = document.getElementById('declare-burnin-close');
+        const declareBurnInCancel = document.getElementById('declare-burnin-cancel');
+        const declareBurnInAccept = document.getElementById('declare-burnin-accept');
+        const declareBurnInSerialInput = document.getElementById('declare-burnin-serial');
+        const declareBurnInOpInput = document.getElementById('declare-burnin-op');
+        const declareBurnInReasonInput = document.getElementById('declare-burnin-reason');
+        const declareBurnInStartInput = document.getElementById('declare-burnin-start');
+        const declareBurnInStopInput = document.getElementById('declare-burnin-stop');
+        const declareBurnInWarning = document.getElementById('declare-burnin-warning');
+
         // Benchtest Comment modal functionality
         const benchtestCommentModal = document.getElementById('benchtest-comment-modal');
         const benchtestCommentOverlay = document.getElementById('benchtest-comment-overlay');
@@ -12159,6 +13118,10 @@
         qualifyCancel.addEventListener('click', closeQualifyModal);
         qualifyAccept.addEventListener('click', submitQualifyBoard);
         qualifyOverlay.addEventListener('click', closeQualifyModal);
+        declareBurnInClose.addEventListener('click', closeDeclareBurnInModal);
+        declareBurnInCancel.addEventListener('click', closeDeclareBurnInModal);
+        declareBurnInAccept.addEventListener('click', submitDeclareBurnIn);
+        declareBurnInOverlay.addEventListener('click', closeDeclareBurnInModal);
 
         // Benchtest Comment modal event listeners
         benchtestCommentClose.addEventListener('click', closeBenchtestCommentModal);
@@ -12379,6 +13342,130 @@
                 }
                 if (qualifyBtn) {
                     qualifyBtn.disabled = false;
+                }
+            }
+        }
+
+        function toBurnInDatetimeLocal(value) {
+            if (!value) {
+                return '';
+            }
+            const text = String(value).trim().replace(' ', 'T');
+            const match = text.match(/^(\d{4}-\d{2}-\d{2}T\d{2}:\d{2}(?::\d{2})?)/);
+            return match ? match[1] : '';
+        }
+
+        function openDeclareBurnInModal() {
+            if (isGuestMode) {
+                alert('Declare burn-in is not available in guest mode.');
+                return;
+            }
+            if (!currentBoardSerial) {
+                alert('No board selected');
+                return;
+            }
+            const startValue = toBurnInDatetimeLocal(currentBoardData && currentBoardData.burn_in_start);
+            const stopValue = toBurnInDatetimeLocal(currentBoardData && currentBoardData.burn_in_stop);
+            declareBurnInSerialInput.value = currentBoardSerial;
+            declareBurnInOpInput.value = '';
+            declareBurnInReasonInput.value = '';
+            declareBurnInStartInput.value = startValue;
+            declareBurnInStopInput.value = stopValue;
+            if (declareBurnInWarning) {
+                const loaded = startValue && stopValue
+                    ? 'Start and stop are loaded from this board. Change either time if needed.'
+                    : 'This board has no burn-in times yet. Enter the start and stop.';
+                declareBurnInWarning.textContent =
+                    `This will mark board ${currentBoardSerial} as burned in and save the `
+                    + `start and stop below. ${loaded} A board comment will be added.`;
+            }
+            declareBurnInModal.style.display = 'block';
+            declareBurnInOverlay.style.display = 'block';
+            declareBurnInOpInput.focus();
+        }
+
+        function closeDeclareBurnInModal() {
+            declareBurnInModal.style.display = 'none';
+            declareBurnInOverlay.style.display = 'none';
+        }
+
+        function declareBurnIn() {
+            openDeclareBurnInModal();
+        }
+
+        async function submitDeclareBurnIn() {
+            if (isGuestMode) {
+                alert('Declare burn-in is not available in guest mode.');
+                return;
+            }
+            if (!currentBoardSerial) {
+                alert('No board selected');
+                return;
+            }
+
+            const op = declareBurnInOpInput.value.trim();
+            const reason = declareBurnInReasonInput.value.trim();
+            const burnInStart = declareBurnInStartInput.value;
+            const burnInStop = declareBurnInStopInput.value;
+            if (!op) {
+                alert('Please enter an operator name');
+                declareBurnInOpInput.focus();
+                return;
+            }
+            if (!reason) {
+                alert('Please enter a reason');
+                declareBurnInReasonInput.focus();
+                return;
+            }
+            if (!burnInStart || !burnInStop) {
+                alert('Please enter burn-in start and stop');
+                (burnInStart ? declareBurnInStopInput : declareBurnInStartInput).focus();
+                return;
+            }
+            if (new Date(burnInStop) <= new Date(burnInStart)) {
+                alert('Burn-in stop must be after burn-in start');
+                declareBurnInStopInput.focus();
+                return;
+            }
+
+            if (declareBurnInAccept) {
+                declareBurnInAccept.disabled = true;
+            }
+            const declareBtn = document.getElementById('declare-burnin-btn');
+            if (declareBtn) {
+                declareBtn.disabled = true;
+            }
+
+            try {
+                const response = await fetch('/api/declare_burn_in', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        serial_no: currentBoardSerial,
+                        op: op,
+                        reason: reason,
+                        burn_in_start: burnInStart,
+                        burn_in_stop: burnInStop,
+                    }),
+                });
+                const data = await response.json().catch(() => ({}));
+                if (!response.ok || !data.success) {
+                    alert(data.error || 'Failed to declare burn-in');
+                    return;
+                }
+                closeDeclareBurnInModal();
+                await refreshBoardModalAfterUpdate();
+            } catch (error) {
+                console.error('Error declaring burn-in:', error);
+                alert('Error declaring burn-in');
+            } finally {
+                if (declareBurnInAccept) {
+                    declareBurnInAccept.disabled = false;
+                }
+                if (declareBtn) {
+                    declareBtn.disabled = false;
                 }
             }
         }

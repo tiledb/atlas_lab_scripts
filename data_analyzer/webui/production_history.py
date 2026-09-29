@@ -1,12 +1,15 @@
 """Production history milestones and as-of brick-wall / chart snapshots."""
 
 from collections import defaultdict
+from contextlib import contextmanager
 from datetime import datetime, timedelta
+import gc
 import json
 from pathlib import Path
 
 from production_summary import (
     COLORS,
+    _is_passed_test,
     _parse_datetime,
     decode_serial,
 )
@@ -33,6 +36,35 @@ HISTORY_PNG_WALL_BRICK_W = 14
 HISTORY_HTML_WALL_BRICK_H = 8
 HISTORY_CHART_Y_MIN = -40
 HISTORY_CHART_Y_MAX = 1000
+HISTORY_KALEIDO_GC_EVERY = 25
+
+
+@contextmanager
+def kaleido_sync_server():
+    """Reuse one Kaleido Chrome for PNG export instead of one browser per image.
+
+    Kaleido v1 oneshot export starts Chrome for every write_image() call. A full
+    history rebuild does thousands of those and hits EMFILE (too many open files).
+    """
+    started_here = False
+    try:
+        import kaleido
+        server = getattr(kaleido, '_global_server', None)
+        running = bool(server is not None and server.is_running())
+        if not running:
+            kaleido.start_sync_server(silence_warnings=True)
+            started_here = True
+    except Exception as exc:
+        print(f'Warning: could not start kaleido sync server ({exc})')
+    try:
+        yield
+    finally:
+        if started_here:
+            try:
+                import kaleido
+                kaleido.stop_sync_server(silence_warnings=True)
+            except Exception as exc:
+                print(f'Warning: could not stop kaleido sync server ({exc})')
 
 # --- Plot / PNG font sizes (edit here) ---
 HISTORY_TICK_FONT_SIZE = 14
@@ -513,15 +545,36 @@ def _compute_history_pies(boards_by_batch, board_count):
     for board in boards:
         if board.get('burn_in_stop'):
             burned_in += 1
-        if not board.get('has_post_burnin_test'):
-            continue
-        status = board.get('db_status')
-        e_test = board.get('e_test')
-        p_test = board.get('p_test')
-        if status == 1 and e_test == 1 and p_test == 1:
-            yield_passed += 1
+        if board.get('has_post_burnin_test'):
+            status = board.get('db_status')
+            e_test = board.get('e_test')
+            p_test = board.get('p_test')
+            has_benchtest = board.get('has_benchtest')
+            if (status == 0 or e_test == 0 or p_test == 0) and has_benchtest:
+                yield_failed += 1
+            elif status is None or e_test is None or p_test is None:
+                continue
+            elif any(board.get(field) is None for field in ('a0', 'a1', 'b0', 'b1')):
+                continue
+            elif status == 1 and e_test == 1 and p_test == 1:
+                yield_passed += 1
+            else:
+                yield_failed += 1
         else:
-            yield_failed += 1
+            burn_in_stop = _parse_datetime(board.get('burn_in_stop'))
+            passed_before = False
+            for benchtest in board.get('benchtests') or []:
+                test_stop = _parse_datetime(benchtest.get('test_stop'))
+                is_after = bool(
+                    burn_in_stop and test_stop and test_stop > burn_in_stop
+                )
+                if is_after:
+                    continue
+                if _is_passed_test(benchtest.get('test_pass')):
+                    passed_before = True
+                    break
+            if not passed_before:
+                yield_failed += 1
 
     not_burned_in = max(board_count - burned_in, 0)
     tested = yield_passed + yield_failed
@@ -1297,11 +1350,19 @@ def write_history_chart_pngs(snapshot, cumulative_path, burnin_path):
     if fig_time is None or fig_burn is None:
         return False
     try:
+        from plotly.io import write_images
+
         _lock_history_chart_y_axis(fig_time)
         _lock_history_chart_y_axis(fig_burn)
         cumulative_path.parent.mkdir(parents=True, exist_ok=True)
-        fig_time.write_image(str(cumulative_path), format='png', width=1100, height=600, scale=1)
-        fig_burn.write_image(str(burnin_path), format='png', width=1100, height=600, scale=1)
+        write_images(
+            [fig_time, fig_burn],
+            [str(cumulative_path), str(burnin_path)],
+            format='png',
+            width=1100,
+            height=600,
+            scale=1,
+        )
         return True
     except Exception as exc:
         print(f'Error writing history chart PNGs: {exc}')
@@ -1313,10 +1374,17 @@ def write_history_pie_pngs(snapshot, yield_path, burnin_path, produced_path):
     if fig_yield is None:
         return False
     try:
+        from plotly.io import write_images
+
         yield_path.parent.mkdir(parents=True, exist_ok=True)
-        fig_yield.write_image(str(yield_path), format='png', width=560, height=360, scale=1)
-        fig_burnin.write_image(str(burnin_path), format='png', width=560, height=360, scale=1)
-        fig_produced.write_image(str(produced_path), format='png', width=560, height=360, scale=1)
+        write_images(
+            [fig_yield, fig_burnin, fig_produced],
+            [str(yield_path), str(burnin_path), str(produced_path)],
+            format='png',
+            width=560,
+            height=360,
+            scale=1,
+        )
         return True
     except Exception as exc:
         print(f'Error writing history pie PNGs: {exc}')
@@ -1742,6 +1810,12 @@ def _write_history_index(milestones, weeks, time_axis, cached_at=None):
 
 def cache_milestone_snapshot(db_rows, benchtest_rows, milestone, time_axis=None):
     """Build and persist one milestone snapshot; update the history index."""
+    with kaleido_sync_server():
+        return _cache_milestone_snapshot(db_rows, benchtest_rows, milestone, time_axis=time_axis)
+
+
+def _cache_milestone_snapshot(db_rows, benchtest_rows, milestone, time_axis=None):
+    """Build and persist one milestone snapshot; update the history index."""
     HISTORY_CACHE_DIR.mkdir(parents=True, exist_ok=True)
     (HISTORY_CACHE_DIR / 'snapshots').mkdir(parents=True, exist_ok=True)
 
@@ -1896,15 +1970,18 @@ def rebuild_history_cache(db_rows, benchtest_rows, mode='all', progress_callback
 
     total = len(targets)
     time_axis = index_payload.get('time_axis')
-    for offset, item in enumerate(targets, start=1):
-        if progress_callback:
-            progress_callback(offset, total, item)
-        cache_milestone_snapshot(
-            db_rows,
-            benchtest_rows,
-            item,
-            time_axis=time_axis,
-        )
+    with kaleido_sync_server():
+        for offset, item in enumerate(targets, start=1):
+            if progress_callback:
+                progress_callback(offset, total, item)
+            _cache_milestone_snapshot(
+                db_rows,
+                benchtest_rows,
+                item,
+                time_axis=time_axis,
+            )
+            if offset % HISTORY_KALEIDO_GC_EVERY == 0:
+                gc.collect()
 
     final_index = load_history_index() or index_payload
     final_index = dict(final_index)
@@ -1958,25 +2035,28 @@ def iter_rebuild_history_cache(db_rows, benchtest_rows, mode='all'):
         return
 
     time_axis = index_payload.get('time_axis')
-    for offset, item in enumerate(targets, start=1):
-        cache_milestone_snapshot(
-            db_rows,
-            benchtest_rows,
-            item,
-            time_axis=time_axis,
-        )
-        percent = round(100.0 * offset / total, 1)
-        yield {
-            'event': 'progress',
-            'mode': mode,
-            'done': offset,
-            'total': total,
-            'percent': percent,
-            'index': item.get('index'),
-            'label': item.get('label'),
-            'timestamp': item.get('timestamp'),
-            'message': f"Cached {offset}/{total}: {item.get('label') or item.get('timestamp')}",
-        }
+    with kaleido_sync_server():
+        for offset, item in enumerate(targets, start=1):
+            _cache_milestone_snapshot(
+                db_rows,
+                benchtest_rows,
+                item,
+                time_axis=time_axis,
+            )
+            if offset % HISTORY_KALEIDO_GC_EVERY == 0:
+                gc.collect()
+            percent = round(100.0 * offset / total, 1)
+            yield {
+                'event': 'progress',
+                'mode': mode,
+                'done': offset,
+                'total': total,
+                'percent': percent,
+                'index': item.get('index'),
+                'label': item.get('label'),
+                'timestamp': item.get('timestamp'),
+                'message': f"Cached {offset}/{total}: {item.get('label') or item.get('timestamp')}",
+            }
 
     final_index = load_history_index() or index_payload
     yield {

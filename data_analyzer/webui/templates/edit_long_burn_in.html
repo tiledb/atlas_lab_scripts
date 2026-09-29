@@ -151,7 +151,9 @@
                 <code>TileBurninTest</code>: environment temperature/humidity and power signals at board level,
                 and FPGA temperatures via tag <code>TileBurninOven &lt;board serial&gt;</code>.
                 The temperature offset is added only to <code>env_temp</code> (environmental aging and env temperature trace).
-                Leave <strong>End Time</strong> empty to use the current time when plots are loaded.
+                Only temperatures from the include range are used. Readings outside that from–to window are treated as unread:
+                aging stays flat and the temperature traces hold the last valid reading, the same way they do when power is off.
+                Leave both include fields empty to use every reading. Leave <strong>End Time</strong> empty to use the current time when plots are loaded.
             </p>
             <div class="equation-group">
                 <div class="equation-box">
@@ -186,6 +188,14 @@
                     <div class="config-field">
                         <label for="long-burnin-temperature-offset">Environmental Temperature Offset (°C)</label>
                         <input type="number" id="long-burnin-temperature-offset" step="0.1" value="{{ config.temperature_offset_c }}">
+                    </div>
+                    <div class="config-field">
+                        <label for="long-burnin-ignore-temp-min">Include Temperature From (°C)</label>
+                        <input type="number" id="long-burnin-ignore-temp-min" step="0.1" value="{{ '' if config.ignore_temp_min_c is none else config.ignore_temp_min_c }}">
+                    </div>
+                    <div class="config-field">
+                        <label for="long-burnin-ignore-temp-max">Include Temperature To (°C)</label>
+                        <input type="number" id="long-burnin-ignore-temp-max" step="0.1" value="{{ '' if config.ignore_temp_max_c is none else config.ignore_temp_max_c }}">
                     </div>
                     <div class="config-field">
                         <label for="long-burnin-fpga-a-label">FPGA A Tag Value</label>
@@ -285,6 +295,13 @@
         function fromDatetimeLocalValue(value) {
             if (!value) return '';
             return `${value.replace('T', ' ')}:00`;
+        }
+
+        function optionalNumber(elementId) {
+            const raw = String(document.getElementById(elementId)?.value || '').trim();
+            if (!raw) return null;
+            const value = Number(raw);
+            return Number.isFinite(value) ? value : null;
         }
 
         function normalizeConfigArrows(text) {
@@ -603,6 +620,10 @@
             document.getElementById('long-burnin-stop').value = config.period_stop_is_now
                 ? '' : toDatetimeLocalValue(config.period_stop);
             document.getElementById('long-burnin-temperature-offset').value = config.temperature_offset_c ?? 0;
+            document.getElementById('long-burnin-ignore-temp-min').value =
+                config.ignore_temp_min_c == null ? '' : config.ignore_temp_min_c;
+            document.getElementById('long-burnin-ignore-temp-max').value =
+                config.ignore_temp_max_c == null ? '' : config.ignore_temp_max_c;
             document.getElementById('long-burnin-fpga-a-label').value = config.fpga_a_label || 'KU FPGA A';
             document.getElementById('long-burnin-fpga-b-label').value = config.fpga_b_label || 'KU FPGA B';
             document.getElementById('long-burnin-v-use').value = config.v_use_v ?? 10;
@@ -657,6 +678,8 @@
                 fpga_a_label: document.getElementById('long-burnin-fpga-a-label').value.trim(),
                 fpga_b_label: document.getElementById('long-burnin-fpga-b-label').value.trim(),
                 temperature_offset_c: Number(document.getElementById('long-burnin-temperature-offset').value || 0),
+                ignore_temp_min_c: optionalNumber('long-burnin-ignore-temp-min'),
+                ignore_temp_max_c: optionalNumber('long-burnin-ignore-temp-max'),
                 use_profiles: collectProfiles(),
                 activation_energies: collectEnergies(),
                 default_use_profile: getSelectedDefaultProfile(),

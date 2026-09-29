@@ -1,6 +1,6 @@
 pretest_offset_days: 2
 post_test_offset_days: 7
-burnin_offset_days: 14
+burnin_offset_days: 12
 burnin_temperature_offset_c: 8.0
 burnin_cache_dir: /var/www/html/drive/production_plots/burn_in
 burnin_use_profiles:
@@ -34,12 +34,17 @@ burnin_activation_energies:
     impurities.
 burnin_default_use_profile: ATLAS
 burnin_default_activation_energy_ev: 0.9
+burnin_accrued_min_start: 0.0
+burnin_accrued_min_end: 7200.0
+burnin_gap_threshold_min: 30.0
 long_burnin_board_serial: '1101037'
 long_burnin_start: '2026-08-22 00:00:00'
 long_burnin_stop: ''
 long_burnin_fpga_a_label: KU FPGA A
 long_burnin_fpga_b_label: KU FPGA B
 long_burnin_temperature_offset_c: 8.0
+long_burnin_ignore_temp_min_c: 0.0
+long_burnin_ignore_temp_max_c: 120.0
 long_burnin_use_profiles:
 - name: ATLAS
   temperature_c: 25.0
@@ -122,3 +127,90 @@ history_plot_end_date: ''
 history_plot_x_ticks: 20
 history_plot_y_ticks: 13
 interpret_datetimes_as_utc: false
+statistics_failure_groups:
+- id: link
+  name: Link Failures
+  color: '#636EFA'
+- id: fast_readout
+  name: Fast Readout Failure
+  color: '#EF553B'
+- id: slow_readout
+  name: Slow Readout Failure
+  color: '#00CC96'
+- id: electrical
+  name: Electrical Failure
+  color: '#AB63FA'
+- id: ungrouped
+  name: Ungrouped
+  color: '#B6B6B6'
+statistics_failure_mode_groups:
+  maxdev_hg: fast_readout
+  maxdev_lg: fast_readout
+  r2_hg: fast_readout
+  r2_lg: fast_readout
+  slope_hg: fast_readout
+  slope_lg: fast_readout
+  E-Test: electrical
+  Other Failure: electrical
+  P-Test: electrical
+  hg_center: fast_readout
+  lg_center: fast_readout
+  hg_center_mean: fast_readout
+  hg_r2: fast_readout
+  hg_slope: fast_readout
+  lg_center_mean: fast_readout
+  lg_r2: fast_readout
+  lg_slope: fast_readout
+  maxdev: fast_readout
+  r2: fast_readout
+  slope: fast_readout
+  ber: link
+  crc: link
+  gbtrx_rdy: link
+  latency: ungrouped
+  0v95: ungrouped
+  1v0: ungrouped
+  1v2: ungrouped
+  1v5: ungrouped
+  1v8: ungrouped
+  2v5: ungrouped
+  3v3: ungrouped
+  5v0: ungrouped
+  5v0p: ungrouped
+  pg1: ungrouped
+  pg2: ungrouped
+  pg3: ungrouped
+  pg4: ungrouped
+  db_mon_0.95v(vaux0): slow_readout
+  db_mon_1.0v(vaux5): slow_readout
+  db_mon_1.2v(vaux9): slow_readout
+  db_mon_1.5v(vaux3): slow_readout
+  db_mon_1.8v(vaux8): slow_readout
+  db_mon_2.5v(vaux1): slow_readout
+  db_mon_3.3v(vaux11): slow_readout
+  db_temperature: slow_readout
+  max_temp: slow_readout
+  max_vccint: slow_readout
+  max_vccout: slow_readout
+  max_vram: slow_readout
+  mb_mon_+5v(vaux10): slow_readout
+  mb_mon_-5v(vaux7): slow_readout
+  mb_mon_1.2v(vaux14): slow_readout
+  mb_mon_1.8v(vaux12): slow_readout
+  mb_mon_2.5v(vaux15): slow_readout
+  min_temp: slow_readout
+  min_vccint: slow_readout
+  min_vccout: slow_readout
+  min_vram: slow_readout
+  pgood_db_0v95: slow_readout
+  pgood_db_1v0: slow_readout
+  pgood_db_1v2: slow_readout
+  pgood_db_1v5: slow_readout
+  pgood_db_1v8: slow_readout
+  pgood_db_2v5: slow_readout
+  pgood_db_3v3: slow_readout
+  pgood_mb_1v2: slow_readout
+  pgood_mb_1v8: slow_readout
+  pgood_mb_2v5: slow_readout
+  pgood_mb_5v0: slow_readout
+  pgood_mb_5v0_n: slow_readout

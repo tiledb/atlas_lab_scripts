@@ -23,7 +23,13 @@ from production_summary import _parse_datetime
 
 MEASUREMENT_NAME = 'TileBurninTest'
 LONG_BURN_IN_CACHE_DIR = Path('/var/www/html/drive/production_plots/long_burn_in')
-CACHE_VERSION = 2
+CACHE_VERSION = 4
+TEMPERATURE_KEYS = ('env_temp_c', 'fpga_a_temp_c', 'fpga_b_temp_c')
+TEMPERATURE_VALID_KEYS = {
+    'env_temp_c': 'env_temp_valid',
+    'fpga_a_temp_c': 'fpga_a_temp_valid',
+    'fpga_b_temp_c': 'fpga_b_temp_valid',
+}
 
 
 def long_burn_in_arrhenius_equation_text(temperature_offset_c):
@@ -162,6 +168,63 @@ def _is_power_pair_on(power_state, power_good):
     return _is_power_on(power_state) and _is_power_on(power_good)
 
 
+def _optional_float(value):
+    if value is None:
+        return None
+    text = str(value).strip()
+    if text == '' or text.lower() in ('none', 'null'):
+        return None
+    try:
+        return float(text)
+    except (TypeError, ValueError):
+        return None
+
+
+def _ignore_temp_bounds(config):
+    return (
+        _optional_float((config or {}).get('long_burnin_ignore_temp_min_c')),
+        _optional_float((config or {}).get('long_burnin_ignore_temp_max_c')),
+    )
+
+
+def _temp_in_include_range(value, min_c, max_c):
+    if value is None:
+        return False
+    if min_c is None and max_c is None:
+        return True
+    lo = float('-inf') if min_c is None else float(min_c)
+    hi = float('inf') if max_c is None else float(max_c)
+    if lo > hi:
+        lo, hi = hi, lo
+    return lo <= float(value) <= hi
+
+
+def _temperature_valid_flags(values, min_c, max_c):
+    return [1 if _temp_in_include_range(value, min_c, max_c) else 0 for value in values]
+
+
+def _hold_last_valid_temperature(values, valid_flags):
+    held = []
+    last = None
+    for value, valid in zip(values, valid_flags):
+        if valid and value is not None:
+            last = value
+        held.append(last)
+    return held
+
+
+def apply_temperature_ignore(series, config):
+    """Hold last valid temperature when a reading is outside the include window."""
+    prepared = dict(series or {})
+    min_c, max_c = _ignore_temp_bounds(config)
+    for temp_key, valid_key in TEMPERATURE_VALID_KEYS.items():
+        values = list(prepared.get(temp_key) or [])
+        valid = _temperature_valid_flags(values, min_c, max_c)
+        prepared[valid_key] = valid
+        prepared[temp_key] = _hold_last_valid_temperature(values, valid)
+    return prepared
+
+
 def _downsample_long_burn_series(series, max_points=MAX_PLOT_POINTS):
     length = len(series.get('elapsed_hours', []))
     if length <= max_points:
@@ -181,6 +244,9 @@ def _downsample_long_burn_series(series, max_points=MAX_PLOT_POINTS):
         'power_state',
         'power_good',
         'power_on',
+        'env_temp_valid',
+        'fpga_a_temp_valid',
+        'fpga_b_temp_valid',
     ]
     downsampled = {
         key: [series[key][index] for index in indices]
@@ -234,6 +300,9 @@ def _build_time_series(env_points, fpga_a_points, fpga_b_points, period_start, c
             'power_state': [],
             'power_good': [],
             'power_on': [],
+            'env_temp_valid': [],
+            'fpga_a_temp_valid': [],
+            'fpga_b_temp_valid': [],
             'total_elapsed_hours': 0.0,
             'point_count': 0,
         }
@@ -297,7 +366,7 @@ def _build_time_series(env_points, fpga_a_points, fpga_b_points, period_start, c
         power_good.append(good_on)
         power_on.append(1 if _is_power_pair_on(power_state_values[index], power_good_values[index]) else 0)
 
-    return {
+    series = {
         'elapsed_hours': elapsed_hours,
         'env_temp_c': env_temp_c,
         'env_hum': env_hum,
@@ -309,6 +378,7 @@ def _build_time_series(env_points, fpga_a_points, fpga_b_points, period_start, c
         'total_elapsed_hours': elapsed_hours[-1] if elapsed_hours else 0.0,
         'point_count': len(rows),
     }
+    return apply_temperature_ignore(series, config)
 
 
 def _compute_aging_hours(series, temperature_key, use_temperature_c, activation_energy_ev):
@@ -339,11 +409,19 @@ def _compute_model_aging_hours(
     temperatures = series.get(temperature_key) or []
     humidity = series.get('env_hum') or []
     power_on = series.get('power_on') or []
+    valid_key = TEMPERATURE_VALID_KEYS.get(temperature_key)
+    valid_flags = series.get(valid_key) if valid_key else None
 
     for index, elapsed in enumerate(elapsed_hours):
+        temp_valid = True
+        if valid_flags is not None and index - 1 < len(valid_flags):
+            temp_valid = (valid_flags[index - 1] if index > 0 else valid_flags[0]) == 1
         if (
             index > 0
+            and index - 1 < len(power_on)
             and power_on[index - 1] == 1
+            and temp_valid
+            and index < len(temperatures)
             and temperatures[index] is not None
         ):
             dt_hours = elapsed - elapsed_hours[index - 1]
@@ -402,7 +480,7 @@ def _plot_html_path(board_serial, start_dt, stop_dt, use_temperature_c, activati
     return LONG_BURN_IN_CACHE_DIR / f'{basename}.html'
 
 
-def _load_cache(board_serial, start_dt, stop_dt, temperature_offset_c, use_temperature_c, activation_energy_ev):
+def _load_cache(board_serial, start_dt, stop_dt, temperature_offset_c, use_temperature_c, activation_energy_ev, config=None):
     cache_path = _cache_path(board_serial, start_dt, stop_dt, use_temperature_c, activation_energy_ev)
     if not cache_path.exists():
         return None
@@ -419,6 +497,10 @@ def _load_cache(board_serial, start_dt, stop_dt, temperature_offset_c, use_tempe
         return None
     if cached.get('temperature_offset_c') != temperature_offset_c:
         return None
+    if config is not None:
+        min_c, max_c = _ignore_temp_bounds(config)
+        if cached.get('ignore_temp_min_c') != min_c or cached.get('ignore_temp_max_c') != max_c:
+            return None
 
     start_text = start_dt.strftime('%Y-%m-%d %H:%M:%S')
     stop_text = stop_dt.strftime('%Y-%m-%d %H:%M:%S')
@@ -513,12 +595,12 @@ def _write_long_burn_in_plot_html(
         af_a = _format_avg_af_legend_suffix(aging_a, power_on_hours)
         af_b = _format_avg_af_legend_suffix(aging_b, power_on_hours)
         fig = make_subplots(
-            rows=3,
+            rows=4,
             cols=1,
             shared_xaxes=True,
-            vertical_spacing=0.05,
-            row_heights=[0.62, 0.19, 0.19],
-            specs=[[{'secondary_y': True}], [{}], [{}]],
+            vertical_spacing=0.02,
+            row_heights=[0.76, 0.08, 0.08, 0.08],
+            specs=[[{'secondary_y': True}], [{}], [{}], [{}]],
         )
         fig.add_trace(go.Scatter(
             x=series['elapsed_hours'], y=aging_env, mode='lines',
@@ -561,27 +643,78 @@ def _write_long_burn_in_plot_html(
             ), row=1, col=1, secondary_y=True)
         fig.add_trace(go.Scatter(
             x=series['elapsed_hours'], y=series['power_state'], mode='lines',
-            name='power_state', line=dict(color='#19D3F3', width=2, shape='hv'),
+            name='power state', line=dict(color='#19D3F3', width=2, shape='hv'),
+            text=['ON' if value == 1 else 'OFF' for value in series['power_state']],
+            hovertemplate='Time: %{x:.2f} h  ·  power state %{text}<extra></extra>',
         ), row=2, col=1)
         fig.add_trace(go.Scatter(
             x=series['elapsed_hours'], y=series['power_good'], mode='lines',
-            name='power_good', line=dict(color='#FFA15A', width=2, shape='hv'),
+            name='power good', line=dict(color='#FFA15A', width=2, shape='hv'),
+            text=['ON' if value == 1 else 'OFF' for value in series['power_good']],
+            hovertemplate='Time: %{x:.2f} h  ·  power good %{text}<extra></extra>',
         ), row=3, col=1)
+        env_valid = series.get('env_temp_valid') or []
+        fig.add_trace(go.Scatter(
+            x=series['elapsed_hours'], y=env_valid, mode='lines',
+            name='Env read', line=dict(color='#636EFA', width=2, shape='hv'),
+            text=['ON' if value == 1 else 'OFF' for value in env_valid],
+            hovertemplate='Time: %{x:.2f} h  ·  Env read %{text}<extra></extra>',
+        ), row=4, col=1)
+        fpga_a_valid = series.get('fpga_a_temp_valid') or []
+        fig.add_trace(go.Scatter(
+            x=series['elapsed_hours'], y=fpga_a_valid, mode='lines',
+            name=f'{fpga_a_label} read', line=dict(color='#EF553B', width=2, shape='hv'),
+            text=['ON' if value == 1 else 'OFF' for value in fpga_a_valid],
+            hovertemplate=f'Time: %{{x:.2f}} h  ·  {fpga_a_label} read %{{text}}<extra></extra>',
+        ), row=4, col=1)
+        fpga_b_valid = series.get('fpga_b_temp_valid') or []
+        fig.add_trace(go.Scatter(
+            x=series['elapsed_hours'], y=fpga_b_valid, mode='lines',
+            name=f'{fpga_b_label} read', line=dict(color='#00CC96', width=2, shape='hv'),
+            text=['ON' if value == 1 else 'OFF' for value in fpga_b_valid],
+            hovertemplate=f'Time: %{{x:.2f}} h  ·  {fpga_b_label} read %{{text}}<extra></extra>',
+        ), row=4, col=1)
         fig.update_layout(
             title=spec['title'],
             height=700,
-            margin=dict(t=60, r=80, b=90, l=100),
+            margin=dict(t=60, r=80, b=160, l=150),
             hovermode='x unified',
-            legend=dict(orientation='h', yanchor='top', y=-0.12, x=0.5, xanchor='center'),
+            legend=dict(
+                orientation='h',
+                yanchor='bottom',
+                y=0,
+                yref='container',
+                x=0.5,
+                xanchor='center',
+                font=dict(size=11),
+            ),
         )
         fig.update_yaxes(title_text='Accelerated Aging', row=1, col=1, secondary_y=False)
         fig.update_yaxes(
             title_text='Temperature (°C) / Humidity (%)' if spec['include_humidity'] else 'Temperature (°C)',
             row=1, col=1, secondary_y=True,
         )
-        fig.update_yaxes(title_text='power_state', tickvals=[0, 1], ticktext=['OFF', 'ON'], range=[-0.05, 1.05], row=2, col=1)
-        fig.update_yaxes(title_text='power_good', tickvals=[0, 1], ticktext=['OFF', 'ON'], range=[-0.05, 1.05], row=3, col=1)
-        fig.update_xaxes(title_text='Elapsed Time (hours)', row=3, col=1)
+        binary_ticks = [
+            (2, 'power state'),
+            (3, 'power good'),
+            (4, 'temp read'),
+        ]
+        for row, label in binary_ticks:
+            fig.update_yaxes(
+                title_text='',
+                tickmode='array',
+                tickvals=[0, 1],
+                ticktext=[f'{label} - OFF', f'{label} - ON'],
+                tickfont=dict(size=11),
+                ticks='',
+                showgrid=False,
+                zeroline=False,
+                range=[-0.15, 1.15],
+                automargin=True,
+                row=row,
+                col=1,
+            )
+        fig.update_xaxes(title_text='Elapsed Time (hours)', row=4, col=1)
         figures_html.append(to_html(fig, include_plotlyjs=('cdn' if not figures_html else False), full_html=False))
 
     from plot_cache import cache_banner_html
@@ -654,6 +787,8 @@ def _save_cache(
         'period_start': start_dt.strftime('%Y-%m-%d %H:%M:%S'),
         'period_stop': stop_dt.strftime('%Y-%m-%d %H:%M:%S'),
         'temperature_offset_c': temperature_offset_c,
+        'ignore_temp_min_c': _ignore_temp_bounds(config)[0] if config is not None else None,
+        'ignore_temp_max_c': _ignore_temp_bounds(config)[1] if config is not None else None,
         'cached_at': cached_at,
         'series': series,
         'totals': totals,
@@ -756,6 +891,8 @@ def _config_payload(config):
         'fpga_a_label': config.get('long_burnin_fpga_a_label', 'KU FPGA A'),
         'fpga_b_label': config.get('long_burnin_fpga_b_label', 'KU FPGA B'),
         'temperature_offset_c': temperature_offset,
+        'ignore_temp_min_c': _optional_float(config.get('long_burnin_ignore_temp_min_c')),
+        'ignore_temp_max_c': _optional_float(config.get('long_burnin_ignore_temp_max_c')),
         'use_profiles': config.get('long_burnin_use_profiles', []),
         'activation_energies': config.get('long_burnin_activation_energies', []),
         'default_use_profile': config.get('long_burnin_default_use_profile'),
@@ -797,7 +934,7 @@ def _fetch_series(config, influx_client=None, force_recompute=False):
         _clear_cache(board_serial, start_dt, stop_dt)
 
     def _try_cache_fallback(reason):
-        cached = _load_cache(board_serial, start_dt, stop_dt, temperature_offset, t_use_c, ea_ev)
+        cached = _load_cache(board_serial, start_dt, stop_dt, temperature_offset, t_use_c, ea_ev, config=config)
         if cached:
             result = _cache_fallback_result(
                 cached,
@@ -894,6 +1031,7 @@ def build_long_burn_in_overview():
                 float(config.get('long_burnin_temperature_offset_c', 0.0)),
                 profile['temperature_c'],
                 energy['value'],
+                config=config,
             ) is not None
 
     payload = _config_payload(config)

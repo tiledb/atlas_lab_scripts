@@ -8,7 +8,7 @@ from pathlib import Path
 from plot_cache import cache_banner_html, format_cache_stamp
 
 PRODUCTION_SUMMARY_CACHE_DIR = Path('/var/www/html/drive/production_plots/production_summary')
-CACHE_VERSION = 1
+CACHE_VERSION = 10
 LATEST_JSON_NAME = 'production_summary_latest.json'
 LATEST_HTML_NAME = 'production_summary_latest.html'
 
@@ -113,6 +113,71 @@ def build_production_summary_html(summary, cached_at=None):
     )
     figures_html.append(('pie', _pie_html(fig, 'summary-produced-pie', False)))
 
+    def _exclusive_fail_pie(
+        payload,
+        failed_label,
+        other_label,
+        failed_color,
+        title,
+        div_id,
+        include_board_list=True,
+    ):
+        count = int(payload.get('count') or 0)
+        other_count = int(payload.get('other_count') or 0)
+        burned_in = int(payload.get('burned_in') or (count + other_count))
+        rate = (count / burned_in * 100) if burned_in else 0.0
+        fig = go.Figure(data=[go.Pie(
+            labels=[failed_label, other_label],
+            values=[count, other_count],
+            marker=dict(colors=[
+                failed_color,
+                colors.get('other_burned_in', colors.get('not_yet_produced', '#B6B6B6')),
+            ]),
+            hole=0.35,
+            domain=dict(x=[0.05, 0.95], y=[0.18, 1.0]),
+        )])
+        fig.update_layout(
+            title=f'{title} ({count} of {burned_in}, {rate:.1f}%)',
+        )
+        pie_html = _pie_html(fig, div_id, False)
+        if not include_board_list:
+            return pie_html
+        boards = payload.get('boards') or []
+        if boards:
+            items = ''.join(
+                f'<li>{escape(str(board.get("serial") or board))}</li>'
+                for board in boards
+            )
+            board_html = (
+                f'<div class="board-list">'
+                f'<div class="board-list-title">Boards ({len(boards)})</div>'
+                f'<ul>{items}</ul></div>'
+            )
+        else:
+            board_html = '<div class="board-list"><div class="board-list-empty">None</div></div>'
+        return pie_html + board_html
+
+    figures_html.append(('pie', _exclusive_fail_pie(
+        summary.get('passed_before_last_after_failed') or summary.get('passed_before_not_after') or {},
+        'Failed Burn-in',
+        'Other burned-in',
+        colors.get(
+            'passed_before_last_after_failed',
+            colors.get('passed_before_not_after', colors.get('failed', '#EF553B')),
+        ),
+        'Failed Burn-in',
+        'summary-pass-before-not-after-pie',
+    )))
+    figures_html.append(('pie', _exclusive_fail_pie(
+        summary.get('passed_after_burnin') or {},
+        'Passed after',
+        'Other burned-in',
+        colors.get('passed_after_burnin', colors.get('passed', '#00CC96')),
+        'Passed After Burn-In',
+        'summary-pass-after-pie',
+        include_board_list=False,
+    )))
+
     def _line_html(fig, div_id):
         return to_html(
             fig,
@@ -177,6 +242,34 @@ def build_production_summary_html(summary, cached_at=None):
             line=dict(color=colors.get(color_key, '#00CC96')),
             text=[point.get('serial') for point in points],
             hovertemplate='%{x}<br>%{y}<br>Serial: %{text}<extra></extra>',
+        ))
+    schedule = summary.get('schedule') or {}
+    expected_time = schedule.get('expected_by_time') or []
+    if expected_time:
+        fig.add_trace(go.Scatter(
+            x=[point.get('x') for point in expected_time],
+            y=[point.get('y') for point in expected_time],
+            mode='lines+markers',
+            name='Expected Produced',
+            line=dict(color=colors.get('expected_produced', '#636EFA'), dash='dash'),
+        ))
+    expected_burned = schedule.get('expected_burned_by_time') or []
+    if expected_burned:
+        fig.add_trace(go.Scatter(
+            x=[point.get('x') for point in expected_burned],
+            y=[point.get('y') for point in expected_burned],
+            mode='lines+markers',
+            name='Expected Burned',
+            line=dict(color=colors.get('expected_burnin', '#FF6692'), dash='dashdot'),
+        ))
+    expected_tested = schedule.get('expected_tested_by_time') or []
+    if expected_tested:
+        fig.add_trace(go.Scatter(
+            x=[point.get('x') for point in expected_tested],
+            y=[point.get('y') for point in expected_tested],
+            mode='lines+markers',
+            name='Expected Tested',
+            line=dict(color=colors.get('expected_tested', '#00B5D8'), dash='dot'),
         ))
     fig.update_layout(
         title='Cumulative Board Count (by Time)',
@@ -296,7 +389,33 @@ def build_production_summary_html(summary, cached_at=None):
     }}
     .pie-card {{
       min-height: 420px;
-      height: 420px;
+      height: auto;
+    }}
+    .board-list {{
+      border-top: 1px solid #e8ebef;
+      padding: 8px 10px 12px;
+      max-height: 160px;
+      overflow: auto;
+    }}
+    .board-list-title {{
+      font-size: 12px;
+      font-weight: 600;
+      color: #555;
+      margin-bottom: 6px;
+    }}
+    .board-list ul {{
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px 10px;
+      list-style: none;
+      margin: 0;
+      padding: 0;
+      font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+      font-size: 12px;
+    }}
+    .board-list-empty {{
+      font-size: 12px;
+      color: #888;
     }}
     .wide-card {{
       min-height: 460px;

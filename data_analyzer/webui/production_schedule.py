@@ -343,27 +343,45 @@ def _apply_day_offset(date_string, days):
     return shifted.strftime('%Y-%m-%d %H:%M:%S')
 
 
+def _expected_point(entry, when, cumulative):
+    return {
+        'x': when,
+        'y': cumulative,
+        'batch': entry['batch'],
+        'board_count': entry['board_count'],
+        'label': entry['label'],
+    }
+
+
 def build_schedule_projections(entries, config=None, schedule_csv_path=None):
-    """Build cumulative expected production traces for charts."""
+    """Build cumulative expected production traces for charts.
+
+    Dates are derived from the calendar schedule:
+      expected produced = calendar date
+      expected burned   = calendar + pretest offset + burn-in offset
+      expected tested   = calendar + pretest + burn-in + post-test offset
+    """
     config = config or {}
     pretest_offset = int(config.get('pretest_offset_days', 0))
     post_test_offset = int(config.get('post_test_offset_days', 0))
     burnin_offset = int(config.get('burnin_offset_days', 0))
     comments = load_schedule_comments(schedule_csv_path) if schedule_csv_path else []
+    empty = {
+        'expected_by_batch': {'batches': [], 'cumulative': []},
+        'expected_by_time': [],
+        'expected_burned_by_time': [],
+        'expected_tested_by_time': [],
+        'expected_burnin_timeline': [],
+        'comments': comments,
+        'offsets': {
+            'pretest_offset_days': pretest_offset,
+            'post_test_offset_days': post_test_offset,
+            'burnin_offset_days': burnin_offset,
+        },
+    }
 
     if not entries:
-        return {
-            'expected_by_batch': {'batches': [], 'cumulative': []},
-            'expected_by_time': [],
-            'expected_tested_by_time': [],
-            'expected_burnin_timeline': [],
-            'comments': comments,
-            'offsets': {
-                'pretest_offset_days': pretest_offset,
-                'post_test_offset_days': post_test_offset,
-                'burnin_offset_days': burnin_offset,
-            },
-        }
+        return empty
 
     by_batch = sorted(entries, key=lambda entry: entry['batch'])
     cumulative = 0
@@ -376,39 +394,35 @@ def build_schedule_projections(entries, config=None, schedule_csv_path=None):
     by_time = sorted(entries, key=lambda entry: entry['planned_date'])
     cumulative = 0
     expected_by_time = []
+    expected_burned_by_time = []
     expected_tested_by_time = []
     expected_burnin_timeline = []
 
     for entry in by_time:
         cumulative += entry['board_count']
-        produced_date = _apply_day_offset(entry['planned_date'], burnin_offset)
-        tested_date = _apply_day_offset(
-            entry['planned_date'],
-            burnin_offset + pretest_offset + post_test_offset,
+        produced_date = entry['planned_date']
+        burned_date = _apply_day_offset(
+            produced_date,
+            pretest_offset + burnin_offset,
         )
-
-        expected_by_time.append({
-            'x': produced_date,
-            'y': cumulative,
-            'batch': entry['batch'],
-            'board_count': entry['board_count'],
-            'label': entry['label'],
-        })
-        expected_tested_by_time.append({
-            'x': tested_date,
-            'y': cumulative,
-            'batch': entry['batch'],
-            'board_count': entry['board_count'],
-            'label': entry['label'],
-        })
-
-        burnin_start = datetime.strptime(tested_date, '%Y-%m-%d %H:%M:%S')
-        burnin_duration = max(burnin_offset, 1)
-        burnin_stop = burnin_start + timedelta(days=burnin_duration)
+        tested_date = _apply_day_offset(
+            produced_date,
+            pretest_offset + burnin_offset + post_test_offset,
+        )
+        burnin_start = datetime.strptime(
+            _apply_day_offset(produced_date, pretest_offset),
+            '%Y-%m-%d %H:%M:%S',
+        )
+        burnin_stop = datetime.strptime(burned_date, '%Y-%m-%d %H:%M:%S')
+        if burnin_stop <= burnin_start:
+            burnin_stop = burnin_start + timedelta(days=1)
         center_dt = burnin_start + (burnin_stop - burnin_start) / 2
         error_minus_ms = (center_dt - burnin_start).total_seconds() * 1000
         error_plus_ms = (burnin_stop - center_dt).total_seconds() * 1000
 
+        expected_by_time.append(_expected_point(entry, produced_date, cumulative))
+        expected_burned_by_time.append(_expected_point(entry, burned_date, cumulative))
+        expected_tested_by_time.append(_expected_point(entry, tested_date, cumulative))
         expected_burnin_timeline.append({
             'batch': entry['batch'],
             'board_count': entry['board_count'],
@@ -424,6 +438,7 @@ def build_schedule_projections(entries, config=None, schedule_csv_path=None):
     return {
         'expected_by_batch': expected_by_batch,
         'expected_by_time': expected_by_time,
+        'expected_burned_by_time': expected_burned_by_time,
         'expected_tested_by_time': expected_tested_by_time,
         'expected_burnin_timeline': expected_burnin_timeline,
         'comments': comments,

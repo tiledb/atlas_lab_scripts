@@ -3,6 +3,7 @@
 from datetime import datetime
 from pathlib import Path
 
+from benchtest_results import get_failed_tests_for_serial
 from production_config import load_production_config
 from production_schedule import build_schedule_projections, load_production_schedule
 
@@ -22,6 +23,10 @@ COLORS = {
     'expected_burnin': '#FF6692',
     'not_yet_produced': '#B6B6B6',
     'other_produced': '#9D7BD8',
+    'passed_before_not_after': '#EF553B',
+    'passed_before_last_after_failed': '#EF553B',
+    'passed_after_burnin': '#00CC96',
+    'other_burned_in': '#B6B6B6',
 }
 
 
@@ -111,10 +116,149 @@ def _build_benchtest_maps(benchtest_rows):
     return serial_to_benchtests, serial_to_benchtest_stops, serial_to_latest_test_stop
 
 
+def _serial_benchtest_results(benchtest_rows):
+    mapping = {}
+    pass_cache = {}
+    for benchtest in benchtest_rows:
+        if benchtest.get('test_pass') == -1:
+            continue
+        benchtest_id = benchtest.get('id')
+        for slot_num in range(1, 5):
+            serial = benchtest.get(f'db_slot{slot_num}')
+            if not serial:
+                continue
+            serial_key = _format_board_serial(serial)
+            cache_key = (serial_key, benchtest_id)
+            if cache_key not in pass_cache:
+                _failed_tests, board_pass_fail = get_failed_tests_for_serial(
+                    serial_key,
+                    benchtest_id,
+                )
+                if board_pass_fail is not None:
+                    try:
+                        pass_cache[cache_key] = int(board_pass_fail)
+                    except (TypeError, ValueError):
+                        pass_cache[cache_key] = benchtest.get('test_pass')
+                else:
+                    pass_cache[cache_key] = benchtest.get('test_pass')
+            mapping.setdefault(serial_key, []).append({
+                'id': benchtest_id,
+                'test_stop': benchtest.get('test_stop'),
+                'test_pass': pass_cache[cache_key],
+            })
+    return mapping
+
+
+def _format_board_serial(serial):
+    return str(serial).zfill(7)
+
+
+def _is_passed_test(test_pass):
+    if test_pass is None:
+        return False
+    try:
+        return int(test_pass) == 1
+    except (TypeError, ValueError):
+        return False
+
+
+def _is_failed_test(test_pass):
+    if test_pass is None:
+        return False
+    try:
+        return int(test_pass) == 0
+    except (TypeError, ValueError):
+        return False
+
+
+def _classify_burnin_tests(row, tests):
+    burn_in_stop = _parse_datetime(row.get('burn_in_stop'))
+    passed_before = False
+    passed_after = False
+    after_tests = []
+    for test in tests or []:
+        test_stop = _parse_datetime(test.get('test_stop'))
+        is_after = bool(burn_in_stop and test_stop and test_stop > burn_in_stop)
+        if is_after:
+            after_tests.append((test_stop, test.get('id') or 0, test))
+        if not _is_passed_test(test.get('test_pass')):
+            continue
+        if is_after:
+            passed_after = True
+        else:
+            passed_before = True
+
+    last_after_failed = False
+    if after_tests:
+        after_tests.sort(key=lambda item: (item[0], item[1]))
+        last_after_failed = _is_failed_test(after_tests[-1][2].get('test_pass'))
+    return passed_before, passed_after, last_after_failed
+
+
+def _has_passed_before_burnin(row, serial_to_tests):
+    tests = (serial_to_tests or {}).get(_format_board_serial(row['serial_no']))
+    passed_before, _, _ = _classify_burnin_tests(row, tests)
+    return passed_before
+
+
+def _counts_as_failed_after_burnin(
+    row,
+    classification,
+    serial_to_tests,
+    serial_to_benchtest_stops,
+):
+    tests = (serial_to_tests or {}).get(_format_board_serial(row['serial_no']))
+    passed_before, passed_after, last_after_failed = _classify_burnin_tests(row, tests)
+    if passed_after:
+        return False
+    if classification == 'failed' or last_after_failed:
+        return True
+    # Only failed before burn-in (never passed before) and never passed after.
+    if not passed_before:
+        return True
+    return False
+
+
+def _burnin_pass_groups(boards, serial_to_tests):
+    passed_before_last_after_failed = []
+    passed_after = []
+    burned_in = 0
+    for board in boards:
+        if not board.get('burn_in_stop'):
+            continue
+        burned_in += 1
+        passed_before, passed_after_flag, last_after_failed = _classify_burnin_tests(
+            board,
+            serial_to_tests.get(_format_board_serial(board['serial_no'])),
+        )
+        entry = {
+            'serial': _format_board_serial(board['serial_no']),
+            'batch': board.get('decoded_batch'),
+        }
+        if passed_before and last_after_failed:
+            passed_before_last_after_failed.append(entry)
+        if passed_after_flag:
+            passed_after.append(entry)
+
+    passed_before_last_after_failed.sort(key=lambda item: item['serial'])
+    passed_after.sort(key=lambda item: item['serial'])
+
+    def _payload(items):
+        return {
+            'count': len(items),
+            'boards': items,
+            'other_count': max(burned_in - len(items), 0),
+            'burned_in': burned_in,
+        }
+
+    return _payload(passed_before_last_after_failed), _payload(passed_after)
+
+
 def build_production_summary(db_rows, benchtest_rows, schedule_csv_path=None):
     serial_to_benchtests, serial_to_benchtest_stops, serial_to_latest_test_stop = _build_benchtest_maps(
         benchtest_rows
     )
+    serial_to_tests = _serial_benchtest_results(benchtest_rows)
 
     boards = []
     for row in db_rows:
@@ -135,12 +279,15 @@ def build_production_summary(db_rows, benchtest_rows, schedule_csv_path=None):
     yield_passed = 0
     yield_failed = 0
     for board in boards:
-        if not board['has_post_burnin_test']:
-            continue
-        if board['classification'] == 'passed':
-            yield_passed += 1
-        else:
+        if _counts_as_failed_after_burnin(
+            board,
+            board['classification'],
+            serial_to_tests,
+            serial_to_benchtest_stops,
+        ):
             yield_failed += 1
+        elif board['has_post_burnin_test'] and board['classification'] == 'passed':
+            yield_passed += 1
 
     burned_in = sum(1 for board in boards if board.get('burn_in_stop'))
     received_not_burned_in = max(total_boards - burned_in, 0)
@@ -258,6 +405,7 @@ def build_production_summary(db_rows, benchtest_rows, schedule_csv_path=None):
         burnin_expected = max(total_boards, 0)
     not_yet_produced = max(burnin_expected - total_boards, 0) if burnin_expected else 0
     not_received = not_yet_produced
+    passed_before_last_after_failed, passed_after_burnin_pie = _burnin_pass_groups(boards, serial_to_tests)
 
     return {
         'success': True,
@@ -293,4 +441,7 @@ def build_production_summary(db_rows, benchtest_rows, schedule_csv_path=None):
         'schedule': schedule,
         'production_config': production_config,
         'colors': COLORS,
+        'passed_before_not_after': passed_before_last_after_failed,
+        'passed_before_last_after_failed': passed_before_last_after_failed,
+        'passed_after_burnin': passed_after_burnin_pie,
     }

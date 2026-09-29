@@ -154,6 +154,105 @@ DEFAULT_LONG_BURNIN_PECK_EXPONENTS = [
 ]
 DEFAULT_LONG_BURNIN_RH_USE_OPTIONS = [5.0, 10.0, 15.0]
 
+DEFAULT_STATISTICS_FAILURE_GROUPS = [
+    {'id': 'link', 'name': 'Link Failures', 'color': '#636EFA'},
+    {'id': 'fast_readout', 'name': 'Fast Readout Failure', 'color': '#EF553B'},
+    {'id': 'slow_readout', 'name': 'Slow Readout Failure', 'color': '#00CC96'},
+    {'id': 'electrical', 'name': 'Electrical Failure', 'color': '#AB63FA'},
+    {'id': 'ungrouped', 'name': 'Ungrouped', 'color': '#B6B6B6'},
+]
+
+
+def default_statistics_group_id_for_mode(name):
+    text = str(name or '').strip().lower()
+    if any(
+        token in text
+        for token in ('crc', 'ber', 'gbtxrxrdy', 'gbtrx_rdy', 'gbtrxrdy', 'gbtrx', 'rxrdy')
+    ):
+        return 'link'
+    if (
+        text.startswith('hg')
+        or text.startswith('lg')
+        or '_hg' in text
+        or '_lg' in text
+        or 'slope' in text
+        or 'maxdev' in text
+    ):
+        return 'fast_readout'
+    if (
+        'current' in text
+        or 'temp' in text
+        or 'db_mon' in text
+        or 'mb_mon' in text
+    ):
+        return 'slow_readout'
+    if text in ('e-test', 'p-test', 'etest', 'ptest', 'other failure') or text.replace(' ', '') in (
+        'e-test',
+        'p-test',
+    ):
+        return 'electrical'
+    return 'ungrouped'
+
+
+def _normalize_statistics_failure_groups(groups):
+    known_ids = {item['id'] for item in DEFAULT_STATISTICS_FAILURE_GROUPS}
+    defaults = {item['id']: dict(item) for item in DEFAULT_STATISTICS_FAILURE_GROUPS}
+    normalized = []
+    seen = set()
+    for group in groups or []:
+        if not isinstance(group, dict):
+            continue
+        group_id = str(group.get('id') or '').strip()
+        if group_id not in known_ids or group_id in seen:
+            continue
+        seen.add(group_id)
+        default = defaults[group_id]
+        name = str(group.get('name') or default['name']).strip() or default['name']
+        color = str(group.get('color') or default['color']).strip() or default['color']
+        normalized.append({
+            'id': group_id,
+            'name': name,
+            'color': color,
+        })
+    for group in DEFAULT_STATISTICS_FAILURE_GROUPS:
+        if group['id'] not in seen:
+            normalized.append(dict(group))
+    return normalized
+
+
+def _normalize_statistics_failure_mode_groups(mapping, groups=None):
+    group_ids = {
+        group['id']
+        for group in (groups or DEFAULT_STATISTICS_FAILURE_GROUPS)
+    }
+    normalized = {}
+    if not isinstance(mapping, dict):
+        return normalized
+    for name, group_id in mapping.items():
+        mode_name = str(name or '').strip()
+        resolved = str(group_id or '').strip()
+        if not mode_name or resolved not in group_ids:
+            continue
+        normalized[mode_name] = resolved
+    return normalized
+
+
+def resolve_statistics_failure_group_id(mode_name, mapping=None):
+    mapping = mapping if isinstance(mapping, dict) else {}
+    configured = mapping.get(str(mode_name))
+    if configured:
+        return configured
+    return default_statistics_group_id_for_mode(mode_name)
+
+
+def save_statistics_failure_config(config):
+    current = load_production_config()
+    if config.get('statistics_failure_groups') is not None:
+        current['statistics_failure_groups'] = config.get('statistics_failure_groups')
+    if config.get('statistics_failure_mode_groups') is not None:
+        current['statistics_failure_mode_groups'] = config.get('statistics_failure_mode_groups')
+    return save_production_config(current)
+
 DEFAULT_BURNIN_CACHE_DIR = '/var/www/html/drive/production_plots/burn_in'
 
 DEFAULT_DASHBOARD_TAB_ORDER = [
@@ -186,12 +285,17 @@ DEFAULT_CONFIG = {
     'burnin_activation_energies': DEFAULT_BURNIN_ACTIVATION_ENERGIES,
     'burnin_default_use_profile': DEFAULT_BURNIN_USE_PROFILES[0]['name'],
     'burnin_default_activation_energy_ev': 0.7,
+    'burnin_accrued_min_start': 0.0,
+    'burnin_accrued_min_end': 7200.0,
+    'burnin_gap_threshold_min': 30.0,
     'long_burnin_board_serial': '1101037',
     'long_burnin_start': '',
     'long_burnin_stop': '',
     'long_burnin_fpga_a_label': 'KU FPGA A',
     'long_burnin_fpga_b_label': 'KU FPGA B',
     'long_burnin_temperature_offset_c': 0.0,
+    'long_burnin_ignore_temp_min_c': None,
+    'long_burnin_ignore_temp_max_c': None,
     'long_burnin_use_profiles': DEFAULT_LONG_BURNIN_USE_PROFILES,
     'long_burnin_activation_energies': DEFAULT_LONG_BURNIN_ACTIVATION_ENERGIES,
     'long_burnin_default_use_profile': DEFAULT_LONG_BURNIN_USE_PROFILES[0]['name'],
@@ -214,6 +318,8 @@ DEFAULT_CONFIG = {
     'history_plot_x_ticks': 8,
     'history_plot_y_ticks': 6,
     'interpret_datetimes_as_utc': True,
+    'statistics_failure_groups': [dict(item) for item in DEFAULT_STATISTICS_FAILURE_GROUPS],
+    'statistics_failure_mode_groups': {},
 }
 
 
@@ -299,6 +405,17 @@ def _normalize_config(data):
         if cache_dir:
             config['burnin_cache_dir'] = cache_dir
 
+    for key, default in (
+        ('burnin_accrued_min_start', 0.0),
+        ('burnin_accrued_min_end', 7200.0),
+        ('burnin_gap_threshold_min', 30.0),
+    ):
+        raw = data[key] if key in data else config.get(key, default)
+        try:
+            config[key] = float(raw)
+        except (TypeError, ValueError):
+            config[key] = default
+
     if 'burnin_use_profiles' in data:
         config['burnin_use_profiles'] = _normalize_use_profiles(data['burnin_use_profiles'])
 
@@ -339,6 +456,12 @@ def _normalize_config(data):
             config['long_burnin_temperature_offset_c'] = float(data['long_burnin_temperature_offset_c'])
         except (TypeError, ValueError):
             pass
+
+    for key in ('long_burnin_ignore_temp_min_c', 'long_burnin_ignore_temp_max_c'):
+        if key in data:
+            config[key] = _normalize_optional_float(data.get(key))
+        else:
+            config[key] = _normalize_optional_float(config.get(key))
 
     if 'long_burnin_use_profiles' in data:
         config['long_burnin_use_profiles'] = _normalize_use_profiles(data['long_burnin_use_profiles'])
@@ -457,6 +580,17 @@ def _normalize_config(data):
         DEFAULT_CONFIG['interpret_datetimes_as_utc'],
     )
 
+    config['statistics_failure_groups'] = _normalize_statistics_failure_groups(
+        data.get('statistics_failure_groups', config.get('statistics_failure_groups'))
+    )
+    config['statistics_failure_mode_groups'] = _normalize_statistics_failure_mode_groups(
+        data.get(
+            'statistics_failure_mode_groups',
+            config.get('statistics_failure_mode_groups'),
+        ),
+        config['statistics_failure_groups'],
+    )
+
     return config
 
 
@@ -471,6 +605,18 @@ def _normalize_bool(value, default=True):
     if text in ('0', 'false', 'no', 'off'):
         return False
     return bool(default)
+
+
+def _normalize_optional_float(value):
+    if value is None:
+        return None
+    text = str(value).strip()
+    if text == '' or text.lower() in ('none', 'null'):
+        return None
+    try:
+        return float(text)
+    except (TypeError, ValueError):
+        return None
 
 
 def _normalize_optional_date(value):
@@ -588,6 +734,13 @@ def save_burn_in_config(config):
         current['burnin_default_activation_energy_ev'] = config['burnin_default_activation_energy_ev']
     if config.get('burnin_cache_dir'):
         current['burnin_cache_dir'] = str(config['burnin_cache_dir']).strip()
+    for key in (
+        'burnin_accrued_min_start',
+        'burnin_accrued_min_end',
+        'burnin_gap_threshold_min',
+    ):
+        if config.get(key) is not None:
+            current[key] = config[key]
     return save_production_config(current)
 
 
@@ -600,6 +753,8 @@ def save_long_burn_in_config(config):
         'long_burnin_fpga_a_label',
         'long_burnin_fpga_b_label',
         'long_burnin_temperature_offset_c',
+        'long_burnin_ignore_temp_min_c',
+        'long_burnin_ignore_temp_max_c',
         'long_burnin_use_profiles',
         'long_burnin_activation_energies',
         'long_burnin_default_use_profile',
@@ -613,7 +768,11 @@ def save_long_burn_in_config(config):
         'long_burnin_peck_exponents',
         'long_burnin_default_peck_exponent',
     ):
-        if key in config and config[key] is not None:
+        if key not in config:
+            continue
+        if key in ('long_burnin_ignore_temp_min_c', 'long_burnin_ignore_temp_max_c'):
+            current[key] = config[key]
+        elif config[key] is not None:
             current[key] = config[key]
     return save_production_config(current)
 

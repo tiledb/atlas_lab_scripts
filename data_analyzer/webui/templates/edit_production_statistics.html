@@ -1,0 +1,290 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DBQ Admin - Production Statistics</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            background: #f5f7fa;
+            min-height: 100vh;
+        }
+        .navbar {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            padding: 20px 40px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+        }
+        .navbar h1 { color: white; font-size: 24px; font-weight: 600; }
+        .nav-links { display: flex; gap: 20px; }
+        .nav-links a { color: white; text-decoration: none; font-size: 14px; opacity: 0.9; }
+        .nav-links a:hover { opacity: 1; }
+        .container { max-width: 1100px; margin: 40px auto; padding: 0 20px 40px; }
+        .back-link {
+            display: inline-block;
+            margin-bottom: 20px;
+            color: #667eea;
+            text-decoration: none;
+            font-size: 14px;
+        }
+        .back-link:hover { text-decoration: underline; }
+        .form-card {
+            background: white;
+            border-radius: 12px;
+            padding: 30px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+        }
+        .form-card h2 { color: #333; font-size: 24px; margin-bottom: 10px; }
+        .help-text { color: #666; font-size: 14px; line-height: 1.5; margin-bottom: 18px; }
+        .toolbar {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            align-items: center;
+            margin-bottom: 16px;
+        }
+        .toolbar input[type="search"] {
+            flex: 1 1 240px;
+            padding: 10px 12px;
+            border: 1px solid #d0d5dd;
+            border-radius: 6px;
+            font-size: 14px;
+        }
+        .group-legend {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px 16px;
+            margin-bottom: 16px;
+        }
+        .group-legend-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 13px;
+            color: #444;
+        }
+        .swatch {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            display: inline-block;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 13px;
+        }
+        th, td {
+            text-align: left;
+            padding: 8px 10px;
+            border-bottom: 1px solid #eceff3;
+            vertical-align: middle;
+        }
+        th { color: #666; font-weight: 600; background: #fafbfc; position: sticky; top: 0; }
+        .table-wrap { max-height: 640px; overflow: auto; border: 1px solid #e4e8ee; border-radius: 8px; }
+        select {
+            width: 100%;
+            min-width: 180px;
+            padding: 7px 8px;
+            border: 1px solid #d0d5dd;
+            border-radius: 6px;
+            background: white;
+            font-size: 13px;
+        }
+        .test-name { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; }
+        .caption { color: #777; }
+        .btn {
+            padding: 10px 14px;
+            border: none;
+            border-radius: 6px;
+            font-size: 13px;
+            font-weight: 600;
+            cursor: pointer;
+        }
+        .btn-secondary { background: #eef1f6; color: #444; }
+        .btn-primary {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+        .form-actions { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 18px; }
+        .message-box, .error-box {
+            border-radius: 6px;
+            padding: 15px;
+            margin-bottom: 20px;
+            font-size: 14px;
+            display: none;
+        }
+        .message-box { background: #ecfdf3; color: #027a48; }
+        .error-box { background: #fef3f2; color: #b42318; }
+        .hidden-row { display: none; }
+    </style>
+</head>
+<body>
+    <nav class="navbar">
+        <h1>Production Statistics Configuration</h1>
+        <div class="nav-links">
+            <a href="{{ url_for('dashboard') }}">Dashboard</a>
+            <a href="{{ url_for('logout') }}">Logout</a>
+        </div>
+    </nav>
+    <div class="container">
+        <a class="back-link" href="{{ url_for('dashboard') }}">&larr; Back to dashboard</a>
+        <div class="form-card">
+            <h2>Failure Mode Groups</h2>
+            <p class="help-text">
+                Assign each possible benchtest to a group used by the Production Statistics
+                grouped pie and bar plots. Defaults are generated from test names
+                (link: CRC/BER/GBTxRxRdy, fast readout: HG/LG slopes and maxdevs,
+                slow readout: currents and temperatures, electrical: E-Test and P-Test).
+            </p>
+            <div id="message-box" class="message-box"></div>
+            <div id="error-box" class="error-box"></div>
+            <div class="toolbar">
+                <input type="search" id="mode-search" placeholder="Filter tests">
+                <button type="button" class="btn btn-secondary" id="reset-defaults-btn">Reset to generated defaults</button>
+            </div>
+            <div id="group-legend" class="group-legend"></div>
+            <div class="table-wrap">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Section</th>
+                            <th>Test</th>
+                            <th>Caption</th>
+                            <th>Group</th>
+                        </tr>
+                    </thead>
+                    <tbody id="mode-table-body"></tbody>
+                </table>
+            </div>
+            <div class="form-actions">
+                <button type="button" class="btn btn-primary" id="save-btn">Save groups</button>
+                <button type="button" class="btn btn-secondary" id="reload-btn">Reload</button>
+            </div>
+        </div>
+    </div>
+    <script>
+        let groups = [];
+        let modes = [];
+
+        function showMessage(text, isError = false) {
+            const messageBox = document.getElementById('message-box');
+            const errorBox = document.getElementById('error-box');
+            messageBox.style.display = 'none';
+            errorBox.style.display = 'none';
+            const box = isError ? errorBox : messageBox;
+            box.textContent = text;
+            box.style.display = 'block';
+        }
+
+        function renderLegend() {
+            const legend = document.getElementById('group-legend');
+            legend.innerHTML = groups.map(group => `
+                <span class="group-legend-item">
+                    <span class="swatch" style="background:${group.color};"></span>
+                    ${group.name}
+                </span>
+            `).join('');
+        }
+
+        function groupOptions(selectedId) {
+            return groups.map(group => (
+                `<option value="${group.id}" ${group.id === selectedId ? 'selected' : ''}>${group.name}</option>`
+            )).join('');
+        }
+
+        function renderTable() {
+            const body = document.getElementById('mode-table-body');
+            const query = (document.getElementById('mode-search').value || '').trim().toLowerCase();
+            body.innerHTML = modes.map((mode, index) => {
+                const haystack = `${mode.section} ${mode.name} ${mode.caption}`.toLowerCase();
+                const hidden = query && !haystack.includes(query) ? 'hidden-row' : '';
+                return `
+                    <tr class="${hidden}" data-index="${index}">
+                        <td>${mode.section}</td>
+                        <td class="test-name">${mode.name}</td>
+                        <td class="caption">${mode.caption || ''}</td>
+                        <td>
+                            <select data-mode-index="${index}">
+                                ${groupOptions(mode.group_id)}
+                            </select>
+                        </td>
+                    </tr>
+                `;
+            }).join('');
+            body.querySelectorAll('select').forEach(select => {
+                select.addEventListener('change', () => {
+                    const index = Number(select.dataset.modeIndex);
+                    modes[index].group_id = select.value;
+                });
+            });
+        }
+
+        function collectMapping() {
+            const mapping = {};
+            modes.forEach(mode => {
+                mapping[mode.name] = mode.group_id;
+            });
+            return mapping;
+        }
+
+        async function loadConfig() {
+            const response = await fetch('/api/production_statistics/config');
+            const data = await response.json();
+            if (data.error || !data.success) {
+                throw new Error(data.error || 'Failed to load production statistics configuration.');
+            }
+            groups = data.config.groups || [];
+            modes = data.config.modes || [];
+            renderLegend();
+            renderTable();
+        }
+
+        document.getElementById('mode-search').addEventListener('input', renderTable);
+        document.getElementById('reset-defaults-btn').addEventListener('click', () => {
+            modes = modes.map(mode => ({
+                ...mode,
+                group_id: mode.default_group_id || mode.group_id,
+            }));
+            renderTable();
+        });
+        document.getElementById('reload-btn').addEventListener('click', async () => {
+            try {
+                await loadConfig();
+                showMessage('Configuration reloaded.');
+            } catch (error) {
+                showMessage(error.message || error, true);
+            }
+        });
+        document.getElementById('save-btn').addEventListener('click', async () => {
+            try {
+                const response = await fetch('/api/production_statistics/config', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        statistics_failure_mode_groups: collectMapping(),
+                    }),
+                });
+                const data = await response.json();
+                if (data.error || !data.success) {
+                    showMessage(data.error || 'Failed to save configuration.', true);
+                    return;
+                }
+                groups = data.config.groups || groups;
+                modes = data.config.modes || modes;
+                renderLegend();
+                renderTable();
+                showMessage('Failure mode groups saved.');
+            } catch (error) {
+                showMessage(error.message || error, true);
+            }
+        });
+
+        loadConfig().catch(error => showMessage(error.message || error, true));
+    </script>
+</body>
+</html>

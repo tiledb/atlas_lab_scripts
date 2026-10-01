@@ -4,6 +4,7 @@ import mysql.connector
 from mysql.connector import Error
 from ruamel.yaml import YAML
 import os
+import signal
 import subprocess
 import re
 import json
@@ -37,6 +38,13 @@ from burn_in import (
     build_burn_in_slot_management,
 )
 from benchtest_results import get_failed_tests_for_serial
+from benchtest_management import (
+    create_benchtest,
+    list_benchtests,
+    mark_benchtest_for_requalify,
+    mysql_integrity_message,
+    update_benchtest,
+)
 from long_burn_in import build_long_burn_in_overview, build_long_burn_in_plot
 from production_config import (
     SCHEDULE_CSV_PATH,
@@ -67,6 +75,7 @@ from mariadb_backup import (
     serialize_value,
     values_equal,
 )
+from dbq_process_manager import get_dbq_process_manager
 
 os.environ['TZ'] = 'UTC'
 app = Flask(__name__)
@@ -150,6 +159,7 @@ edit_local_config_template = "edit_local_config.html"
 edit_dbq_plot_template = "edit_dbq_plot.html"
 restore_mariadb_template = "restore_mariadb.html"
 burn_in_slots_template = "burn_in_slots.html"
+edit_benchtests_template = "edit_benchtests.html"
 
 def load_secrets():
     """Load database credentials from secrets.yaml."""
@@ -437,172 +447,299 @@ def fetch_all_benchtest_ids():
         conn.close()
 
 
-def run_dbq_mk6_for_benchtest(benchtest_id, regenerate_mode=None, daughterboard_id=None, timeout=1800):
-    """Run one DBQ_Mk6 process for a single benchtest ID."""
-    cmd = ['python3', str(DBQ_SCRIPT_PATH)]
+def _dbq_manager():
+    return get_dbq_process_manager(DBQ_SCRIPT_PATH)
+
+
+def _dbq_subprocess_env():
+    env = os.environ.copy()
+    env['PYTHONUNBUFFERED'] = '1'
+    env['PYTHONIOENCODING'] = 'utf-8'
+    return env
+
+
+def build_dbq_mk6_command(regenerate_mode=None, benchtest_id=None, daughterboard_id=None):
+    cmd = ['python3', '-u', str(DBQ_SCRIPT_PATH)]
     if regenerate_mode and regenerate_mode != 'none':
         cmd.extend(['-r', str(regenerate_mode)])
-    cmd.extend(['-b', str(benchtest_id)])
+    if benchtest_id is not None:
+        cmd.extend(['-b', str(benchtest_id)])
     if daughterboard_id:
         cmd.extend(['-d', str(daughterboard_id)])
-    return subprocess.run(
+    return cmd
+
+
+def iter_stream_subprocess(cmd, cwd=None, track_dbq=False, job_id=None):
+    """Yield stdout lines, then a {'__returncode__': int} sentinel."""
+    if track_dbq:
+        yield from _dbq_manager().iter_tracked_subprocess(
+            cmd,
+            cwd=cwd or SCRIPT_DIR,
+            env=_dbq_subprocess_env(),
+            job_id=job_id,
+        )
+        return
+
+    process = subprocess.Popen(
         cmd,
-        cwd=SCRIPT_DIR,
-        capture_output=True,
+        cwd=cwd or SCRIPT_DIR,
+        stdout=subprocess.PIPE,
+        stderr=subprocess.STDOUT,
         text=True,
-        timeout=timeout,
+        bufsize=1,
+        env=_dbq_subprocess_env(),
+        start_new_session=True,
     )
+    try:
+        for line in process.stdout:
+            yield line
+    except GeneratorExit:
+        try:
+            os.killpg(process.pid, signal.SIGTERM)
+        except Exception:
+            process.terminate()
+        try:
+            process.wait(timeout=5)
+        except subprocess.TimeoutExpired:
+            try:
+                os.killpg(process.pid, signal.SIGKILL)
+            except Exception:
+                process.kill()
+            process.wait()
+        raise
+    yield {'__returncode__': process.wait()}
 
 
-@app.route('/run_script', methods=['GET', 'POST'])
+def format_dbq_command_text(regenerate_mode=None, benchtest_id=None, daughterboard_id=None):
+    parts = ['python3', '-u', 'DBQ_Mk6.py']
+    if regenerate_mode and regenerate_mode != 'none':
+        parts.extend(['-r', str(regenerate_mode)])
+    if benchtest_id is not None and str(benchtest_id).strip() != '':
+        parts.extend(['-b', str(benchtest_id)])
+    if daughterboard_id:
+        parts.extend(['-d', str(daughterboard_id)])
+    return ' '.join(parts)
+
+
+def _dbq_conflict_response(status):
+    payload = dict(status or {})
+    payload['conflict'] = True
+    payload['error'] = 'DBQ_Mk6.py is already running'
+    return jsonify(payload), 409
+
+
+def begin_dbq_job_or_conflict(source, command, replace=False, allow_parallel=False):
+    conflict, job_id = _dbq_manager().begin_job(
+        source=source,
+        command=command,
+        replace=bool(replace),
+        allow_parallel=bool(allow_parallel),
+    )
+    if conflict:
+        return _dbq_conflict_response(conflict), None
+    return None, job_id
+
+
+def iter_dbq_script_run(
+    regenerate_mode,
+    specific_benchtest_ids,
+    specific_daughterboard_id,
+    job_id=None,
+):
+    """Stream DBQ_Mk6 (+ optional production plots) output line by line."""
+    scheduled_ids = parse_benchtest_id_spec(specific_benchtest_ids)
+    run_sequential = regenerate_mode == 'all' or len(scheduled_ids) > 1
+    daughterboard_id = specific_daughterboard_id or None
+
+    if run_sequential:
+        if not scheduled_ids:
+            scheduled_ids = fetch_all_benchtest_ids()
+        if not scheduled_ids:
+            yield 'No benchtest IDs found to process.\n'
+            return
+
+        yield (
+            f'Running DBQ_Mk6 sequentially for {len(scheduled_ids)} benchtest(s): '
+            f'{", ".join(str(i) for i in scheduled_ids)}\n'
+            '(one python process at a time to limit memory use)\n'
+        )
+        failures = []
+        for benchtest_id in scheduled_ids:
+            cmd = build_dbq_mk6_command(
+                regenerate_mode=regenerate_mode,
+                benchtest_id=benchtest_id,
+                daughterboard_id=daughterboard_id,
+            )
+            yield f'\n===== Benchtest {benchtest_id} =====\n'
+            yield f'$ {format_dbq_command_text(regenerate_mode, benchtest_id, daughterboard_id)}\n'
+            returncode = None
+            for chunk in iter_stream_subprocess(cmd, track_dbq=True, job_id=job_id):
+                if isinstance(chunk, dict) and '__returncode__' in chunk:
+                    returncode = chunk['__returncode__']
+                else:
+                    yield chunk
+            if returncode != 0:
+                failures.append(benchtest_id)
+                yield f'ERROR: benchtest {benchtest_id} failed (exit {returncode}).\n'
+            else:
+                yield f'OK: benchtest {benchtest_id} finished.\n'
+
+        if failures:
+            yield (
+                f'\nFinished with failures on benchtests: '
+                f'{", ".join(str(i) for i in failures)}\n'
+            )
+        else:
+            yield '\nAll scheduled benchtests finished successfully.\n'
+
+        if len(failures) < len(scheduled_ids):
+            yield '\n===== Production plots =====\n'
+            production_cmd = ['python3', '-u', str(PRODUCTION_PLOTS_PATH)]
+            returncode = None
+            for chunk in iter_stream_subprocess(production_cmd, track_dbq=False):
+                if isinstance(chunk, dict) and '__returncode__' in chunk:
+                    returncode = chunk['__returncode__']
+                else:
+                    yield chunk
+            if returncode == 0:
+                yield 'Production plots updated successfully.\n'
+            else:
+                yield (
+                    'Production plots update failed '
+                    '(DBQ_Mk6 sequential runs completed).\n'
+                )
+        return
+
+    cmd = build_dbq_mk6_command(
+        regenerate_mode=regenerate_mode,
+        benchtest_id=scheduled_ids[0] if scheduled_ids else None,
+        daughterboard_id=daughterboard_id,
+    )
+    yield f'$ {format_dbq_command_text(regenerate_mode, scheduled_ids[0] if scheduled_ids else None, daughterboard_id)}\n'
+    returncode = None
+    for chunk in iter_stream_subprocess(cmd, track_dbq=True, job_id=job_id):
+        if isinstance(chunk, dict) and '__returncode__' in chunk:
+            returncode = chunk['__returncode__']
+        else:
+            yield chunk
+    if returncode != 0:
+        yield f'\nError: DBQ_Mk6 failed with return code {returncode}\n'
+        return
+
+    yield '\nDBQ_Mk6 script executed successfully.\n'
+    yield '\n===== Production plots =====\n'
+    production_cmd = ['python3', '-u', str(PRODUCTION_PLOTS_PATH)]
+    prod_code = None
+    for chunk in iter_stream_subprocess(production_cmd, track_dbq=False):
+        if isinstance(chunk, dict) and '__returncode__' in chunk:
+            prod_code = chunk['__returncode__']
+        else:
+            yield chunk
+    if prod_code == 0:
+        yield 'Production plots updated successfully.\n'
+    else:
+        yield (
+            'Production plots update failed (but DBQ_Mk6 succeeded).\n'
+            f'Return code: {prod_code}\n'
+        )
+
+
+@app.route('/api/dbq_status')
+def dbq_status_api():
+    if not session.get('logged_in'):
+        return jsonify({'error': 'Not logged in'}), 401
+    proposed = request.args.get('command') or request.args.get('proposed_command') or ''
+    return jsonify(_dbq_manager().status(proposed_command=proposed or None))
+
+
+@app.route('/api/dbq_kill', methods=['POST'])
+def dbq_kill_api():
+    if not session.get('logged_in'):
+        return jsonify({'error': 'Not logged in'}), 401
+    if is_guest_mode():
+        return jsonify({'error': 'Not allowed in guest mode'}), 403
+    try:
+        result = _dbq_manager().kill_all()
+        status = _dbq_manager().status()
+        return jsonify({
+            'success': True,
+            'killed_pids': result.get('killed_pids') or [],
+            'remaining': result.get('remaining') or [],
+            'status': status,
+        })
+    except Exception as exc:
+        print(f'Error killing DBQ_Mk6: {exc}')
+        import traceback
+        traceback.print_exc()
+        return jsonify({'error': str(exc)}), 500
+
+
+@app.route('/run_script', methods=['GET'])
 def run_script():
     if not session.get('logged_in'):
         return redirect(url_for('login'))
     blocked = require_full_access()
     if blocked:
         return blocked
-    
-    message = ""
-    error = None
-    
-    if request.method == 'POST':
-        regenerate_mode = request.form.get('regenerate_mode') or 'none'
-        specific_benchtest_ids = request.form.get('specific_benchtest_ids')
-        specific_daughterboard_id = request.form.get('specific_daughterboard_id')
-        
+    return render_template(run_script_template)
+
+
+@app.route('/api/run_dbq_script', methods=['POST'])
+def run_dbq_script_api():
+    if not session.get('logged_in'):
+        return jsonify({'error': 'Not logged in'}), 401
+    if is_guest_mode():
+        return jsonify({'error': 'Not allowed in guest mode'}), 403
+
+    data = request.get_json(silent=True) or {}
+    regenerate_mode = data.get('regenerate_mode') or 'none'
+    specific_benchtest_ids = data.get('specific_benchtest_ids') or ''
+    specific_daughterboard_id = data.get('specific_daughterboard_id') or ''
+    replace = bool(data.get('replace'))
+    allow_parallel = bool(data.get('allow_parallel'))
+
+    try:
+        # Validate ID syntax before starting the stream.
+        parse_benchtest_id_spec(specific_benchtest_ids)
+    except ValueError as exc:
+        return jsonify({'error': str(exc)}), 400
+
+    command = format_dbq_command_text(
+        regenerate_mode,
+        specific_benchtest_ids or None,
+        specific_daughterboard_id or None,
+    )
+    conflict, job_id = begin_dbq_job_or_conflict(
+        'run_script',
+        command,
+        replace=replace,
+        allow_parallel=allow_parallel,
+    )
+    if conflict:
+        return conflict
+
+    def generate():
         try:
-            scheduled_ids = parse_benchtest_id_spec(specific_benchtest_ids)
-            run_sequential = (
-                regenerate_mode == 'all'
-                or len(scheduled_ids) > 1
-            )
+            for chunk in iter_dbq_script_run(
+                regenerate_mode,
+                specific_benchtest_ids,
+                specific_daughterboard_id,
+                job_id=job_id,
+            ):
+                yield chunk
+        except Exception as exc:
+            yield f'\nError running script: {exc}\n'
+        finally:
+            _dbq_manager().end_job(job_id)
 
-            if run_sequential:
-                if not scheduled_ids:
-                    scheduled_ids = fetch_all_benchtest_ids()
-                if not scheduled_ids:
-                    error = 'No benchtest IDs found to process.'
-                else:
-                    output_chunks = [
-                        f'Running DBQ_Mk6 sequentially for {len(scheduled_ids)} benchtest(s): '
-                        f'{", ".join(str(i) for i in scheduled_ids)}\n'
-                        f'(one python process at a time to limit memory use)\n'
-                    ]
-                    failures = []
-                    for benchtest_id in scheduled_ids:
-                        output_chunks.append(f'\n===== Benchtest {benchtest_id} =====\n')
-                        output_chunks.append(
-                            f'$ python3 DBQ_Mk6.py'
-                            f'{"" if regenerate_mode == "none" else f" -r {regenerate_mode}"}'
-                            f' -b {benchtest_id}'
-                            f'{"" if not specific_daughterboard_id else f" -d {specific_daughterboard_id}"}\n'
-                        )
-                        try:
-                            result = run_dbq_mk6_for_benchtest(
-                                benchtest_id,
-                                regenerate_mode=regenerate_mode,
-                                daughterboard_id=specific_daughterboard_id or None,
-                            )
-                        except subprocess.TimeoutExpired:
-                            failures.append(benchtest_id)
-                            output_chunks.append(
-                                f'ERROR: benchtest {benchtest_id} timed out.\n'
-                            )
-                            continue
-
-                        if result.stdout:
-                            output_chunks.append(result.stdout)
-                        if result.stderr:
-                            output_chunks.append(result.stderr)
-                        if result.returncode != 0:
-                            failures.append(benchtest_id)
-                            output_chunks.append(
-                                f'ERROR: benchtest {benchtest_id} failed '
-                                f'(exit {result.returncode}).\n'
-                            )
-                        else:
-                            output_chunks.append(
-                                f'OK: benchtest {benchtest_id} finished.\n'
-                            )
-
-                    if failures:
-                        output_chunks.append(
-                            f'\nFinished with failures on benchtests: '
-                            f'{", ".join(str(i) for i in failures)}\n'
-                        )
-                    else:
-                        output_chunks.append('\nAll scheduled benchtests finished successfully.\n')
-
-                    # Refresh production plots once after the sequential batch
-                    if len(failures) < len(scheduled_ids):
-                        output_chunks.append('\n===== Production plots =====\n')
-                        production_cmd = ['python3', str(PRODUCTION_PLOTS_PATH)]
-                        production_result = subprocess.run(
-                            production_cmd,
-                            cwd=SCRIPT_DIR,
-                            capture_output=True,
-                            text=True,
-                            timeout=1800,
-                        )
-                        if production_result.stdout:
-                            output_chunks.append(production_result.stdout)
-                        if production_result.stderr:
-                            output_chunks.append(production_result.stderr)
-                        if production_result.returncode == 0:
-                            output_chunks.append('Production plots updated successfully.\n')
-                        else:
-                            output_chunks.append(
-                                'Production plots update failed '
-                                '(DBQ_Mk6 sequential runs completed).\n'
-                            )
-
-                    message = ''.join(output_chunks)
-                    if failures and not message:
-                        error = f'Failed benchtests: {", ".join(str(i) for i in failures)}'
-            else:
-                # Single benchtest (or non-all mode with no / one ID): one process
-                cmd = ['python3', str(DBQ_SCRIPT_PATH)]
-                if regenerate_mode and regenerate_mode != 'none':
-                    cmd.extend(['-r', regenerate_mode])
-                if scheduled_ids:
-                    cmd.extend(['-b', str(scheduled_ids[0])])
-                if specific_daughterboard_id:
-                    cmd.extend(['-d', specific_daughterboard_id])
-
-                result = subprocess.run(
-                    cmd,
-                    cwd=SCRIPT_DIR,
-                    capture_output=True,
-                    text=True,
-                    timeout=1800,
-                )
-
-                if result.returncode == 0:
-                    message = f"DBQ_Mk6 script executed successfully.\n{result.stdout}\n\n"
-                    production_cmd = ['python3', str(PRODUCTION_PLOTS_PATH)]
-                    production_result = subprocess.run(
-                        production_cmd,
-                        cwd=SCRIPT_DIR,
-                        capture_output=True,
-                        text=True,
-                        timeout=1800,
-                    )
-                    if production_result.returncode == 0:
-                        message += f"Production plots updated successfully.\n{production_result.stdout}"
-                    else:
-                        message += (
-                            "Production plots update failed (but DBQ_Mk6 succeeded).\n"
-                            f"Error: {production_result.stderr}"
-                        )
-                else:
-                    error = f"DBQ_Mk6 script execution failed. Error:\n{result.stderr}"
-
-        except subprocess.TimeoutExpired:
-            error = "Script execution timed out."
-        except Exception as e:
-            error = f"Error running script: {str(e)}"
-    
-    return render_template(run_script_template, message=message, error=error)
+    return Response(
+        stream_with_context(generate()),
+        mimetype='text/plain; charset=utf-8',
+        headers={
+            'Cache-Control': 'no-cache',
+            'X-Accel-Buffering': 'no',
+        },
+    )
 
 
 def _require_tools_api():
@@ -1122,6 +1259,16 @@ def burn_in_slots_page():
     if blocked:
         return blocked
     return render_template(burn_in_slots_template)
+
+
+@app.route('/edit_benchtests')
+def edit_benchtests():
+    if not session.get('logged_in'):
+        return redirect(url_for('login'))
+    blocked = require_full_access()
+    if blocked:
+        return blocked
+    return render_template(edit_benchtests_template)
 
 @app.route('/edit_long_burn_in')
 def edit_long_burn_in():
@@ -2280,6 +2427,210 @@ def declare_burn_in_slot():
             conn.close()
 
 
+def _benchtest_api_guard():
+    if not session.get('logged_in'):
+        return jsonify({'error': 'Not logged in'}), 401
+    if is_guest_mode():
+        return jsonify({'error': 'Not allowed in guest mode'}), 403
+    return None
+
+
+def _parse_benchtest_id(value):
+    try:
+        benchtest_id = int(value)
+    except (TypeError, ValueError):
+        return None
+    if benchtest_id <= 0:
+        return None
+    return benchtest_id
+
+
+@app.route('/api/benchtests')
+def benchtests_api():
+    blocked = _benchtest_api_guard()
+    if blocked:
+        return blocked
+    conn = None
+    cursor = None
+    try:
+        conn = get_db_connection()
+        if not conn:
+            return jsonify({'error': 'Database connection failed'}), 500
+        cursor = conn.cursor(dictionary=True)
+        return jsonify(list_benchtests(cursor))
+    except Exception as e:
+        print(f'Error listing benchtests: {e}')
+        import traceback
+        traceback.print_exc()
+        return jsonify({'error': str(e)}), 500
+    finally:
+        if cursor is not None:
+            cursor.close()
+        if conn is not None:
+            conn.close()
+
+
+@app.route('/api/benchtests', methods=['POST'])
+def create_benchtest_api():
+    blocked = _benchtest_api_guard()
+    if blocked:
+        return blocked
+    conn = None
+    cursor = None
+    try:
+        data = request.get_json(silent=True) or {}
+        conn = get_db_connection()
+        if not conn:
+            return jsonify({'error': 'Database connection failed'}), 500
+        cursor = conn.cursor(dictionary=True)
+        error, benchtest = create_benchtest(cursor, data)
+        if error:
+            status = 404 if error.startswith('Board not found') else 400
+            return jsonify({'error': error}), status
+        conn.commit()
+        return jsonify({'success': True, 'benchtest': benchtest})
+    except Error as e:
+        if conn is not None:
+            conn.rollback()
+        return jsonify({'error': mysql_integrity_message(e)}), 400
+    except Exception as e:
+        if conn is not None:
+            conn.rollback()
+        print(f'Error creating benchtest: {e}')
+        import traceback
+        traceback.print_exc()
+        return jsonify({'error': str(e)}), 500
+    finally:
+        if cursor is not None:
+            cursor.close()
+        if conn is not None:
+            conn.close()
+
+
+@app.route('/api/benchtests/<benchtest_id>', methods=['PUT'])
+def update_benchtest_api(benchtest_id):
+    blocked = _benchtest_api_guard()
+    if blocked:
+        return blocked
+    parsed_id = _parse_benchtest_id(benchtest_id)
+    if parsed_id is None:
+        return jsonify({'error': 'Invalid benchtest ID'}), 400
+    conn = None
+    cursor = None
+    try:
+        data = request.get_json(silent=True) or {}
+        conn = get_db_connection()
+        if not conn:
+            return jsonify({'error': 'Database connection failed'}), 500
+        cursor = conn.cursor(dictionary=True)
+        error, benchtest = update_benchtest(cursor, parsed_id, data)
+        if error:
+            status = 404 if 'not found' in error.lower() else 400
+            return jsonify({'error': error}), status
+        conn.commit()
+        return jsonify({'success': True, 'benchtest': benchtest})
+    except Error as e:
+        if conn is not None:
+            conn.rollback()
+        return jsonify({'error': mysql_integrity_message(e)}), 400
+    except Exception as e:
+        if conn is not None:
+            conn.rollback()
+        print(f'Error updating benchtest: {e}')
+        import traceback
+        traceback.print_exc()
+        return jsonify({'error': str(e)}), 500
+    finally:
+        if cursor is not None:
+            cursor.close()
+        if conn is not None:
+            conn.close()
+
+
+@app.route('/api/benchtests/<benchtest_id>/requalify', methods=['POST'])
+def requalify_benchtest_api(benchtest_id):
+    blocked = _benchtest_api_guard()
+    if blocked:
+        return blocked
+    parsed_id = _parse_benchtest_id(benchtest_id)
+    if parsed_id is None:
+        return jsonify({'error': 'Invalid benchtest ID'}), 400
+
+    data = request.get_json(silent=True) or {}
+    replace = bool(data.get('replace'))
+    allow_parallel = bool(data.get('allow_parallel'))
+    command = format_dbq_command_text('all', parsed_id)
+    conflict, job_id = begin_dbq_job_or_conflict(
+        'requalify',
+        command,
+        replace=replace,
+        allow_parallel=allow_parallel,
+    )
+    if conflict:
+        return conflict
+
+    conn = None
+    cursor = None
+    try:
+        conn = get_db_connection()
+        if not conn:
+            _dbq_manager().end_job(job_id)
+            return jsonify({'error': 'Database connection failed'}), 500
+        cursor = conn.cursor(dictionary=True)
+        error, benchtest = mark_benchtest_for_requalify(cursor, parsed_id)
+        if error:
+            _dbq_manager().end_job(job_id)
+            return jsonify({'error': error}), 404
+        conn.commit()
+    except Exception as e:
+        _dbq_manager().end_job(job_id)
+        if conn is not None:
+            conn.rollback()
+        print(f'Error preparing benchtest requalify: {e}')
+        import traceback
+        traceback.print_exc()
+        return jsonify({'error': str(e)}), 500
+    finally:
+        if cursor is not None:
+            cursor.close()
+        if conn is not None:
+            conn.close()
+
+    cmd = build_dbq_mk6_command(regenerate_mode='all', benchtest_id=parsed_id)
+
+    def generate():
+        try:
+            yield (
+                f'Reset test_pass to 0 for benchtest #{parsed_id}.\n'
+                f'$ {format_dbq_command_text("all", parsed_id)}\n\n'
+            )
+            returncode = None
+            try:
+                for chunk in iter_stream_subprocess(cmd, track_dbq=True, job_id=job_id):
+                    if isinstance(chunk, dict) and '__returncode__' in chunk:
+                        returncode = chunk['__returncode__']
+                    else:
+                        yield chunk
+            except Exception as exc:
+                yield f'\nError running DBQ_Mk6: {exc}\n'
+                return
+            if returncode != 0:
+                yield f'\nError: Script failed with return code {returncode}\n'
+            else:
+                yield '\nRequalify finished successfully.\n'
+        finally:
+            _dbq_manager().end_job(job_id)
+
+    return Response(
+        stream_with_context(generate()),
+        mimetype='text/plain; charset=utf-8',
+        headers={
+            'Cache-Control': 'no-cache',
+            'X-Accel-Buffering': 'no',
+        },
+    )
+
+
 @app.route('/api/rerun_analysis', methods=['POST'])
 def rerun_analysis():
     if not session.get('logged_in'):
@@ -2288,44 +2639,49 @@ def rerun_analysis():
         return jsonify({'error': 'Not allowed in guest mode'}), 403
     
     try:
-        data = request.get_json()
+        data = request.get_json(silent=True) or {}
         serial_no = data.get('serial_no')
+        replace = bool(data.get('replace'))
+        allow_parallel = bool(data.get('allow_parallel'))
         
         if not serial_no:
             return jsonify({'error': 'Serial number required'}), 400
+
+        command = format_dbq_command_text('all', None, str(serial_no))
+        conflict, job_id = begin_dbq_job_or_conflict(
+            'rerun_analysis',
+            command,
+            replace=replace,
+            allow_parallel=allow_parallel,
+        )
+        if conflict:
+            return conflict
         
         def generate():
-            import subprocess
-            import sys
-            
-            # Run DBQ_Mk6.py for the specific board using -r all -d (board number)
-            cmd = ['python3', str(DBQ_SCRIPT_PATH), '-r', 'all', '-d', str(serial_no)]
-            
-            process = subprocess.Popen(
-                cmd,
-                cwd=SCRIPT_DIR,
-                stdout=subprocess.PIPE,
-                stderr=subprocess.STDOUT,
-                text=True,
-                bufsize=1
-            )
-            
             try:
-                for line in process.stdout:
-                    yield line
-            except GeneratorExit:
-                # Client disconnected, kill the process
-                process.terminate()
-                process.wait()
-                yield "\n\nScript terminated by user.\n"
-            
-            process.wait()
-            
-            if process.returncode != 0:
-                yield f"\nError: Script failed with return code {process.returncode}\n"
+                cmd = build_dbq_mk6_command(
+                    regenerate_mode='all',
+                    daughterboard_id=str(serial_no),
+                )
+                returncode = None
+                for chunk in iter_stream_subprocess(cmd, track_dbq=True, job_id=job_id):
+                    if isinstance(chunk, dict) and '__returncode__' in chunk:
+                        returncode = chunk['__returncode__']
+                    else:
+                        yield chunk
+                if returncode != 0:
+                    yield f"\nError: Script failed with return code {returncode}\n"
+            finally:
+                _dbq_manager().end_job(job_id)
         
-        from flask import Response
-        return Response(generate(), mimetype='text/plain')
+        return Response(
+            stream_with_context(generate()),
+            mimetype='text/plain; charset=utf-8',
+            headers={
+                'Cache-Control': 'no-cache',
+                'X-Accel-Buffering': 'no',
+            },
+        )
         
     except Exception as e:
         print(f"Error running analysis: {e}")

@@ -1,0 +1,738 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DBQ Admin - Benchtest management</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            background: #f5f7fa;
+            min-height: 100vh;
+            color: #333;
+        }
+
+        .navbar {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            padding: 20px 40px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+        }
+
+        .navbar h1 { color: white; font-size: 24px; font-weight: 600; }
+
+        .nav-links { display: flex; gap: 20px; }
+        .nav-links a { color: white; text-decoration: none; font-size: 14px; opacity: 0.9; }
+        .nav-links a:hover { opacity: 1; }
+
+        .container { max-width: 1280px; margin: 40px auto; padding: 0 20px 48px; }
+
+        .back-link {
+            display: inline-block;
+            margin-bottom: 20px;
+            color: #667eea;
+            text-decoration: none;
+            font-size: 14px;
+        }
+        .back-link:hover { text-decoration: underline; }
+
+        .card {
+            background: white;
+            border-radius: 12px;
+            padding: 28px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+            margin-bottom: 24px;
+        }
+
+        .card h2 { font-size: 22px; margin-bottom: 8px; }
+        .help { color: #666; font-size: 14px; line-height: 1.45; margin-bottom: 18px; }
+
+        table { width: 100%; border-collapse: collapse; font-size: 14px; }
+        th, td { text-align: left; padding: 8px 10px; border-bottom: 1px solid #e8ecf1; vertical-align: top; }
+        th { font-size: 12px; text-transform: uppercase; letter-spacing: 0.03em; color: #667; background: #f8f9fb; }
+        tr.selected td { background: #eef2ff; }
+        tbody tr { cursor: pointer; }
+        tbody tr:hover td { background: #f7f8fc; }
+        tbody tr.selected:hover td { background: #e8edff; }
+
+        .table-wrap {
+            max-height: 560px;
+            overflow: auto;
+            border: 1px solid #e1e5e9;
+            border-radius: 8px;
+        }
+        .table-wrap thead th { position: sticky; top: 0; z-index: 1; }
+
+        .mono { font-variant-numeric: tabular-nums; }
+
+        .pass-unknown { color: #555; }
+        .pass-passed { color: #0f766e; font-weight: 600; }
+        .pass-failed { color: #b42318; font-weight: 600; }
+        .pass-ignored { color: #9a6700; }
+
+        .form-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 16px;
+            margin-bottom: 18px;
+        }
+        .form-grid.slots {
+            grid-template-columns: repeat(4, 1fr);
+        }
+        .form-grid label, .filters label {
+            display: block;
+            font-size: 13px;
+            font-weight: 600;
+            color: #555;
+            margin-bottom: 6px;
+        }
+        input[type="text"], input[type="number"], input[type="datetime-local"], input[type="search"] {
+            width: 100%;
+            padding: 10px 12px;
+            border: 2px solid #e1e5e9;
+            border-radius: 6px;
+            font-size: 14px;
+            font-family: inherit;
+        }
+        input:focus { outline: none; border-color: #667eea; }
+        input:disabled, .readonly-field {
+            background: #f3f4f6;
+            color: #666;
+        }
+        input.warn-missing {
+            border-color: #d97706;
+            background: #fffbeb;
+        }
+        .slot-warn {
+            display: none;
+            margin-top: 6px;
+            font-size: 12px;
+            color: #9a6700;
+            line-height: 1.35;
+        }
+        .slot-warn.visible { display: block; }
+
+        .result-note {
+            font-size: 12px;
+            color: #666;
+            margin-top: 6px;
+            line-height: 1.35;
+        }
+
+        .filters {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 12px;
+            align-items: end;
+            margin: 8px 0 12px;
+        }
+        .filters .field { min-width: 220px; flex: 1; }
+
+        .toolbar {
+            display: flex;
+            justify-content: space-between;
+            gap: 12px;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+        .actions { display: flex; gap: 10px; flex-wrap: wrap; }
+
+        .save-btn, .text-btn, .requalify-btn {
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 600;
+        }
+        .save-btn {
+            background: #667eea;
+            color: white;
+            padding: 12px 18px;
+            font-size: 15px;
+        }
+        .save-btn:hover { background: #5a67d8; }
+        .save-btn:disabled, .requalify-btn:disabled, .text-btn:disabled { opacity: 0.6; cursor: wait; }
+        .text-btn {
+            background: #f5f5f5;
+            color: #555;
+            padding: 12px 18px;
+        }
+        .text-btn:hover { background: #ececec; }
+        .requalify-btn {
+            background: #0f766e;
+            color: white;
+            padding: 12px 18px;
+            display: none;
+        }
+        .requalify-btn.visible { display: inline-block; }
+        .requalify-btn:hover { background: #0d9488; }
+
+        .message {
+            display: none;
+            border-radius: 6px;
+            padding: 12px 14px;
+            margin-bottom: 16px;
+            font-size: 14px;
+            line-height: 1.4;
+        }
+        .message.error { display: block; background: #fef2f2; color: #991b1b; border: 1px solid #fecaca; }
+        .message.success { display: block; background: #ecfdf3; color: #166534; border: 1px solid #bbf7d0; }
+        .message.warn { display: block; background: #fffbeb; color: #92400e; border: 1px solid #fde68a; }
+
+        .empty { color: #777; padding: 18px; text-align: center; }
+
+        .terminal-box {
+            background: #1e1e1e;
+            border: none;
+            border-radius: 0;
+            padding: 15px;
+            color: #d4d4d4;
+            font-size: 13px;
+            font-family: 'Courier New', monospace;
+            white-space: pre-wrap;
+            max-height: 420px;
+            overflow-y: auto;
+            word-wrap: break-word;
+            display: block;
+        }
+        .terminal-label {
+            display: none;
+            color: #888;
+            font-size: 12px;
+            margin: 16px 0 8px;
+            font-weight: 500;
+        }
+        .terminal-label.visible { display: block; }
+        .dbq-terminal-shell.requalify-hidden { display: none !important; }
+        .terminal-box.running { outline: 1px solid #667eea; }
+
+        @media (max-width: 900px) {
+            .form-grid, .form-grid.slots { grid-template-columns: 1fr 1fr; }
+            .navbar { padding: 16px 20px; }
+        }
+        @media (max-width: 600px) {
+            .form-grid, .form-grid.slots { grid-template-columns: 1fr; }
+        }
+    </style>
+</head>
+<body>
+    <nav class="navbar">
+        <h1>DBQ Admin Panel</h1>
+        <div class="nav-links">
+            <a href="{{ url_for('dashboard') }}#advanced-tools">Dashboard</a>
+            <a href="{{ url_for('logout') }}">Logout</a>
+        </div>
+    </nav>
+
+    <div class="container">
+        <a class="back-link" href="{{ url_for('dashboard') }}#advanced-tools">← Back to Advanced Tools</a>
+
+        <div class="card">
+            <h2 id="form-title">Create benchtest</h2>
+            <p class="help">Create a new benchtest or click a row below to edit it. Leave ID blank to auto-assign. Result starts at 0 and is set by DBQ_Mk6. Slot serials use a dropdown list and also accept manual input.</p>
+            <div id="form-message" class="message"></div>
+            <form id="benchtest-form">
+                <div class="form-grid">
+                    <div>
+                        <label for="benchtest-id">ID</label>
+                        <input type="number" id="benchtest-id" min="1" step="1" placeholder="Auto">
+                    </div>
+                    <div>
+                        <label for="test-pass-display">Result</label>
+                        <input type="text" id="test-pass-display" class="readonly-field" value="0 — Pending / Failed" disabled>
+                        <p class="result-note">Result cannot be edited here. New benchtests start at 0 until DBQ_Mk6 runs.</p>
+                    </div>
+                    <div>
+                        <label for="test-start">Test start</label>
+                        <input type="datetime-local" id="test-start">
+                    </div>
+                    <div>
+                        <label for="test-stop">Test stop</label>
+                        <input type="datetime-local" id="test-stop">
+                    </div>
+                    <div>
+                        <label for="test-op">Operator</label>
+                        <input type="text" id="test-op" maxlength="255" list="operator-list" autocomplete="off">
+                        <datalist id="operator-list"></datalist>
+                    </div>
+                </div>
+                <div class="form-grid slots">
+                    <div>
+                        <label for="db-slot1">Slot 1 serial</label>
+                        <input type="text" id="db-slot1" list="serial-list" autocomplete="off" inputmode="numeric">
+                        <div class="slot-warn" id="db-slot1-warn">Serial not found in daughterboard table.</div>
+                    </div>
+                    <div>
+                        <label for="db-slot2">Slot 2 serial</label>
+                        <input type="text" id="db-slot2" list="serial-list" autocomplete="off" inputmode="numeric">
+                        <div class="slot-warn" id="db-slot2-warn">Serial not found in daughterboard table.</div>
+                    </div>
+                    <div>
+                        <label for="db-slot3">Slot 3 serial</label>
+                        <input type="text" id="db-slot3" list="serial-list" autocomplete="off" inputmode="numeric">
+                        <div class="slot-warn" id="db-slot3-warn">Serial not found in daughterboard table.</div>
+                    </div>
+                    <div>
+                        <label for="db-slot4">Slot 4 serial</label>
+                        <input type="text" id="db-slot4" list="serial-list" autocomplete="off" inputmode="numeric">
+                        <div class="slot-warn" id="db-slot4-warn">Serial not found in daughterboard table.</div>
+                    </div>
+                </div>
+                <datalist id="serial-list"></datalist>
+                <div class="toolbar">
+                    <div class="actions">
+                        <button type="submit" class="save-btn" id="save-btn">Create benchtest</button>
+                        <button type="button" class="requalify-btn" id="requalify-btn">Requalify benchtest</button>
+                        <button type="button" class="text-btn" id="stop-btn" style="display:none;">Stop</button>
+                        <button type="button" class="text-btn" id="new-btn">New benchtest</button>
+                    </div>
+                </div>
+            </form>
+            <div class="terminal-label" id="terminal-label">Requalify terminal</div>
+            <div class="terminal-box" id="terminal-output"></div>
+        </div>
+
+        <div class="card">
+            <h2>Existing benchtests</h2>
+            <p class="help">Newest IDs first. Click a row to load it into the form.</p>
+            <div class="filters">
+                <div class="field">
+                    <label for="search">Search</label>
+                    <input type="search" id="search" placeholder="ID, operator, serial, result">
+                </div>
+            </div>
+            <div id="list-message" class="empty">Loading benchtests...</div>
+            <div class="table-wrap" id="list-wrap" style="display: none;">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>ID</th>
+                            <th>Start</th>
+                            <th>Stop</th>
+                            <th>Operator</th>
+                            <th>Result</th>
+                            <th>Slot 1</th>
+                            <th>Slot 2</th>
+                            <th>Slot 3</th>
+                            <th>Slot 4</th>
+                        </tr>
+                    </thead>
+                    <tbody id="benchtest-tbody"></tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <script src="{{ url_for('static', filename='dbq_terminal.js') }}"></script>
+    <script src="{{ url_for('static', filename='dbq_guard.js') }}"></script>
+    <script>
+        const form = document.getElementById('benchtest-form');
+        const formTitle = document.getElementById('form-title');
+        const formMessage = document.getElementById('form-message');
+        const listMessage = document.getElementById('list-message');
+        const listWrap = document.getElementById('list-wrap');
+        const tbody = document.getElementById('benchtest-tbody');
+        const saveBtn = document.getElementById('save-btn');
+        const newBtn = document.getElementById('new-btn');
+        const requalifyBtn = document.getElementById('requalify-btn');
+        const stopBtn = document.getElementById('stop-btn');
+        const searchInput = document.getElementById('search');
+        const operatorList = document.getElementById('operator-list');
+        const serialList = document.getElementById('serial-list');
+        const resultDisplay = document.getElementById('test-pass-display');
+        const terminalLabel = document.getElementById('terminal-label');
+        const terminalOutput = document.getElementById('terminal-output');
+        const terminal = DbqTerminal.attach({
+            outputEl: terminalOutput,
+            scrollEl: terminalOutput,
+            storageKey: 'requalify_terminal',
+            defaultMaxLines: 5000,
+            defaultAutoscroll: true,
+        });
+        terminal.hide();
+        const idInput = document.getElementById('benchtest-id');
+        const slotIds = ['db-slot1', 'db-slot2', 'db-slot3', 'db-slot4'];
+        const fields = {
+            id: idInput,
+            test_start: document.getElementById('test-start'),
+            test_stop: document.getElementById('test-stop'),
+            test_op: document.getElementById('test-op'),
+            db_slot1: document.getElementById('db-slot1'),
+            db_slot2: document.getElementById('db-slot2'),
+            db_slot3: document.getElementById('db-slot3'),
+            db_slot4: document.getElementById('db-slot4'),
+        };
+
+        let benchtests = [];
+        let knownSerials = new Set();
+        let editingId = null;
+        let selectedId = null;
+        let abortController = null;
+
+        function showMessage(el, text, kind) {
+            el.className = 'message ' + kind;
+            el.textContent = text;
+            el.style.display = text ? 'block' : 'none';
+        }
+
+        function toLocalInput(value) {
+            if (!value) return '';
+            return String(value).replace(' ', 'T').slice(0, 16);
+        }
+
+        function passClass(value) {
+            if (value === 1) return 'pass-passed';
+            if (value === 0) return 'pass-failed';
+            if (value === -1) return 'pass-ignored';
+            return 'pass-unknown';
+        }
+
+        function resultLabel(value, label) {
+            if (label) return `${value} — ${label}`;
+            return String(value);
+        }
+
+        function cell(value) {
+            return value === null || value === undefined || value === '' ? '' : String(value);
+        }
+
+        function validateSlot(input) {
+            const warn = document.getElementById(`${input.id}-warn`);
+            const raw = input.value.trim();
+            if (!raw) {
+                input.classList.remove('warn-missing');
+                warn.classList.remove('visible');
+                return true;
+            }
+            if (!/^\d+$/.test(raw)) {
+                input.classList.add('warn-missing');
+                warn.textContent = 'Serial must be a positive integer.';
+                warn.classList.add('visible');
+                return false;
+            }
+            const serial = Number(raw);
+            if (!knownSerials.has(serial)) {
+                input.classList.add('warn-missing');
+                warn.textContent = `Serial ${serial} is not in the daughterboard table.`;
+                warn.classList.add('visible');
+                return false;
+            }
+            input.classList.remove('warn-missing');
+            warn.classList.remove('visible');
+            return true;
+        }
+
+        function validateAllSlots() {
+            return slotIds.map(id => validateSlot(document.getElementById(id))).every(Boolean);
+        }
+
+        function setCreateMode() {
+            editingId = null;
+            selectedId = null;
+            formTitle.textContent = 'Create benchtest';
+            saveBtn.textContent = 'Create benchtest';
+            requalifyBtn.classList.remove('visible');
+            idInput.disabled = false;
+            idInput.value = '';
+            fields.test_start.value = '';
+            fields.test_stop.value = '';
+            fields.test_op.value = '';
+            resultDisplay.value = '0 — Pending / Failed';
+            fields.db_slot1.value = '';
+            fields.db_slot2.value = '';
+            fields.db_slot3.value = '';
+            fields.db_slot4.value = '';
+            validateAllSlots();
+            highlightSelected();
+        }
+
+        function loadRow(row) {
+            editingId = row.id;
+            selectedId = row.id;
+            formTitle.textContent = 'Edit benchtest #' + row.id;
+            saveBtn.textContent = 'Save changes';
+            requalifyBtn.classList.add('visible');
+            idInput.disabled = true;
+            idInput.value = row.id;
+            fields.test_start.value = toLocalInput(row.test_start);
+            fields.test_stop.value = toLocalInput(row.test_stop);
+            fields.test_op.value = row.test_op || '';
+            resultDisplay.value = resultLabel(row.test_pass, row.test_pass_label);
+            fields.db_slot1.value = cell(row.db_slot1);
+            fields.db_slot2.value = cell(row.db_slot2);
+            fields.db_slot3.value = cell(row.db_slot3);
+            fields.db_slot4.value = cell(row.db_slot4);
+            validateAllSlots();
+            highlightSelected();
+        }
+
+        function formPayload() {
+            return {
+                id: idInput.value,
+                test_start: fields.test_start.value,
+                test_stop: fields.test_stop.value,
+                test_op: fields.test_op.value,
+                db_slot1: fields.db_slot1.value,
+                db_slot2: fields.db_slot2.value,
+                db_slot3: fields.db_slot3.value,
+                db_slot4: fields.db_slot4.value,
+            };
+        }
+
+        function matchesSearch(row, query) {
+            if (!query) return true;
+            const hay = [
+                row.id,
+                row.test_start,
+                row.test_stop,
+                row.test_op,
+                row.test_pass_label,
+                row.db_slot1,
+                row.db_slot2,
+                row.db_slot3,
+                row.db_slot4,
+            ].map(value => String(value || '').toLowerCase()).join(' ');
+            return hay.includes(query);
+        }
+
+        function highlightSelected() {
+            tbody.querySelectorAll('tr').forEach(tr => {
+                tr.classList.toggle('selected', String(tr.dataset.id) === String(selectedId));
+            });
+        }
+
+        function renderTable() {
+            const query = searchInput.value.trim().toLowerCase();
+            const rows = benchtests.filter(row => matchesSearch(row, query));
+            tbody.innerHTML = '';
+            if (!rows.length) {
+                listWrap.style.display = 'none';
+                listMessage.style.display = 'block';
+                listMessage.textContent = benchtests.length ? 'No benchtests match the search.' : 'No benchtests found.';
+                return;
+            }
+            listMessage.style.display = 'none';
+            listWrap.style.display = 'block';
+            const fragment = document.createDocumentFragment();
+            rows.forEach(row => {
+                const tr = document.createElement('tr');
+                tr.dataset.id = String(row.id);
+                tr.innerHTML = `
+                    <td class="mono">${cell(row.id)}</td>
+                    <td class="mono">${cell(row.test_start)}</td>
+                    <td class="mono">${cell(row.test_stop)}</td>
+                    <td>${cell(row.test_op)}</td>
+                    <td class="${passClass(row.test_pass)}">${cell(row.test_pass_label)}</td>
+                    <td class="mono">${cell(row.db_slot1)}</td>
+                    <td class="mono">${cell(row.db_slot2)}</td>
+                    <td class="mono">${cell(row.db_slot3)}</td>
+                    <td class="mono">${cell(row.db_slot4)}</td>
+                `;
+                tr.addEventListener('click', () => {
+                    showMessage(formMessage, '', 'success');
+                    loadRow(row);
+                });
+                fragment.appendChild(tr);
+            });
+            tbody.appendChild(fragment);
+            highlightSelected();
+        }
+
+        function fillOperators(operators) {
+            operatorList.innerHTML = '';
+            (operators || []).forEach(name => {
+                const option = document.createElement('option');
+                option.value = name;
+                operatorList.appendChild(option);
+            });
+        }
+
+        function fillSerials(serials) {
+            knownSerials = new Set((serials || []).map(Number));
+            serialList.innerHTML = '';
+            (serials || []).forEach(serial => {
+                const option = document.createElement('option');
+                option.value = String(serial);
+                serialList.appendChild(option);
+            });
+            validateAllSlots();
+        }
+
+        async function loadBenchtests(selectId) {
+            listMessage.style.display = 'block';
+            listMessage.textContent = 'Loading benchtests...';
+            const response = await fetch('/api/benchtests');
+            const data = await response.json();
+            if (!response.ok || !data.success) {
+                throw new Error(data.error || 'Failed to load benchtests');
+            }
+            benchtests = data.benchtests || [];
+            fillOperators(data.operators);
+            fillSerials(data.serials);
+            if (selectId) {
+                const row = benchtests.find(item => item.id === selectId);
+                if (row) loadRow(row);
+            }
+            renderTable();
+            return data;
+        }
+
+        function appendTerminal(text) {
+            terminal.append(text);
+        }
+
+        function setRequalifyRunning(running) {
+            requalifyBtn.disabled = running;
+            saveBtn.disabled = running;
+            newBtn.disabled = running;
+            stopBtn.style.display = running ? 'inline-block' : 'none';
+            terminalOutput.classList.toggle('running', running);
+            if (!running) abortController = null;
+        }
+
+        newBtn.addEventListener('click', () => {
+            showMessage(formMessage, '', 'success');
+            setCreateMode();
+        });
+
+        searchInput.addEventListener('input', renderTable);
+        slotIds.forEach(id => {
+            const input = document.getElementById(id);
+            input.addEventListener('input', () => validateSlot(input));
+            input.addEventListener('change', () => validateSlot(input));
+            input.addEventListener('blur', () => validateSlot(input));
+        });
+
+        stopBtn.addEventListener('click', () => {
+            if (abortController) abortController.abort();
+        });
+
+        form.addEventListener('submit', async (event) => {
+            event.preventDefault();
+            saveBtn.disabled = true;
+            showMessage(formMessage, '', 'success');
+            const slotsOk = validateAllSlots();
+            if (!slotsOk) {
+                showMessage(
+                    formMessage,
+                    'One or more slot serials are missing from the daughterboard table. Fix them before saving.',
+                    'warn'
+                );
+                saveBtn.disabled = false;
+                return;
+            }
+            try {
+                const payload = formPayload();
+                const updating = editingId !== null;
+                const response = await fetch(
+                    updating ? `/api/benchtests/${editingId}` : '/api/benchtests',
+                    {
+                        method: updating ? 'PUT' : 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify(payload),
+                    }
+                );
+                const data = await response.json();
+                if (!response.ok || !data.success) {
+                    throw new Error(data.error || 'Save failed');
+                }
+                const saved = data.benchtest;
+                await loadBenchtests(saved.id);
+                showMessage(
+                    formMessage,
+                    updating ? `Updated benchtest #${saved.id}.` : `Created benchtest #${saved.id}.`,
+                    'success'
+                );
+            } catch (error) {
+                showMessage(formMessage, error.message, 'error');
+            } finally {
+                saveBtn.disabled = false;
+            }
+        });
+
+        async function startRequalify({ replace = false, allowParallel = false } = {}) {
+            abortController = new AbortController();
+            return fetch(`/api/benchtests/${editingId}/requalify`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    replace: !!replace,
+                    allow_parallel: !!allowParallel,
+                }),
+                signal: abortController.signal,
+            });
+        }
+
+        requalifyBtn.addEventListener('click', async () => {
+            if (editingId === null) return;
+            if (!confirm(`Requalify benchtest #${editingId} with DBQ_Mk6.py -r all -b ${editingId}?`)) {
+                return;
+            }
+
+            const proposed = `python3 -u DBQ_Mk6.py -r all -b ${editingId}`;
+            try {
+                const decision = await DbqGuard.confirmDbqStart(proposed);
+                if (!decision.proceed) {
+                    return;
+                }
+
+                showMessage(formMessage, '', 'success');
+                terminalLabel.classList.add('visible');
+                terminal.show();
+                terminal.clear('');
+                setRequalifyRunning(true);
+
+                let response = await startRequalify({
+                    replace: decision.replace,
+                    allowParallel: decision.allowParallel,
+                });
+                if (!response.ok) {
+                    const launchError = await DbqGuard.readDbqLaunchError(response, proposed);
+                    if (launchError.retry) {
+                        response = await startRequalify({
+                            replace: launchError.replace,
+                            allowParallel: launchError.allowParallel,
+                        });
+                    } else {
+                        throw new Error(launchError.error || `Request failed (${response.status})`);
+                    }
+                }
+                if (!response.ok) {
+                    const launchError = await DbqGuard.readDbqLaunchError(response, proposed);
+                    throw new Error(launchError.error || `Request failed (${response.status})`);
+                }
+
+                const reader = response.body.getReader();
+                const decoder = new TextDecoder();
+                while (true) {
+                    const { done, value } = await reader.read();
+                    if (done) break;
+                    appendTerminal(decoder.decode(value, { stream: true }));
+                }
+                await loadBenchtests(editingId);
+                showMessage(formMessage, `Requalify finished for benchtest #${editingId}.`, 'success');
+            } catch (error) {
+                if (error.name === 'AbortError') {
+                    appendTerminal('\n\nRequalify stopped by user.\n');
+                    showMessage(formMessage, 'Requalify stopped.', 'warn');
+                } else {
+                    appendTerminal(`\nError: ${error.message}\n`);
+                    showMessage(formMessage, error.message, 'error');
+                }
+            } finally {
+                setRequalifyRunning(false);
+            }
+        });
+
+        loadBenchtests().catch(error => {
+            listWrap.style.display = 'none';
+            listMessage.style.display = 'block';
+            listMessage.textContent = error.message;
+        });
+    </script>
+</body>
+</html>

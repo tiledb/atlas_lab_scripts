@@ -104,11 +104,16 @@
             margin-top: 5px;
         }
 
-        .btn-submit {
-            width: 100%;
+        .btn-row {
+            display: flex;
+            gap: 12px;
+            margin-bottom: 18px;
+        }
+
+        .btn-submit,
+        .btn-stop {
+            flex: 1;
             padding: 14px;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: white;
             border: none;
             border-radius: 6px;
             font-size: 16px;
@@ -117,9 +122,33 @@
             transition: transform 0.2s, box-shadow 0.2s;
         }
 
-        .btn-submit:hover {
+        .btn-submit {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+
+        .btn-submit:hover:not(:disabled) {
             transform: translateY(-2px);
             box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+        }
+
+        .btn-submit:disabled {
+            opacity: 0.6;
+            cursor: wait;
+        }
+
+        .btn-stop {
+            background: #f5f5f5;
+            color: #555;
+            display: none;
+        }
+
+        .btn-stop.visible {
+            display: block;
+        }
+
+        .btn-stop:hover {
+            background: #ececec;
         }
 
         .output-box {
@@ -127,14 +156,18 @@
             border: 1px solid #333;
             border-radius: 6px;
             padding: 15px;
-            margin-top: 20px;
+            margin-top: 8px;
             color: #d4d4d4;
             font-size: 13px;
             font-family: 'Courier New', monospace;
             white-space: pre-wrap;
-            max-height: 400px;
+            max-height: 480px;
             overflow-y: auto;
             word-wrap: break-word;
+        }
+
+        .output-box.running {
+            border-color: #667eea;
         }
 
         .output-box.success {
@@ -143,24 +176,6 @@
 
         .output-box.error {
             border-color: #f44336;
-        }
-
-        .output-box::-webkit-scrollbar {
-            width: 10px;
-        }
-
-        .output-box::-webkit-scrollbar-track {
-            background: #2d2d2d;
-            border-radius: 5px;
-        }
-
-        .output-box::-webkit-scrollbar-thumb {
-            background: #555;
-            border-radius: 5px;
-        }
-
-        .output-box::-webkit-scrollbar-thumb:hover {
-            background: #777;
         }
 
         .output-label {
@@ -181,6 +196,22 @@
         .back-link:hover {
             text-decoration: underline;
         }
+
+        .message {
+            display: none;
+            border-radius: 6px;
+            padding: 12px 14px;
+            margin-bottom: 16px;
+            font-size: 14px;
+            line-height: 1.4;
+        }
+
+        .message.error {
+            display: block;
+            background: #fef2f2;
+            color: #991b1b;
+            border: 1px solid #fecaca;
+        }
     </style>
 </head>
 
@@ -198,8 +229,9 @@
 
         <div class="form-card">
             <h2>Run DBQ_Mk6 Script</h2>
+            <div id="form-message" class="message"></div>
 
-            <form method="POST" action="{{ url_for('run_script') }}">
+            <form id="run-form">
                 <div class="form-group">
                     <label for="regenerate_mode">Regeneration Mode</label>
                     <select id="regenerate_mode" name="regenerate_mode">
@@ -235,45 +267,143 @@
                     <p class="help-text">Filter by specific daughterboard serial number. Leave empty for all.</p>
                 </div>
 
-                <button type="submit" class="btn-submit">Run Script</button>
+                <div class="btn-row">
+                    <button type="submit" class="btn-submit" id="run-btn">Run Script</button>
+                    <button type="button" class="btn-stop" id="stop-btn">Stop</button>
+                </div>
             </form>
 
             <div class="output-label">Terminal Output</div>
-            <div class="output-box {% if message %}success{% elif error %}error{% endif %}" id="terminal-output">
-                {% if message %}
-                {{ message }}
-                {% elif error %}
-                {{ error }}
-                {% else %}
-                Waiting for script execution...
-                {% endif %}
-            </div>
+            <div class="output-box" id="terminal-output">Waiting for script execution...</div>
         </div>
     </div>
 
+    <script src="{{ url_for('static', filename='dbq_terminal.js') }}"></script>
+    <script src="{{ url_for('static', filename='dbq_guard.js') }}"></script>
     <script>
-        // Auto-scroll to bottom if user is already at bottom
+        const form = document.getElementById('run-form');
+        const runBtn = document.getElementById('run-btn');
+        const stopBtn = document.getElementById('stop-btn');
+        const formMessage = document.getElementById('form-message');
         const terminalOutput = document.getElementById('terminal-output');
-        let isUserAtBottom = true;
-
-        terminalOutput.addEventListener('scroll', function () {
-            const threshold = 50;
-            isUserAtBottom = (terminalOutput.scrollHeight - terminalOutput.scrollTop - terminalOutput.clientHeight) < threshold;
+        const terminal = DbqTerminal.attach({
+            outputEl: terminalOutput,
+            scrollEl: terminalOutput,
+            storageKey: 'run_dbq_terminal',
+            defaultMaxLines: 5000,
+            defaultAutoscroll: true,
         });
+        let abortController = null;
 
-        // Scroll to bottom on page load
-        window.addEventListener('load', function () {
-            terminalOutput.scrollTop = terminalOutput.scrollHeight;
-        });
+        function appendOutput(text) {
+            if (terminalOutput.textContent === 'Waiting for script execution...') {
+                terminal.clear('');
+            }
+            terminal.append(text);
+        }
 
-        // Auto-scroll when content changes if user is at bottom
-        const observer = new MutationObserver(function () {
-            if (isUserAtBottom) {
-                terminalOutput.scrollTop = terminalOutput.scrollHeight;
+        function setRunning(running) {
+            runBtn.disabled = running;
+            stopBtn.classList.toggle('visible', running);
+            terminalOutput.classList.toggle('running', running);
+            if (!running) {
+                abortController = null;
+            }
+        }
+
+        stopBtn.addEventListener('click', () => {
+            if (abortController) {
+                abortController.abort();
             }
         });
 
-        observer.observe(terminalOutput, { childList: true, subtree: true, characterData: true });
+        async function startDbqRun({ replace = false, allowParallel = false } = {}) {
+            abortController = new AbortController();
+            const payload = {
+                regenerate_mode: document.getElementById('regenerate_mode').value,
+                specific_benchtest_ids: document.getElementById('specific_benchtest_ids').value,
+                specific_daughterboard_id: document.getElementById('specific_daughterboard_id').value,
+                replace: !!replace,
+                allow_parallel: !!allowParallel,
+            };
+            const response = await fetch('/api/run_dbq_script', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(payload),
+                signal: abortController.signal,
+            });
+            return response;
+        }
+
+        function proposedDbqCommand() {
+            const mode = document.getElementById('regenerate_mode').value;
+            const ids = document.getElementById('specific_benchtest_ids').value.trim();
+            const board = document.getElementById('specific_daughterboard_id').value.trim();
+            let cmd = 'python3 -u DBQ_Mk6.py';
+            if (mode && mode !== 'none') cmd += ` -r ${mode}`;
+            if (ids) cmd += ` -b ${ids}`;
+            if (board) cmd += ` -d ${board}`;
+            return cmd;
+        }
+
+        form.addEventListener('submit', async (event) => {
+            event.preventDefault();
+            formMessage.style.display = 'none';
+            terminalOutput.classList.remove('success', 'error');
+
+            try {
+                const proposed = proposedDbqCommand();
+                const decision = await DbqGuard.confirmDbqStart(proposed);
+                if (!decision.proceed) {
+                    return;
+                }
+
+                terminal.clear('Starting DBQ_Mk6...\n');
+                setRunning(true);
+
+                let response = await startDbqRun({
+                    replace: decision.replace,
+                    allowParallel: decision.allowParallel,
+                });
+                if (!response.ok) {
+                    const launchError = await DbqGuard.readDbqLaunchError(response, proposed);
+                    if (launchError.retry) {
+                        response = await startDbqRun({
+                            replace: launchError.replace,
+                            allowParallel: launchError.allowParallel,
+                        });
+                    } else {
+                        throw new Error(launchError.error || `Request failed (${response.status})`);
+                    }
+                }
+                if (!response.ok) {
+                    const launchError = await DbqGuard.readDbqLaunchError(response, proposed);
+                    throw new Error(launchError.error || `Request failed (${response.status})`);
+                }
+
+                const reader = response.body.getReader();
+                const decoder = new TextDecoder();
+                while (true) {
+                    const { done, value } = await reader.read();
+                    if (done) break;
+                    appendOutput(decoder.decode(value, { stream: true }));
+                }
+                appendOutput('\n');
+                terminalOutput.classList.add('success');
+            } catch (error) {
+                if (error.name === 'AbortError') {
+                    appendOutput('\n\nScript stopped by user.\n');
+                } else {
+                    formMessage.className = 'message error';
+                    formMessage.textContent = error.message;
+                    formMessage.style.display = 'block';
+                    appendOutput(`\nError: ${error.message}\n`);
+                    terminalOutput.classList.add('error');
+                }
+            } finally {
+                setRunning(false);
+            }
+        });
     </script>
 </body>
 

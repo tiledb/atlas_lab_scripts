@@ -3898,6 +3898,8 @@
         }
     </style>
     <script src="https://cdn.plot.ly/plotly-2.35.2.min.js"></script>
+    <script src="{{ url_for('static', filename='dbq_terminal.js') }}"></script>
+    <script src="{{ url_for('static', filename='dbq_guard.js') }}"></script>
 </head>
 
 <body>
@@ -4234,6 +4236,12 @@
                     <div class="card-icon">🔥</div>
                     <h3>Burn in slot management</h3>
                     <p>Review burn-in slots and declare a new slot for boards selected from the table.</p>
+                </a>
+
+                <a href="{{ url_for('edit_benchtests') }}" class="card">
+                    <div class="card-icon">🧪</div>
+                    <h3>Benchtest management</h3>
+                    <p>Create and edit MariaDB benchtest records, including start/stop times, operator, result, and slot serials.</p>
                 </a>
             </div>
         </div>
@@ -13170,6 +13178,14 @@
         const terminalOutput = document.getElementById('terminal-output');
         const terminalClose = document.getElementById('terminal-close');
         const terminalActionBtn = document.getElementById('terminal-action-btn');
+        const terminal = DbqTerminal.attach({
+            outputEl: terminalOutput,
+            scrollEl: terminalContent,
+            wrapEl: terminalContent,
+            storageKey: 'dashboard_rerun_terminal',
+            defaultMaxLines: 5000,
+            defaultAutoscroll: true,
+        });
 
         let isScriptRunning = false;
         let abortController = null;
@@ -13191,7 +13207,7 @@
                 terminalModal.classList.remove('closing');
                 terminalModal.classList.remove('expanded');
                 terminalContent.classList.remove('has-content');
-                terminalOutput.innerHTML = '';
+                terminal.clear('');
             }, 300);
         }
 
@@ -13208,7 +13224,7 @@
                 if (abortController) {
                     abortController.abort();
                 }
-                terminalOutput.innerHTML += '\n\nScript stopped by user.\n';
+                terminal.append('\n\nScript stopped by user.\n');
                 isScriptRunning = false;
                 terminalActionBtn.textContent = 'Close';
                 terminalActionBtn.classList.remove('terminal-stop-btn');
@@ -13480,10 +13496,22 @@
                 return;
             }
 
+            let decision;
+            const proposed = `python3 -u DBQ_Mk6.py -r all -d ${currentBoardSerial}`;
+            try {
+                decision = await DbqGuard.confirmDbqStart(proposed);
+            } catch (error) {
+                alert(error.message || 'Failed to check for a running DBQ_Mk6 instance');
+                return;
+            }
+            if (!decision.proceed) {
+                return;
+            }
+
             const command = `python3 DBQ_Mk6.py -r all -d ${currentBoardSerial}`;
             terminalTitle.textContent = `Rerunning Analysis for Board ${currentBoardSerial}`;
             terminalCommand.textContent = `$ ${command}`;
-            terminalOutput.innerHTML = 'Starting analysis...\n';
+            terminal.clear('Starting analysis...\n');
 
             // Reset button state
             terminalActionBtn.textContent = 'Stop';
@@ -13495,52 +13523,72 @@
             openTerminalModal();
 
             try {
-                const response = await fetch('/api/rerun_analysis', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                    },
-                    body: JSON.stringify({ serial_no: currentBoardSerial }),
-                    signal: abortController.signal
+                async function startRerun({ replace = false, allowParallel = false } = {}) {
+                    return fetch('/api/rerun_analysis', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                        },
+                        body: JSON.stringify({
+                            serial_no: currentBoardSerial,
+                            replace: !!replace,
+                            allow_parallel: !!allowParallel,
+                        }),
+                        signal: abortController.signal
+                    });
+                }
+
+                let response = await startRerun({
+                    replace: decision.replace,
+                    allowParallel: decision.allowParallel,
                 });
+                if (!response.ok) {
+                    const launchError = await DbqGuard.readDbqLaunchError(response, proposed);
+                    if (launchError.retry) {
+                        response = await startRerun({
+                            replace: launchError.replace,
+                            allowParallel: launchError.allowParallel,
+                        });
+                    } else {
+                        throw new Error(launchError.error || response.statusText);
+                    }
+                }
+                if (!response.ok) {
+                    const launchError = await DbqGuard.readDbqLaunchError(response, proposed);
+                    throw new Error(launchError.error || response.statusText);
+                }
 
-                if (response.ok) {
-                    const reader = response.body.getReader();
-                    const decoder = new TextDecoder();
+                const reader = response.body.getReader();
+                const decoder = new TextDecoder();
 
-                    // Set initial height for animation
-                    terminalContent.style.height = 'auto';
-                    terminalContent.style.maxHeight = '60vh';
+                // Set initial height for animation
+                terminalContent.style.height = 'auto';
+                terminalContent.style.maxHeight = '60vh';
 
-                    while (true) {
-                        const { done, value } = await reader.read();
-                        if (done) break;
+                while (true) {
+                    const { done, value } = await reader.read();
+                    if (done) break;
 
-                        const text = decoder.decode(value);
-                        terminalOutput.innerHTML += text;
+                    const text = decoder.decode(value);
+                    terminal.append(text);
 
-                        // Add has-content class on first text to trigger animation
-                        if (!terminalContent.classList.contains('has-content')) {
-                            terminalContent.classList.add('has-content');
-                        }
-
-                        // Add expanded class to modal for smooth resize
-                        if (!terminalModal.classList.contains('expanded')) {
-                            terminalModal.classList.add('expanded');
-                        }
-
-                        terminalContent.scrollTop = terminalContent.scrollHeight;
+                    // Add has-content class on first text to trigger animation
+                    if (!terminalContent.classList.contains('has-content')) {
+                        terminalContent.classList.add('has-content');
                     }
 
-                    terminalOutput.innerHTML += '\n\nAnalysis completed successfully!';
-                } else {
-                    terminalOutput.innerHTML += `\n\nError: ${response.statusText}`;
+                    // Add expanded class to modal for smooth resize
+                    if (!terminalModal.classList.contains('expanded')) {
+                        terminalModal.classList.add('expanded');
+                    }
                 }
+
+                terminal.append('\n\nAnalysis completed successfully!');
             } catch (error) {
                 if (error.name === 'AbortError') {
-                    terminalOutput.innerHTML += '\n\nScript aborted.';
+                    terminal.append('\n\nScript aborted.');
                 } else {
-                    terminalOutput.innerHTML += `\n\nError: ${error.message}`;
+                    terminal.append(`\n\nError: ${error.message}`);
                 }
             } finally {
                 isScriptRunning = false;
